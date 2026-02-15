@@ -304,3 +304,84 @@ async def create_post(
         created_at=new_post.created_at,
         updated_at=new_post.updated_at
     )
+
+
+@router.put("/posts/{post_id}/hide", status_code=status.HTTP_200_OK)
+async def hide_post(
+    post_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_administrator)
+):
+    """Hide a forum post (admin only).
+
+    Requires administrator role (Requirement 7.2).
+    Marks post as hidden and excludes from normal display (Requirement 3.5).
+    Logs moderation action in audit log (Requirement 7.5).
+
+    Args:
+        post_id: UUID of the post to hide
+        db: Database session
+        current_user: Authenticated administrator
+
+    Returns:
+        Success message
+
+    Raises:
+        HTTPException 400: If post ID format is invalid
+        HTTPException 404: If post not found
+    """
+    from uuid import UUID
+    from app.models import AuditLog
+
+    try:
+        post_uuid = UUID(post_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorResponse.create(
+                code="INVALID_POST_ID",
+                message="Invalid post ID format",
+                details={}
+            )
+        )
+
+    # Fetch post
+    post = db.query(Post).filter(Post.id == post_uuid).first()
+    if not post:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=ErrorResponse.create(
+                code="POST_NOT_FOUND",
+                message="Post not found",
+                details={"post_id": post_id}
+            )
+        )
+
+    # Mark post as hidden (Requirement 3.5)
+    post.is_hidden = True
+
+    # Log moderation action in audit log (Requirement 7.5)
+    audit_entry = AuditLog(
+        admin_id=current_user.id,
+        action="hide_post",
+        target_type="post",
+        target_id=post.id,
+        details={
+            "post_id": str(post.id),
+            "topic_id": str(post.topic_id),
+            "author_id": str(post.author_id),
+            "content_preview": post.content[:100] if len(post.content) > 100 else post.content
+        }
+    )
+
+    db.add(audit_entry)
+    db.commit()
+
+    logger.info(f"Administrator {current_user.id} hid post {post_id}")
+
+    return {
+        "success": True,
+        "message": "Post has been hidden successfully",
+        "post_id": str(post.id)
+    }
+
