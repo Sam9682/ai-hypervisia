@@ -7,6 +7,7 @@ from app.logging_config import logger
 from app.auth.router import router as auth_router
 from app.forum.router import router as forum_router
 from app.payments.router import router as payments_router
+from app.scheduler import task_scheduler
 
 
 @asynccontextmanager
@@ -15,8 +16,16 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info(f"Debug mode: {settings.DEBUG}")
+    
+    # Start background task scheduler
+    task_scheduler.start()
+    logger.info("Background task scheduler started")
+    
     yield
+    
     # Shutdown
+    task_scheduler.shutdown()
+    logger.info("Background task scheduler stopped")
     logger.info(f"Shutting down {settings.APP_NAME}")
 
 
