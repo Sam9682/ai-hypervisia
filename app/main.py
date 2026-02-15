@@ -6,6 +6,7 @@ from app.config import settings
 from app.logging_config import logger
 from app.auth.router import router as auth_router
 from app.forum.router import router as forum_router
+from app.payments.router import router as payments_router
 
 
 @asynccontextmanager
@@ -39,6 +40,7 @@ app.add_middleware(
 # Register routers
 app.include_router(auth_router)
 app.include_router(forum_router)
+app.include_router(payments_router)
 
 
 @app.get("/health")

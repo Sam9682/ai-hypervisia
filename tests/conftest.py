@@ -79,3 +79,13 @@ def verified_user(db_session):
     db_session.commit()
     db_session.refresh(user)
     return user
+
+
+@pytest.fixture(scope="function")
+def auth_headers(test_user):
+    """Create authentication headers with JWT token"""
+    from app.auth.token import create_access_token
+    
+    token = create_access_token({"sub": str(test_user.id)})
+    return {"Authorization": f"Bearer {token}"}
+
