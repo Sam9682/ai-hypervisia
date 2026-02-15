@@ -16,6 +16,8 @@ from app.models import User, Payment, PaymentMethod, PaymentStatus
 from app.payments.schemas import PaymentInitiateRequest, PaymentInitiateResponse
 from app.services.stripe_service import stripe_service
 from app.services.paypal_service import paypal_service
+from app.services.invoice_generator import invoice_generator
+from app.services.email_service import email_service
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -61,6 +63,67 @@ def update_user_membership(user: User, db: Session) -> None:
     logger.info(
         f"Updated membership for user {user.id} until {user.membership_expires_at}"
     )
+
+
+def generate_and_send_invoice(payment: Payment, user: User, db: Session) -> None:
+    """Generate PDF invoice and send it to user's email
+    
+    Validates Requirements 4.3, 4.4:
+    - Generates PDF invoice with payment details
+    - Sends invoice to user's email address
+    
+    Args:
+        payment: Payment object
+        user: User object
+        db: Database session
+    """
+    try:
+        # Generate user's full name
+        user_name = f"{user.first_name} {user.last_name}"
+        
+        # Generate invoice PDF
+        invoice_path = invoice_generator.generate_invoice(
+            payment_id=str(payment.id),
+            user_email=user.email,
+            user_name=user_name,
+            amount=payment.amount,
+            currency=payment.currency,
+            payment_method=payment.payment_method.value,
+            transaction_id=payment.transaction_id,
+            created_at=payment.created_at
+        )
+        
+        # Generate invoice number for email
+        invoice_number = invoice_generator.generate_invoice_number(
+            str(payment.id),
+            payment.created_at
+        )
+        
+        # Store invoice URL in payment record
+        # Use relative path for storage
+        payment.invoice_url = f"/invoices/{invoice_number}.pdf"
+        db.commit()
+        
+        logger.info(f"Stored invoice URL for payment {payment.id}: {payment.invoice_url}")
+        
+        # Send invoice email
+        email_sent = email_service.send_invoice_email(
+            to_email=user.email,
+            user_name=user_name,
+            invoice_number=invoice_number,
+            amount=float(payment.amount),
+            currency=payment.currency,
+            invoice_path=invoice_path
+        )
+        
+        if email_sent:
+            logger.info(f"Invoice email sent successfully to {user.email}")
+        else:
+            logger.warning(f"Failed to send invoice email to {user.email}")
+    
+    except Exception as e:
+        logger.error(f"Failed to generate/send invoice for payment {payment.id}: {str(e)}", exc_info=True)
+        # Don't raise - we don't want to fail the webhook if invoice generation fails
 
 
 @router.post(
@@ -336,6 +399,11 @@ async def stripe_webhook(
             
             db.commit()
             
+            # Generate and send invoice
+            # Property 15: Invoice generation and delivery
+            if user:
+                generate_and_send_invoice(payment, user, db)
+            
             logger.info(
                 f"Successfully processed payment {payment.id} for user {payment.user_id}"
             )
@@ -494,6 +562,11 @@ async def paypal_webhook(
                 update_user_membership(user, db)
             
             db.commit()
+            
+            # Generate and send invoice
+            # Property 15: Invoice generation and delivery
+            if user:
+                generate_and_send_invoice(payment, user, db)
             
             logger.info(
                 f"Successfully processed PayPal payment {payment.id} for user {payment.user_id}"

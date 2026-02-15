@@ -29,3 +29,6 @@ email-validator==2.3.0
 # Payment Processing
 stripe==14.3.0
 paypalrestsdk==1.13.1
+
+# PDF Generation
+reportlab==4.2.5

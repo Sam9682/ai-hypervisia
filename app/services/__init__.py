@@ -1,5 +1,14 @@
 """Services for HYPERVISIA application"""
 from app.services.stripe_service import stripe_service, StripeService
+from app.services.invoice_generator import invoice_generator, InvoiceGenerator
+from app.services.email_service import email_service, EmailService
 
-__all__ = ["stripe_service", "StripeService"]
+__all__ = [
+    "stripe_service",
+    "StripeService",
+    "invoice_generator",
+    "InvoiceGenerator",
+    "email_service",
+    "EmailService"
+]
 
