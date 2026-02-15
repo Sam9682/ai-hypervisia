@@ -146,4 +146,4 @@ This project follows PEP 8 style guidelines.
 
 ## License
 
-Copyright © 2024 HYPERVISIA Association
+Copyright © 2026 HYPERVISIA Association

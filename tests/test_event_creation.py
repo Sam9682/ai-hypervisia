@@ -71,7 +71,7 @@ def valid_event_data():
     end_date = start_date + timedelta(hours=2)
     
     return {
-        "title": "Assemblée Générale 2024",
+        "title": "Assemblée Générale 2026",
         "description": "Assemblée générale annuelle de l'association",
         "start_date": start_date.isoformat(),
         "end_date": end_date.isoformat(),

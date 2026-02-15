@@ -61,7 +61,7 @@ result = stripe_service.create_payment_intent(
     currency="eur",
     metadata={
         "user_id": "123",
-        "membership_year": "2024"
+        "membership_year": "2026"
     }
 )
 

@@ -1,9 +1,10 @@
 """Event management API endpoints
 Feature: hypervisia-website
-Validates Requirements 6.1, 6.2, 6.5, 10.3
+Validates Requirements 6.1, 6.2, 6.5, 6.7, 10.3
 """
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import datetime, timezone
@@ -15,6 +16,8 @@ from app.auth.dependencies import get_current_user
 from app.services.email_service import email_service
 from app.auth.schemas import ErrorResponse
 from app.logging_config import logger
+from icalendar import Calendar, Event as ICalEvent
+from icalendar import vText
 
 
 router = APIRouter(prefix="/api/events", tags=["events"])
@@ -765,6 +768,111 @@ L'équipe HYPERVISIA
             detail=ErrorResponse.create(
                 code="EVENT_CANCELLATION_FAILED",
                 message="Failed to cancel event",
+                details={"error": str(e)}
+            )
+        )
+
+
+
+@router.get("/export/ical", status_code=status.HTTP_200_OK)
+async def export_events_ical(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Export events to iCal format
+    
+    Validates Requirements 6.7:
+    - Generates valid iCal format file
+    - Includes all event details (title, description, dates, location)
+    - Returns file that can be imported into calendar applications
+    
+    Args:
+        db: Database session
+        current_user: Authenticated user
+        
+    Returns:
+        iCal file with all upcoming events
+        
+    Raises:
+        HTTPException 401: If user is not authenticated
+        HTTPException 500: If iCal generation fails
+    """
+    try:
+        # Get current time
+        now = datetime.now(timezone.utc)
+        
+        # Query upcoming events (start_date >= current date)
+        # Only show scheduled events (not cancelled or completed)
+        events = db.query(Event).filter(
+            Event.start_date >= now,
+            Event.status == EventStatus.SCHEDULED
+        ).order_by(Event.start_date.asc()).all()
+        
+        # Create calendar
+        cal = Calendar()
+        cal.add('prodid', '-//HYPERVISIA Association//Events Calendar//FR')
+        cal.add('version', '2.0')
+        cal.add('calscale', 'GREGORIAN')
+        cal.add('method', 'PUBLISH')
+        cal.add('x-wr-calname', 'HYPERVISIA Events')
+        cal.add('x-wr-timezone', 'Europe/Paris')
+        cal.add('x-wr-caldesc', 'Événements de l\'association HYPERVISIA')
+        
+        # Add each event to the calendar
+        for event in events:
+            ical_event = ICalEvent()
+            
+            # Required fields
+            ical_event.add('uid', f'{event.id}@hypervisia.org')
+            ical_event.add('dtstamp', datetime.now(timezone.utc))
+            ical_event.add('dtstart', event.start_date)
+            ical_event.add('dtend', event.end_date)
+            ical_event.add('summary', event.title)
+            
+            # Optional fields
+            if event.description:
+                ical_event.add('description', event.description)
+            
+            if event.location:
+                ical_event.add('location', vText(event.location))
+            
+            # Add status
+            ical_event.add('status', 'CONFIRMED')
+            
+            # Add creation and modification timestamps
+            ical_event.add('created', event.created_at)
+            ical_event.add('last-modified', event.updated_at)
+            
+            # Add organizer (association)
+            ical_event.add('organizer', 'HYPERVISIA Association')
+            
+            # Add to calendar
+            cal.add_component(ical_event)
+        
+        # Generate iCal content
+        ical_content = cal.to_ical()
+        
+        logger.info(
+            f"User {current_user.id} ({current_user.email}) exported {len(events)} "
+            f"events to iCal format"
+        )
+        
+        # Return as downloadable file
+        return Response(
+            content=ical_content,
+            media_type="text/calendar",
+            headers={
+                "Content-Disposition": "attachment; filename=hypervisia_events.ics"
+            }
+        )
+    
+    except Exception as e:
+        logger.error(f"Error exporting events to iCal: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ErrorResponse.create(
+                code="ICAL_EXPORT_FAILED",
+                message="Failed to export events to iCal format",
                 details={"error": str(e)}
             )
         )

@@ -35,3 +35,6 @@ reportlab==4.2.5
 
 # Background Tasks
 apscheduler==3.10.4
+
+# iCal Export
+icalendar==6.1.0
