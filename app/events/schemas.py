@@ -63,3 +63,34 @@ class EventCreateResponse(BaseModel):
     success: bool
     message: str
     event: EventResponse
+
+
+class EventListResponse(BaseModel):
+    """Response schema for event listing"""
+    success: bool
+    events: list[EventResponse]
+    total: int
+    view_format: str  # "list" or "calendar"
+
+
+class EventRegistrationResponse(BaseModel):
+    """Response schema for event registration"""
+    success: bool
+    message: str
+    registration_id: Optional[UUID] = None
+    participant_count: int
+
+
+class EventUnregistrationResponse(BaseModel):
+    """Response schema for event unregistration"""
+    success: bool
+    message: str
+    participant_count: int
+
+
+class EventCancellationResponse(BaseModel):
+    """Response schema for event cancellation"""
+    success: bool
+    message: str
+    event: EventResponse
+    notifications_sent: int

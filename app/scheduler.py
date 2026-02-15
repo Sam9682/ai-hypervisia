@@ -1,6 +1,6 @@
 """Background task scheduler for HYPERVISIA application
 Feature: hypervisia-website
-Validates Requirements 4.6
+Validates Requirements 4.6, 6.4
 """
 import logging
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.services.membership_reminder_service import membership_reminder_service
+from app.services.event_reminder_service import event_reminder_service
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,23 @@ class TaskScheduler:
         finally:
             db.close()
     
+    def event_reminder_job(self):
+        """Job to process event reminders
+        
+        Validates Requirements 6.4:
+        - Checks upcoming events (7 days before)
+        - Sends reminder emails to registered participants only
+        """
+        logger.info("Running event reminder job")
+        db: Session = SessionLocal()
+        try:
+            result = event_reminder_service.process_event_reminders(db)
+            logger.info(f"Event reminder job completed: {result}")
+        except Exception as e:
+            logger.error(f"Error in event reminder job: {str(e)}", exc_info=True)
+        finally:
+            db.close()
+    
     def start(self):
         """Start the scheduler with all configured jobs"""
         # Run membership reminder check daily at 9:00 AM
@@ -41,6 +59,15 @@ class TaskScheduler:
             trigger=CronTrigger(hour=9, minute=0),
             id='membership_reminder',
             name='Check and send membership expiry reminders',
+            replace_existing=True
+        )
+        
+        # Run event reminder check daily at 9:00 AM
+        self.scheduler.add_job(
+            self.event_reminder_job,
+            trigger=CronTrigger(hour=9, minute=0),
+            id='event_reminder',
+            name='Check and send event reminders',
             replace_existing=True
         )
         

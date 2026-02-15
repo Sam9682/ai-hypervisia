@@ -1,6 +1,6 @@
 """Tests for background task scheduler
 Feature: hypervisia-website
-Validates Requirements 4.6
+Validates Requirements 4.6, 6.4
 """
 import pytest
 from unittest.mock import patch, MagicMock
@@ -58,6 +58,51 @@ class TestTaskScheduler:
         # Verify database was closed
         mock_db.close.assert_called_once()
     
+    @patch('app.scheduler.event_reminder_service')
+    @patch('app.scheduler.SessionLocal')
+    def test_event_reminder_job_processes_reminders(self, mock_session_local, mock_reminder_service):
+        """Test that event reminder job calls the service correctly
+        
+        Validates Requirements 6.4:
+        - Background task checks upcoming events
+        - Sends reminders to registered participants
+        """
+        # Setup
+        mock_db = MagicMock()
+        mock_session_local.return_value = mock_db
+        mock_reminder_service.process_event_reminders.return_value = {
+            'events': 2,
+            'participants': 5,
+            'sent': 5,
+            'failed': 0
+        }
+        
+        scheduler = TaskScheduler()
+        
+        # Test
+        scheduler.event_reminder_job()
+        
+        # Verify
+        mock_reminder_service.process_event_reminders.assert_called_once_with(mock_db)
+        mock_db.close.assert_called_once()
+    
+    @patch('app.scheduler.event_reminder_service')
+    @patch('app.scheduler.SessionLocal')
+    def test_event_reminder_job_closes_db_on_error(self, mock_session_local, mock_reminder_service):
+        """Test that database session is closed even when event reminder job fails"""
+        # Setup
+        mock_db = MagicMock()
+        mock_session_local.return_value = mock_db
+        mock_reminder_service.process_event_reminders.side_effect = Exception("Test error")
+        
+        scheduler = TaskScheduler()
+        
+        # Test - should not raise exception
+        scheduler.event_reminder_job()
+        
+        # Verify database was closed
+        mock_db.close.assert_called_once()
+    
     def test_scheduler_start_adds_membership_reminder_job(self):
         """Test that starting scheduler adds the membership reminder job"""
         scheduler = TaskScheduler()
@@ -69,33 +114,34 @@ class TestTaskScheduler:
             # Verify scheduler is running
             assert scheduler.scheduler.running
             
-            # Verify job was added
+            # Verify jobs were added
             jobs = scheduler.scheduler.get_jobs()
-            assert len(jobs) == 1
-            assert jobs[0].id == 'membership_reminder'
-            assert jobs[0].name == 'Check and send membership expiry reminders'
+            assert len(jobs) == 2  # membership_reminder and event_reminder
+            
+            job_ids = [job.id for job in jobs]
+            assert 'membership_reminder' in job_ids
+            assert 'event_reminder' in job_ids
         finally:
             # Cleanup
             scheduler.shutdown()
     
     def test_scheduler_job_runs_daily_at_9am(self):
-        """Test that membership reminder job is scheduled to run daily at 9:00 AM"""
+        """Test that jobs are scheduled to run daily at 9:00 AM"""
         scheduler = TaskScheduler()
         scheduler.start()
         
         try:
-            # Get the job
+            # Get the jobs
             jobs = scheduler.scheduler.get_jobs()
-            job = jobs[0]
             
-            # Verify trigger is CronTrigger
-            trigger = job.trigger
-            assert trigger.__class__.__name__ == 'CronTrigger'
-            
-            # Verify schedule (hour=9, minute=0)
-            # CronTrigger stores fields, we check the string representation
-            trigger_str = str(trigger)
-            assert '9' in trigger_str  # Hour 9
+            # Verify both jobs have CronTrigger scheduled for 9 AM
+            for job in jobs:
+                trigger = job.trigger
+                assert trigger.__class__.__name__ == 'CronTrigger'
+                
+                # Verify schedule (hour=9, minute=0)
+                trigger_str = str(trigger)
+                assert '9' in trigger_str  # Hour 9
         finally:
             scheduler.shutdown()
     
@@ -129,10 +175,9 @@ class TestTaskScheduler:
         try:
             # Get initial job count
             jobs = scheduler.scheduler.get_jobs()
-            assert len(jobs) == 1
-            initial_job_id = jobs[0].id
+            assert len(jobs) == 2  # membership_reminder and event_reminder
             
-            # Add the job again (while scheduler is running)
+            # Add the membership job again (while scheduler is running)
             # This should replace the existing job
             scheduler.scheduler.add_job(
                 scheduler.membership_reminder_job,
@@ -142,9 +187,12 @@ class TestTaskScheduler:
                 replace_existing=True
             )
             
-            # Should still have only one job
+            # Should still have only two jobs
             jobs = scheduler.scheduler.get_jobs()
-            assert len(jobs) == 1
-            assert jobs[0].id == initial_job_id
+            assert len(jobs) == 2
+            
+            job_ids = [job.id for job in jobs]
+            assert 'membership_reminder' in job_ids
+            assert 'event_reminder' in job_ids
         finally:
             scheduler.shutdown()
