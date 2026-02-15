@@ -46,3 +46,11 @@ class DocumentUploadResponse(BaseModel):
     success: bool
     message: str
     document: DocumentResponse
+
+
+
+class DocumentDeleteResponse(BaseModel):
+    """Response schema for document deletion"""
+    success: bool
+    message: str
+    document_id: UUID

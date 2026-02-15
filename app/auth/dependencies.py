@@ -128,3 +128,102 @@ async def get_token_from_request(
         The JWT token string
     """
     return credentials.credentials
+
+
+async def get_current_user_optional(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False)),
+    db: Session = Depends(get_db)
+) -> Optional[User]:
+    """Extract and validate the current user from JWT token (optional).
+
+    This dependency is similar to get_current_user but returns None if no token
+    is provided instead of raising an error. Useful for endpoints that have
+    different behavior for authenticated vs unauthenticated users.
+
+    Args:
+        credentials: HTTP Bearer token credentials (optional)
+        db: Database session
+
+    Returns:
+        User object for the authenticated user, or None if not authenticated
+
+    Raises:
+        HTTPException 401: If token is provided but invalid, expired, or blacklisted
+    """
+    if not credentials:
+        return None
+
+    token = credentials.credentials
+
+    # Check if token is blacklisted
+    blacklisted = db.query(TokenBlacklist).filter(
+        TokenBlacklist.token == token
+    ).first()
+
+    if blacklisted:
+        logger.warning(f"Attempt to use blacklisted token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=ErrorResponse.create(
+                code="TOKEN_REVOKED",
+                message="This token has been revoked. Please login again.",
+                details={}
+            )
+        )
+
+    # Verify and decode token
+    payload = verify_token(token)
+    if not payload:
+        logger.warning(f"Invalid or expired token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=ErrorResponse.create(
+                code="INVALID_TOKEN",
+                message="Invalid or expired token. Please login again.",
+                details={}
+            )
+        )
+
+    # Extract user ID from token
+    user_id: Optional[str] = payload.get("sub")
+    if not user_id:
+        logger.warning(f"Token missing user ID")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=ErrorResponse.create(
+                code="INVALID_TOKEN",
+                message="Invalid token format",
+                details={}
+            )
+        )
+
+    # Convert user_id string to UUID
+    try:
+        from uuid import UUID
+        user_uuid = UUID(user_id)
+    except (ValueError, AttributeError):
+        logger.warning(f"Invalid user ID format in token: {user_id}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=ErrorResponse.create(
+                code="INVALID_TOKEN",
+                message="Invalid token format",
+                details={}
+            )
+        )
+
+    # Fetch user from database
+    user = db.query(User).filter(User.id == user_uuid).first()
+    if not user:
+        logger.warning(f"User not found for token: {user_id}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=ErrorResponse.create(
+                code="USER_NOT_FOUND",
+                message="User not found",
+                details={}
+            )
+        )
+
+    return user
+
