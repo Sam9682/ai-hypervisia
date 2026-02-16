@@ -28,7 +28,7 @@ Président : Samuel LEPETRE
 
 Trésorier : Thibault BRUNEL
 
-Secrétaires : Nizar RAMDJEE (pôle CHR) et Nael LEPETRE (pôle enseignement et mathématique)
+Secrétaire : Nael LEPETRE
 
 Cotisation
 
@@ -40,5 +40,6 @@ Pouvoir est donné au Président pour effectuer les démarches de déclaration e
 
 La séance est levée à 21h.
 
-Fait à Castelnau-le-Lez, le 20 février 2026
+Fait à VERRIERES LE BUISSON, le 16 février 2026
+
 Signatures : Président / Trésorier / Secrétaire

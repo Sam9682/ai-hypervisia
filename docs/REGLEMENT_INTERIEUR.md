@@ -64,7 +64,7 @@ Article 10 — Modification du règlement intérieur
 Le règlement intérieur est modifiable par décision du Bureau et soumis pour information ou validation à la
 plus proche Assemblée Générale.
 
-Fait à Verrières-le-Buisson, le 16 février 2026.
+Fait à VERRIERES LE BUISSON, le 16 février 2026.
 
 Le Président Le Trésorier Le Secrétaire
 
