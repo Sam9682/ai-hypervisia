@@ -3,8 +3,12 @@ events {
 }
 
 http {
+    upstream frontend {
+        server frontend:8001;
+    }
+
     upstream backend {
-        server ai-hypervisia:5173;
+        server ai-hypervisia:8000;
     }
 
     server {
@@ -18,16 +22,8 @@ http {
 
         client_max_body_size 100M;
 
-        # Serve frontend static files
-        location / {
-            proxy_pass http://backend;
-            root /usr/share/nginx/html;
-            try_files $uri $uri/ /index.html;
-            include /etc/nginx/mime.types;
-         }
- 
-         # Proxy API requests to backend
-         location /api {
+        # Proxy API requests to backend
+        location /api {
             proxy_pass http://backend/api;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
@@ -39,15 +35,32 @@ http {
 
         location /docs {
             proxy_pass http://backend/docs;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
         }
  
         location /openapi.json {
             proxy_pass http://backend/openapi.json;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
         }
 
         location /health {
             proxy_pass http://backend/health;
             access_log off;
+        }
+
+        # Proxy all other requests to frontend
+        location / {
+            proxy_pass http://frontend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
         }
     }
 }

@@ -21,7 +21,7 @@ services:
     networks:
       - hypervisia-network
 
-  # Hypervisia Application
+  # Hypervisia Application (Backend API)
   ai-hypervisia:
     build:
       context: .
@@ -53,6 +53,20 @@ services:
     networks:
       - hypervisia-network
 
+  # Frontend Application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ai-hypervisia-frontend-${USER_ID}-${HTTP2_PORT:-5000}
+    ports:
+      - "${HTTP2_PORT:-6003}:8001"
+    environment:
+      - VITE_API_URL=${API_URL:-http://localhost:8001}
+    restart: unless-stopped
+    networks:
+      - hypervisia-network
+
   # Nginx Reverse Proxy
   nginx:
     image: nginx:alpine
@@ -64,6 +78,7 @@ services:
       - ./ssl:/etc/nginx/ssl:ro
     depends_on:
       - ai-hypervisia
+      - frontend
     restart: unless-stopped
     environment:
       - HTTP_PORT=${HTTP_PORT:-6000}

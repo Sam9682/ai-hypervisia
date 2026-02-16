@@ -1,19 +1,22 @@
 #!/bin/bash
-# Database backup script for ai-hypervisia
+# ${NAME_OF_APPLICATION} Backup Script
 
-BACKUP_DIR="./backups"
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-BACKUP_FILE="hypervisia_db_${TIMESTAMP}.sql"
+BACKUP_DIR="backups"
+DATE=$(date +%Y%m%d_%H%M%S)
+BACKUP_FILE="$BACKUP_DIR/ai_haccp_backup_$DATE"
 
 mkdir -p "$BACKUP_DIR"
 
-echo "Starting database backup..."
-docker exec ai-hypervisia-postgres-${USER_ID:-0} pg_dump -U hypervisia_user hypervisia_db > "${BACKUP_DIR}/${BACKUP_FILE}"
+echo "Creating backup: $BACKUP_FILE"
+HTTP_PORT=$HTTP_PORT HTTPS_PORT=$HTTPS_PORT HTTP_PORT2=$HTTP_PORT2 HTTPS_PORT2=$HTTPS_PORT2 USER_ID=$USER_ID docker-compose -p "${NAME_OF_APPLICATION}-${USER_ID}-${HTTPS_PORT}" -f docker-compose.yml exec -T api cp /app/data/ai_haccp.db /tmp/backup.db
+docker cp $(docker-compose -p "-$USER_ID-$HTTPS_PORT" -f docker-compose.yml ps -q api):/tmp/backup.db "$BACKUP_FILE.db"
 
-if [ $? -eq 0 ]; then
-    echo "Backup completed: ${BACKUP_DIR}/${BACKUP_FILE}"
-    gzip "${BACKUP_DIR}/${BACKUP_FILE}"
-    echo "Compressed: ${BACKUP_DIR}/${BACKUP_FILE}.gz"
+if [[ $? -eq 0 ]]; then
+    echo "Backup created successfully: $BACKUP_FILE"
+    
+    # Keep only last 7 backups
+    ls -t "$BACKUP_DIR"/ai_haccp_backup_*.db | tail -n +8 | xargs -r rm
+    echo "Old backups cleaned up"
 else
     echo "Backup failed!"
     exit 1
