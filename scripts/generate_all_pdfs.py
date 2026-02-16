@@ -114,7 +114,7 @@ def generate_pv_pdf(output_filename="docs/PROCES_VERBAL_ASSEMBLEE_CONSTITUTIVE.p
     story.append(Paragraph("Élection du Bureau", styles['heading']))
     story.append(Paragraph("Sont élus :", styles['normal']))
     story.append(Paragraph("Président : Samuel LEPETRE", styles['normal']))
-    story.append(Paragraph("Trésorier : Thibault BRUNEL", styles['normal']))
+    story.append(Paragraph("Trésorier : Thibaud BRUNEL", styles['normal']))
     story.append(Paragraph("Secrétaire : Nael LEPETRE", styles['normal']))
     story.append(Spacer(1, 0.5*cm))
     
@@ -142,7 +142,7 @@ def generate_pv_pdf(output_filename="docs/PROCES_VERBAL_ASSEMBLEE_CONSTITUTIVE.p
     
     signatures_data = [
         ['Le Président', 'Le Trésorier', 'Le Secrétaire'],
-        ['Samuel LEPETRE', 'Thibault BRUNEL', 'Nael LEPETRE'],
+        ['Samuel LEPETRE', 'Thibaud BRUNEL', 'Nael LEPETRE'],
         ['Signature :', 'Signature :', 'Signature :']
     ]
     
@@ -349,7 +349,7 @@ def generate_statuts_pdf(output_filename="docs/STATUTS_ASSOCIATION_HYPERVISIA.pd
     
     signatures_data = [
         ['Le Président', 'Le Trésorier', 'Le Secrétaire'],
-        ['Samuel LEPETRE', 'Thibault BRUNEL', 'Nael LEPETRE'],
+        ['Samuel LEPETRE', 'Thibaud BRUNEL', 'Nael LEPETRE'],
         ['Signature :', 'Signature :', 'Signature :']
     ]
     
@@ -504,7 +504,7 @@ def generate_reglement_pdf(output_filename="docs/REGLEMENT_INTERIEUR.pdf"):
     
     signatures_data = [
         ['Le Président', 'Le Trésorier', 'Le Secrétaire'],
-        ['Samuel LEPETRE', 'Thibault BRUNEL', 'Nael LEPETRE'],
+        ['Samuel LEPETRE', 'Thibaud BRUNEL', 'Nael LEPETRE'],
         ['Signature :', 'Signature :', 'Signature :']
     ]
     
@@ -566,7 +566,7 @@ def generate_dirigeants_pdf(output_filename="docs/LISTE_DES_DIRIGEANTS.pdf"):
         ],
         [
             'Trésorier',
-            'Thibault BRUNEL\nNé le 30 Septembre 1970\nNationalité française\nDomicilié au 8 allee des meulieres, \nrésidence Écrins des Meulières , appt 104, \n34170 CASTELNAU LE LEZ'
+            'Thibaud BRUNEL\nNé le 30 Septembre 1970\nNationalité française\nDomicilié au 8 allee des meulieres, \nrésidence Écrins des Meulières , appt 104, \n34170 CASTELNAU LE LEZ'
         ],
         [
             'Secrétaire',

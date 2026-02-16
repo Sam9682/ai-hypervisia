@@ -26,7 +26,7 @@ Sont élus :
 
 Président : Samuel LEPETRE
 
-Trésorier : Thibault BRUNEL
+Trésorier : Thibaud BRUNEL
 
 Secrétaire : Nael LEPETRE
 

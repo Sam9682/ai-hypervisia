@@ -68,5 +68,5 @@ Fait à VERRIERES LE BUISSON, le 16 février 2026.
 
 Le Président Le Trésorier Le Secrétaire
 
-Samuel LEPETRE      Thibault BRUNEL         Nael LEPETRE
+Samuel LEPETRE      Thibaud BRUNEL         Nael LEPETRE
 Signature :         Signature :             Signature :

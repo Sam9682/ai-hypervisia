@@ -347,8 +347,8 @@ Frontend disponible sur: http://localhost:5173
 
 **Association HYPERVISIA**
 - Président: Samuel LEPETRE
-- Trésorier: Thibault BRUNEL
-- Secrétaire: Nizar RAMDJEE
+- Trésorier: Thibaud BRUNEL
+- Secrétaire: Nal LEPETRE
 
 Siège: 2 square des coquelicots 91370 VERRIÈRES LE BUISSON
 
