@@ -2,7 +2,7 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
-    container_name: ai-hypervisia-postgres-${USER_ID}-${HTTP2_PORT:-5000}
+    container_name: ai-hypervisia-postgres-${USER_ID}-5432
     environment:
       POSTGRES_DB: hypervisia_db
       POSTGRES_USER: hypervisia_user
@@ -58,9 +58,9 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: ai-hypervisia-frontend-${USER_ID}-${HTTP2_PORT:-5000}
+    container_name: ai-hypervisia-frontend-${USER_ID}-${HTTP_PORT2:-5000}
     ports:
-      - "${HTTP2_PORT:-6003}:8001"
+      - "${HTTP_PORT2:-6003}:8001"
     environment:
       - VITE_API_URL=${API_URL:-http://localhost:8001}
     restart: unless-stopped
