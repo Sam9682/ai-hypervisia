@@ -43,7 +43,7 @@ Article 4 — Siège social
 
 Le siège social est fixé à :
 2 square des coquelicots 91370 VERRIERES LE BUISSON
-Il pourra être transféré par décision du Conseil d’Administration (ou Bureau) et ratifié par l’Assemblée Générale.
+Il pourra être transféré par décision du Bureau et ratifié par l’Assemblée Générale.
 
 Article 5 — Durée
 
@@ -87,11 +87,11 @@ un Président
 
 un Trésorier
 
-un Secrétaire
+un Secrétaire, et un secrétaire adjoint
 
 Article 11 — Élection du Bureau
 
-Les membres du Bureau sont élus par l’Assemblée Générale pour une durée de 1 an (ou 2 ans si tu préfères).
+Les membres du Bureau sont élus par l’Assemblée Générale pour une durée de 2 ans.
 Ils sont rééligibles.
 
 Article 12 — Rôle du Bureau
@@ -106,7 +106,7 @@ gère les finances,
 
 représente l’Association.
 
-Le Bureau peut désigner des responsables de pôles ou de commissions thématiques (informatique, mathématique, enseignement, CHR, etc.), chargés de piloter les actions dans leur domaine. Ces responsables rendent compte au Bureau.
+Le Bureau peut désigner des responsables de pôles ou de commissions thématiques (informatique, mathématique, enseignement, CHR, etc.), chargés de piloter les actions dans leur domaine. Ces responsables rendent compte au Bureau, et ne disposent pas, sauf délégation expresse, d’un pouvoir de représentation légale.
 
 Article 13 — Assemblée Générale Ordinaire
 
