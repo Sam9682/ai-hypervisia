@@ -566,7 +566,7 @@ def generate_dirigeants_pdf(output_filename="docs/LISTE_DES_DIRIGEANTS.pdf"):
         ],
         [
             'Trésorier',
-            'Thibault BRUNEL\nNé le 30 Septembre 1970\nNationalité française\nDomicilié au 8 allee des meulieres, résidence Écrins des Meulières , appt 104, 34170 CASTELNAU LE LEZ'
+            'Thibault BRUNEL\nNé le 30 Septembre 1970\nNationalité française\nDomicilié au 8 allee des meulieres, \nrésidence Écrins des Meulières , appt 104, \n34170 CASTELNAU LE LEZ'
         ],
         [
             'Secrétaire',
