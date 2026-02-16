@@ -29,6 +29,8 @@ services:
     container_name: ai-hypervisia-app-${USER_ID}
     ports:
       - "${HTTP_PORT:-6000}:8000"
+    env_file:
+      - .env
     environment:
       - DATABASE_URL=postgresql://hypervisia_user:${POSTGRES_PASSWORD:-hypervisia_password}@postgres:5432/hypervisia_db
       - SECRET_KEY=${SECRET_KEY:-change-this-in-production}
