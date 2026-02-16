@@ -1,10 +1,9 @@
 Association : HYPERVISIA
+
 Siège : 2 square des coquelicots 91370 VERRIERES LE BUISSON
 
 Président : Samuel LEPETRE, né le 2 Aout 1969, de nationalité française, domicilié au 2 square des coquelicots 91370 VERRIERES LE BUISSON
 
 Trésorier : Thibault BRUNEL, né le ___________, de nationalité française, domicilié au __________________________
 
-Secrétaires : 
-    - Nizar RAMDJEE, né le ____________, de nationalité française, domicilié au __________________________
-    - Nael LEPETRE, né le 8 Mai 2026, de nationalité française, domicilié chemin des mouilles ECULLY 69130
+Secrétaire : Nael LEPETRE, né le 8 Mai 2026, de nationalité française, domicilié chemin des mouilles ECULLY 69130

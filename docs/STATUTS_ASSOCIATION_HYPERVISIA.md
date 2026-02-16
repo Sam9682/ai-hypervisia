@@ -155,5 +155,6 @@ Article 18 — Règlement intérieur
 
 Un règlement intérieur peut être établi par le Bureau et soumis à l’Assemblée Générale.
 
-Fait à VERRIERES LE BUISSON, le 20 février 2026
+Fait à VERRIERES LE BUISSON, le 16 février 2026
+
 Signatures : Président / Trésorier / Secrétaire
