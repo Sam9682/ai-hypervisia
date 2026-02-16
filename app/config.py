@@ -14,18 +14,18 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
-    # Email
-    SMTP_HOST: str
+    # Email (optional for development)
+    SMTP_HOST: str = "localhost"
     SMTP_PORT: int = 587
-    SMTP_USER: str
-    SMTP_PASSWORD: str
-    SMTP_FROM: str
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM: str = "noreply@hypervisia.org"
     
-    # Payment
-    STRIPE_API_KEY: str
-    STRIPE_WEBHOOK_SECRET: str
-    PAYPAL_CLIENT_ID: str
-    PAYPAL_CLIENT_SECRET: str
+    # Payment (optional for development)
+    STRIPE_API_KEY: str = "sk_test_dummy_key"
+    STRIPE_WEBHOOK_SECRET: str = "whsec_dummy_secret"
+    PAYPAL_CLIENT_ID: str = "dummy_client_id"
+    PAYPAL_CLIENT_SECRET: str = "dummy_client_secret"
     PAYPAL_MODE: str = "sandbox"
     
     # Application

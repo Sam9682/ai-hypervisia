@@ -87,7 +87,7 @@ un Président
 
 un Trésorier
 
-un Secrétaire, et un secrétaire adjoint
+un Secrétaire
 
 Article 11 — Élection du Bureau
 
