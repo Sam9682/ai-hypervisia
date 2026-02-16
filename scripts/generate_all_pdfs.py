@@ -137,8 +137,27 @@ def generate_pv_pdf(output_filename="docs/PROCES_VERBAL_ASSEMBLEE_CONSTITUTIVE.p
     
     # Signatures
     story.append(Paragraph("Fait à VERRIERES LE BUISSON, le 16 février 2026", styles['center']))
+
     story.append(Spacer(1, 0.5*cm))
-    story.append(Paragraph("Signatures : Président / Trésorier / Secrétaire", styles['center']))
+    
+    signatures_data = [
+        ['Le Président', 'Le Trésorier', 'Le Secrétaire'],
+        ['Samuel LEPETRE', 'Thibault BRUNEL', 'Nael LEPETRE'],
+        ['Signature :', 'Signature :', 'Signature :']
+    ]
+    
+    signatures_table = Table(signatures_data, colWidths=[5*cm, 5*cm, 5*cm])
+    signatures_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('FONTNAME', (0, 1), (-1, 2), 'Helvetica'),
+        ('FONTSIZE', (0, 1), (-1, 1), 9),
+        ('FONTSIZE', (0, 2), (-1, 2), 8),
+        ('TOPPADDING', (0, 0), (-1, 2), 8),
+    ]))
+    
+    story.append(signatures_table)
     
     doc.build(story)
     print(f"✅ PDF généré : {output_filename}")
@@ -327,8 +346,26 @@ def generate_statuts_pdf(output_filename="docs/STATUTS_ASSOCIATION_HYPERVISIA.pd
     story.append(Spacer(1, 1*cm))
     story.append(Paragraph("Fait à VERRIERES LE BUISSON, le 16 février 2026", styles['center']))
     story.append(Spacer(1, 0.5*cm))
-    story.append(Paragraph("Signatures : Président / Trésorier / Secrétaire", styles['center']))
     
+    signatures_data = [
+        ['Le Président', 'Le Trésorier', 'Le Secrétaire'],
+        ['Samuel LEPETRE', 'Thibault BRUNEL', 'Nael LEPETRE'],
+        ['Signature :', 'Signature :', 'Signature :']
+    ]
+    
+    signatures_table = Table(signatures_data, colWidths=[5*cm, 5*cm, 5*cm])
+    signatures_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('FONTNAME', (0, 1), (-1, 2), 'Helvetica'),
+        ('FONTSIZE', (0, 1), (-1, 1), 9),
+        ('FONTSIZE', (0, 2), (-1, 2), 8),
+        ('TOPPADDING', (0, 0), (-1, 2), 8),
+    ]))
+    
+    story.append(signatures_table)
+
     doc.build(story)
     print(f"✅ PDF généré : {output_filename}")
 
@@ -529,7 +566,7 @@ def generate_dirigeants_pdf(output_filename="docs/LISTE_DES_DIRIGEANTS.pdf"):
         ],
         [
             'Trésorier',
-            'Thibault BRUNEL\nNé le ___________\nNationalité française\nDomicilié au __________________________'
+            'Thibault BRUNEL\nNé le 30 Septembre 1970\nNationalité française\nDomicilié au 8 allee des meulieres, résidence Écrins des Meulières , appt 104, 34170 CASTELNAU LE LEZ'
         ],
         [
             'Secrétaire',
