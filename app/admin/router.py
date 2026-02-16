@@ -3,9 +3,9 @@ from uuid import UUID
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-from sqlalchemy import and_
+from sqlalchemy import and_, func
 from app.database import get_db
-from app.models import User, UserRole, AuditLog
+from app.models import User, UserRole, AuditLog, Topic, Post, Event, EventStatus, Payment, PaymentStatus
 from app.events.dependencies import require_admin
 from app.admin.schemas import (
     RoleUpdateRequest,
@@ -14,7 +14,9 @@ from app.admin.schemas import (
     MemberSummary,
     DeactivateMemberResponse,
     AuditLogEntry,
-    AuditLogResponse
+    AuditLogResponse,
+    ActivityReportResponse,
+    ForumActivityStats
 )
 from app.auth.schemas import ErrorResponse
 from app.logging_config import logger
@@ -417,4 +419,148 @@ async def get_audit_log(
         total=total,
         page=page,
         page_size=page_size
+    )
+
+
+
+@router.get(
+    "/reports/activity",
+    response_model=ActivityReportResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        403: {"description": "Insufficient permissions - administrator role required"},
+        400: {"description": "Invalid date range"}
+    }
+)
+async def get_activity_report(
+    start_date: Optional[datetime] = Query(None, description="Start date of the reporting period (inclusive)"),
+    end_date: Optional[datetime] = Query(None, description="End date of the reporting period (inclusive)"),
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+) -> ActivityReportResponse:
+    """Generate activity report for the association.
+    
+    Validates Requirements 8.4:
+    - Generates annual activity reports accessible to all members
+    - Calculates statistics including new members, active members, events, forum activity, and revenue
+    - Supports date range filtering
+    
+    If no date range is provided, defaults to the current calendar year.
+    
+    Args:
+        start_date: Optional start date of the reporting period (inclusive)
+        end_date: Optional end date of the reporting period (inclusive)
+        current_user: Authenticated administrator
+        db: Database session
+        
+    Returns:
+        ActivityReportResponse with calculated statistics
+        
+    Raises:
+        HTTPException 403: If user is not an administrator
+        HTTPException 400: If date range is invalid (end_date before start_date)
+    """
+    # Default to current calendar year if no dates provided
+    now = datetime.now(timezone.utc)
+    if start_date is None:
+        start_date = datetime(now.year, 1, 1, tzinfo=timezone.utc)
+    else:
+        # Ensure timezone-aware
+        if start_date.tzinfo is None:
+            start_date = start_date.replace(tzinfo=timezone.utc)
+    
+    if end_date is None:
+        end_date = datetime(now.year, 12, 31, 23, 59, 59, tzinfo=timezone.utc)
+    else:
+        # Ensure timezone-aware
+        if end_date.tzinfo is None:
+            end_date = end_date.replace(tzinfo=timezone.utc)
+    
+    # Validate date range
+    if end_date < start_date:
+        logger.warning(
+            f"Administrator {current_user.id} provided invalid date range: "
+            f"start={start_date}, end={end_date}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorResponse.create(
+                code="INVALID_DATE_RANGE",
+                message="End date must be after start date",
+                details={
+                    "start_date": start_date.isoformat(),
+                    "end_date": end_date.isoformat()
+                }
+            )
+        )
+    
+    # Calculate new members (registered during the period)
+    new_members_count = db.query(User).filter(
+        and_(
+            User.created_at >= start_date,
+            User.created_at <= end_date
+        )
+    ).count()
+    
+    # Calculate active members (membership not expired as of end_date)
+    active_members_count = db.query(User).filter(
+        and_(
+            User.is_email_verified == True,
+            User.membership_expires_at > end_date
+        )
+    ).count()
+    
+    # Calculate events held (events that occurred during the period)
+    events_held_count = db.query(Event).filter(
+        and_(
+            Event.start_date >= start_date,
+            Event.start_date <= end_date,
+            Event.status == EventStatus.COMPLETED
+        )
+    ).count()
+    
+    # Calculate forum activity (topics and posts created during the period)
+    topics_count = db.query(Topic).filter(
+        and_(
+            Topic.created_at >= start_date,
+            Topic.created_at <= end_date
+        )
+    ).count()
+    
+    posts_count = db.query(Post).filter(
+        and_(
+            Post.created_at >= start_date,
+            Post.created_at <= end_date
+        )
+    ).count()
+    
+    # Calculate revenue (completed payments during the period)
+    from sqlalchemy import func
+    revenue_result = db.query(func.sum(Payment.amount)).filter(
+        and_(
+            Payment.created_at >= start_date,
+            Payment.created_at <= end_date,
+            Payment.status == PaymentStatus.COMPLETED
+        )
+    ).scalar()
+    
+    # Handle None result (no payments)
+    total_revenue = float(revenue_result) if revenue_result is not None else 0.0
+    
+    logger.info(
+        f"Administrator {current_user.id} ({current_user.email}) generated activity report "
+        f"for period {start_date.date()} to {end_date.date()}"
+    )
+    
+    return ActivityReportResponse(
+        period_start=start_date,
+        period_end=end_date,
+        new_members=new_members_count,
+        active_members=active_members_count,
+        events_held=events_held_count,
+        forum_activity=ForumActivityStats(
+            topics=topics_count,
+            posts=posts_count
+        ),
+        revenue=total_revenue
     )

@@ -103,3 +103,28 @@ class AuditLogResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+
+class ForumActivityStats(BaseModel):
+    """Forum activity statistics"""
+    topics: int = Field(description="Number of topics created in the period")
+    posts: int = Field(description="Number of posts created in the period")
+
+
+class ActivityReportResponse(BaseModel):
+    """Response schema for activity report
+    
+    Validates Requirements 8.4:
+    - Generates annual activity reports accessible to all members
+    """
+    period_start: datetime = Field(description="Start date of the reporting period")
+    period_end: datetime = Field(description="End date of the reporting period")
+    new_members: int = Field(description="Number of new members registered in the period")
+    active_members: int = Field(description="Number of members with active membership status")
+    events_held: int = Field(description="Number of events held in the period")
+    forum_activity: ForumActivityStats = Field(description="Forum activity statistics")
+    revenue: float = Field(description="Total revenue from payments in the period (in EUR)")
+    
+    model_config = {
+        "from_attributes": True
+    }
