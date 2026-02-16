@@ -38,3 +38,6 @@ apscheduler==3.10.4
 
 # iCal Export
 icalendar==6.1.0
+
+# Rate Limiting
+slowapi==0.1.9

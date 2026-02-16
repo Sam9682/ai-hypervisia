@@ -1,5 +1,5 @@
 """Authentication API endpoints"""
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from app.database import get_db
@@ -20,6 +20,7 @@ from app.auth.rate_limiter import login_rate_limiter
 from app.auth.dependencies import get_current_user, get_token_from_request
 from app.services.email import email_service
 from app.logging_config import logger
+from app.middleware.rate_limit import limiter
 from datetime import timedelta, datetime, timezone
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
@@ -34,7 +35,9 @@ router = APIRouter(prefix="/api/auth", tags=["authentication"])
         400: {"description": "Invalid registration data"}
     }
 )
+@limiter.limit("10/hour")  # Limit registration to 10 attempts per hour per IP
 async def register(
+    request: Request,
     registration_data: RegistrationRequest,
     db: Session = Depends(get_db)
 ) -> RegistrationResponse:
@@ -165,7 +168,9 @@ async def register(
         400: {"description": "Invalid login data"}
     }
 )
+@limiter.limit("20/hour")  # Additional IP-based rate limiting (20 attempts per hour)
 async def login(
+    request: Request,
     login_data: LoginRequest,
     db: Session = Depends(get_db)
 ) -> LoginResponse:
@@ -456,7 +461,9 @@ async def logout(
         409: {"description": "Email already verified"}
     }
 )
+@limiter.limit("10/hour")  # Limit email verification attempts
 async def verify_email(
+    request: Request,
     verification_data: EmailVerificationRequest,
     db: Session = Depends(get_db)
 ) -> EmailVerificationResponse:

@@ -7,6 +7,7 @@ from app.models.event import Event, EventRegistration, EventStatus
 from app.models.notification import Notification, NotificationPreferences, NotificationType
 from app.models.audit import AuditLog
 from app.models.token_blacklist import TokenBlacklist
+from app.models.user_deletion import ScheduledUserDeletion
 
 __all__ = [
     "User", "UserRole",
@@ -16,5 +17,6 @@ __all__ = [
     "Event", "EventRegistration", "EventStatus",
     "Notification", "NotificationPreferences", "NotificationType",
     "AuditLog",
-    "TokenBlacklist"
+    "TokenBlacklist",
+    "ScheduledUserDeletion"
 ]

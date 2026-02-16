@@ -128,3 +128,37 @@ class ActivityReportResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+
+
+class AnnouncementRequest(BaseModel):
+    """Request schema for sending an announcement
+    
+    Validates Requirement 10.5:
+    - Administrator can send announcements to all active members
+    """
+    subject: str = Field(
+        min_length=1,
+        max_length=255,
+        description="Announcement subject"
+    )
+    content: str = Field(
+        min_length=1,
+        description="Announcement content"
+    )
+    sender_name: Optional[str] = Field(
+        default="HYPERVISIA",
+        description="Name of the sender (defaults to HYPERVISIA)"
+    )
+
+
+class AnnouncementResponse(BaseModel):
+    """Response schema for announcement sending"""
+    success: bool
+    message: str
+    notifications_sent: int = Field(description="Number of notifications sent successfully")
+    total_members: int = Field(description="Total number of active members")
+    
+    model_config = {
+        "from_attributes": True
+    }

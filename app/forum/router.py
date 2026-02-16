@@ -3,7 +3,7 @@
 This module provides REST API endpoints for forum functionality including
 topics and posts. All endpoints require authenticated member access.
 
-Validates Requirements 3.1, 3.2, 3.3, 3.4
+Validates Requirements 3.1, 3.2, 3.3, 3.4, 10.2
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -21,6 +21,7 @@ from app.forum.schemas import (
 )
 from app.auth.schemas import ErrorResponse
 from app.logging_config import logger
+from app.services.notification_service import notification_service
 
 
 router = APIRouter(prefix="/api/forum", tags=["forum"])
@@ -291,6 +292,22 @@ async def create_post(
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
+    
+    # Send notification to topic author if they're not the one posting (Requirement 10.2)
+    if topic.author_id != current_user.id:
+        author_name = f"{current_user.first_name} {current_user.last_name}"
+        try:
+            notification_service.send_forum_reply_notification(
+                db=db,
+                user_id=topic.author_id,
+                topic_title=topic.title,
+                reply_author=author_name,
+                reply_content=post_data.content
+            )
+            logger.info(f"Sent forum reply notification to user {topic.author_id}")
+        except Exception as e:
+            # Don't fail the post creation if notification fails
+            logger.error(f"Failed to send forum reply notification: {str(e)}")
     
     author_name = f"{current_user.first_name} {current_user.last_name}"
     

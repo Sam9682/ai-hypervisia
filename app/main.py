@@ -1,7 +1,9 @@
 """Main FastAPI application"""
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from app.config import settings
 from app.logging_config import logger
 from app.auth.router import router as auth_router
@@ -12,8 +14,10 @@ from app.events.router import router as events_router
 from app.admin.router import router as admin_router
 from app.notifications.router import router as notifications_router
 from app.info.router import router as info_router
+from app.users.router import router as users_router
 from app.scheduler import task_scheduler
 from app.error_handlers import register_exception_handlers
+from app.middleware.rate_limit import limiter
 
 
 @asynccontextmanager
@@ -43,6 +47,12 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Add rate limiting state to app
+app.state.limiter = limiter
+
+# Add rate limit exceeded handler
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
@@ -64,6 +74,7 @@ app.include_router(events_router)
 app.include_router(admin_router)
 app.include_router(notifications_router)
 app.include_router(info_router)
+app.include_router(users_router)
 
 
 @app.get("/health")

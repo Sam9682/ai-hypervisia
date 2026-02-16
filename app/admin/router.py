@@ -1,7 +1,7 @@
 """Administration API endpoints"""
 from uuid import UUID
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, func
 from app.database import get_db
@@ -16,10 +16,14 @@ from app.admin.schemas import (
     AuditLogEntry,
     AuditLogResponse,
     ActivityReportResponse,
-    ForumActivityStats
+    ForumActivityStats,
+    AnnouncementRequest,
+    AnnouncementResponse
 )
 from app.auth.schemas import ErrorResponse
 from app.logging_config import logger
+from app.middleware.rate_limit import limiter
+from app.services.notification_service import notification_service
 from datetime import datetime, timezone
 
 router = APIRouter(prefix="/api/admin", tags=["administration"])
@@ -35,7 +39,9 @@ router = APIRouter(prefix="/api/admin", tags=["administration"])
         400: {"description": "Invalid role value"}
     }
 )
+@limiter.limit("30/hour")  # Limit role changes to prevent abuse
 async def update_member_role(
+    request: Request,
     member_id: UUID,
     role_data: RoleUpdateRequest,
     current_user: User = Depends(require_admin),
@@ -224,7 +230,9 @@ async def list_members(
         404: {"description": "Member not found"}
     }
 )
+@limiter.limit("30/hour")  # Limit deactivation to prevent abuse
 async def deactivate_member(
+    request: Request,
     member_id: UUID,
     current_user: User = Depends(require_admin),
     db: Session = Depends(get_db)
@@ -563,4 +571,87 @@ async def get_activity_report(
             posts=posts_count
         ),
         revenue=total_revenue
+    )
+
+
+
+@router.post(
+    "/announcements",
+    response_model=AnnouncementResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        403: {"description": "Insufficient permissions - administrator role required"}
+    }
+)
+@limiter.limit("10/hour")  # Limit announcements to prevent spam
+async def send_announcement(
+    request: Request,
+    announcement_data: AnnouncementRequest,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+) -> AnnouncementResponse:
+    """Send announcement to all active members with notifications enabled.
+    
+    Validates Requirement 10.5:
+    - Administrator can send announcements to all active members by email
+    - Respects user notification preferences
+    - Only sends to members with active membership status and verified email
+    
+    Args:
+        announcement_data: Announcement subject and content
+        current_user: Authenticated administrator
+        db: Database session
+        
+    Returns:
+        AnnouncementResponse with number of notifications sent
+        
+    Raises:
+        HTTPException 403: If user is not an administrator
+    """
+    logger.info(
+        f"Administrator {current_user.id} ({current_user.email}) sending announcement: "
+        f"{announcement_data.subject}"
+    )
+    
+    # Get total number of active members (for reporting)
+    total_active_members = db.query(User).filter(
+        User.role.in_([UserRole.MEMBER, UserRole.ADMINISTRATOR]),
+        User.is_email_verified == True
+    ).count()
+    
+    # Send announcement using notification service
+    notifications_sent = notification_service.send_announcement(
+        db=db,
+        subject=announcement_data.subject,
+        content=announcement_data.content,
+        sender_name=announcement_data.sender_name or "HYPERVISIA"
+    )
+    
+    # Create audit log entry
+    audit_entry = AuditLog(
+        admin_id=current_user.id,
+        action="send_announcement",
+        target_type="announcement",
+        target_id=None,
+        details={
+            "subject": announcement_data.subject,
+            "content_preview": announcement_data.content[:100] if len(announcement_data.content) > 100 else announcement_data.content,
+            "sender_name": announcement_data.sender_name or "HYPERVISIA",
+            "notifications_sent": notifications_sent,
+            "total_active_members": total_active_members
+        }
+    )
+    db.add(audit_entry)
+    db.commit()
+    
+    logger.info(
+        f"Announcement sent by administrator {current_user.id}: "
+        f"{notifications_sent}/{total_active_members} notifications delivered"
+    )
+    
+    return AnnouncementResponse(
+        success=True,
+        message=f"Announcement sent successfully to {notifications_sent} members",
+        notifications_sent=notifications_sent,
+        total_members=total_active_members
     )

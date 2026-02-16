@@ -19,6 +19,7 @@ from app.services.paypal_service import paypal_service
 from app.services.invoice_generator import invoice_generator
 from app.services.email_service import email_service
 from app.config import settings
+from app.middleware.rate_limit import limiter
 
 logger = logging.getLogger(__name__)
 
@@ -133,8 +134,10 @@ def generate_and_send_invoice(payment: Payment, user: User, db: Session) -> None
     summary="Initiate a payment",
     description="Create a payment intent for membership fee using Stripe or PayPal"
 )
+@limiter.limit("10/hour")  # Limit payment initiation to prevent abuse
 async def initiate_payment(
-    request: PaymentInitiateRequest,
+    request: Request,
+    payment_data: PaymentInitiateRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ) -> PaymentInitiateResponse:
@@ -156,7 +159,8 @@ async def initiate_payment(
     - Requires return_url and cancel_url in request
     
     Args:
-        request: Payment initiation request with method, amount, and URLs
+        request: FastAPI Request object (for rate limiting)
+        payment_data: Payment initiation request with method, amount, and URLs
         current_user: Authenticated user from JWT token
         db: Database session
     
@@ -171,10 +175,10 @@ async def initiate_payment(
     # Validate payment amount against configured membership fee
     # Property 16: Payment amount validation
     expected_amount = Decimal(str(settings.ANNUAL_MEMBERSHIP_FEE))
-    if request.amount != expected_amount:
+    if payment_data.amount != expected_amount:
         logger.warning(
             f"Invalid payment amount from user {current_user.id}: "
-            f"provided {request.amount}, expected {expected_amount}"
+            f"provided {payment_data.amount}, expected {expected_amount}"
         )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -182,7 +186,7 @@ async def initiate_payment(
                 "code": "INVALID_AMOUNT",
                 "message": "Payment amount does not match membership fee",
                 "details": {
-                    "provided": float(request.amount),
+                    "provided": float(payment_data.amount),
                     "expected": float(expected_amount)
                 }
             }
@@ -192,20 +196,20 @@ async def initiate_payment(
         # Create payment record in database
         payment = Payment(
             user_id=current_user.id,
-            amount=request.amount,
-            currency=request.currency,
-            payment_method=request.payment_method,
+            amount=payment_data.amount,
+            currency=payment_data.currency,
+            payment_method=payment_data.payment_method,
             status=PaymentStatus.PENDING
         )
         db.add(payment)
         db.flush()  # Get payment ID without committing
         
         # Process based on payment method
-        if request.payment_method == PaymentMethod.CREDIT_CARD:
+        if payment_data.payment_method == PaymentMethod.CREDIT_CARD:
             # Create Stripe payment intent
             payment_intent = stripe_service.create_payment_intent(
-                amount=request.amount,
-                currency=request.currency,
+                amount=payment_data.amount,
+                currency=payment_data.currency,
                 metadata={
                     "user_id": str(current_user.id),
                     "payment_id": str(payment.id),
@@ -224,16 +228,16 @@ async def initiate_payment(
             
             return PaymentInitiateResponse(
                 payment_id=payment_intent["id"],
-                payment_method=request.payment_method,
-                amount=float(request.amount),
-                currency=request.currency,
+                payment_method=payment_data.payment_method,
+                amount=float(payment_data.amount),
+                currency=payment_data.currency,
                 client_secret=payment_intent["client_secret"],
                 status=payment_intent["status"]
             )
         
-        elif request.payment_method == PaymentMethod.PAYPAL:
+        elif payment_data.payment_method == PaymentMethod.PAYPAL:
             # Validate PayPal-specific requirements
-            if not request.return_url or not request.cancel_url:
+            if not payment_data.return_url or not payment_data.cancel_url:
                 db.rollback()
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -241,19 +245,19 @@ async def initiate_payment(
                         "code": "MISSING_URLS",
                         "message": "return_url and cancel_url are required for PayPal payments",
                         "details": {
-                            "return_url": request.return_url,
-                            "cancel_url": request.cancel_url
+                            "return_url": payment_data.return_url,
+                            "cancel_url": payment_data.cancel_url
                         }
                     }
                 )
             
             # Create PayPal payment
             paypal_payment = paypal_service.create_payment(
-                amount=request.amount,
-                currency=request.currency,
+                amount=payment_data.amount,
+                currency=payment_data.currency,
                 description=f"HYPERVISIA Membership Fee - {current_user.email}",
-                return_url=request.return_url,
-                cancel_url=request.cancel_url,
+                return_url=payment_data.return_url,
+                cancel_url=payment_data.cancel_url,
                 metadata={
                     "user_id": str(current_user.id),
                     "payment_id": str(payment.id),
@@ -272,9 +276,9 @@ async def initiate_payment(
             
             return PaymentInitiateResponse(
                 payment_id=paypal_payment["id"],
-                payment_method=request.payment_method,
-                amount=float(request.amount),
-                currency=request.currency,
+                payment_method=payment_data.payment_method,
+                amount=float(payment_data.amount),
+                currency=payment_data.currency,
                 approval_url=paypal_payment["approval_url"],
                 status=paypal_payment["status"]
             )
@@ -285,7 +289,7 @@ async def initiate_payment(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail={
                     "code": "INVALID_PAYMENT_METHOD",
-                    "message": f"Unsupported payment method: {request.payment_method}"
+                    "message": f"Unsupported payment method: {payment_data.payment_method}"
                 }
             )
     
