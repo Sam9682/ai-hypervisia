@@ -138,8 +138,7 @@ def generate_pv_pdf(output_filename="docs/PROCES_VERBAL_ASSEMBLEE_CONSTITUTIVE.p
         ['Fonction', 'Nom et Prénom'],
         ['Président', 'Samuel LEPETRE'],
         ['Trésorier', 'Thibault BRUNEL'],
-        ['Secrétaire (Pôle CHR)', 'Nizar RAMDJEE'],
-        ['Secrétaire (Pôle Enseignement)', 'Nael LEPETRE']
+        ['Secrétaire', 'Nael LEPETRE']
     ]
     
     bureau_table = Table(bureau_data, colWidths=[6*cm, 9*cm])
@@ -189,7 +188,7 @@ def generate_pv_pdf(output_filename="docs/PROCES_VERBAL_ASSEMBLEE_CONSTITUTIVE.p
     
     # Signatures
     story.append(Paragraph(
-        f"Fait à Castelnau-le-Lez, le 20 février 2026",
+        f"Fait à VERRIERES LE BUISSON, le 16 février 2026",
         center_style
     ))
     story.append(Spacer(1, 1*cm))
@@ -197,7 +196,7 @@ def generate_pv_pdf(output_filename="docs/PROCES_VERBAL_ASSEMBLEE_CONSTITUTIVE.p
     # Tableau des signatures
     signatures_data = [
         ['Le Président', 'Le Trésorier', 'Le Secrétaire'],
-        ['Samuel LEPETRE', 'Thibault BRUNEL', 'Nizar RAMDJEE'],
+        ['Samuel LEPETRE', 'Thibault BRUNEL', 'Nael LEPETRE'],
         ['', '', ''],
         ['', '', ''],
     ]

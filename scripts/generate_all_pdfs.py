@@ -62,6 +62,88 @@ def create_common_styles():
     }
 
 
+def generate_pv_pdf(output_filename="docs/PROCES_VERBAL_ASSEMBLEE_CONSTITUTIVE.pdf"):
+    """Génère le PDF du procès-verbal de l'assemblée constitutive"""
+    
+    doc = SimpleDocTemplate(
+        output_filename,
+        pagesize=A4,
+        rightMargin=2*cm,
+        leftMargin=2*cm,
+        topMargin=2*cm,
+        bottomMargin=2*cm
+    )
+    
+    styles = create_common_styles()
+    story = []
+    
+    # En-tête
+    story.append(Paragraph("PROCÈS-VERBAL", styles['title']))
+    story.append(Spacer(1, 0.5*cm))
+    
+    # Introduction
+    story.append(Paragraph(
+        "Le 16 février 2026 à 20h, les membres fondateurs se sont réunis 2 square des coquelicots, "
+        "91370 VERRIERES LE BUISSON, afin de constituer une association loi 1901.",
+        styles['normal']
+    ))
+    story.append(Spacer(1, 0.5*cm))
+    
+    # Ordre du jour
+    story.append(Paragraph("Ordre du jour", styles['heading']))
+    story.append(Paragraph("Création de l'association", styles['normal']))
+    story.append(Paragraph("Adoption des statuts", styles['normal']))
+    story.append(Paragraph("Élection du Bureau", styles['normal']))
+    story.append(Paragraph("Fixation de la cotisation", styles['normal']))
+    story.append(Paragraph("Pouvoirs pour déclaration", styles['normal']))
+    story.append(Spacer(1, 0.5*cm))
+    
+    # Déroulé
+    story.append(Paragraph("Déroulé", styles['heading']))
+    story.append(Paragraph(
+        "Les participants décident de créer l'association HYPERVISIA.",
+        styles['normal']
+    ))
+    story.append(Paragraph(
+        "Les statuts sont lus et adoptés à l'unanimité.",
+        styles['normal']
+    ))
+    story.append(Spacer(1, 0.5*cm))
+    
+    # Élection du Bureau
+    story.append(Paragraph("Élection du Bureau", styles['heading']))
+    story.append(Paragraph("Sont élus :", styles['normal']))
+    story.append(Paragraph("Président : Samuel LEPETRE", styles['normal']))
+    story.append(Paragraph("Trésorier : Thibault BRUNEL", styles['normal']))
+    story.append(Paragraph("Secrétaire : Nael LEPETRE", styles['normal']))
+    story.append(Spacer(1, 0.5*cm))
+    
+    # Cotisation
+    story.append(Paragraph("Cotisation", styles['heading']))
+    story.append(Paragraph("La cotisation annuelle est fixée à : 99 €.", styles['normal']))
+    story.append(Spacer(1, 0.5*cm))
+    
+    # Pouvoirs
+    story.append(Paragraph("Pouvoirs", styles['heading']))
+    story.append(Paragraph(
+        "Pouvoir est donné au Président pour effectuer les démarches de déclaration en préfecture et publication.",
+        styles['normal']
+    ))
+    story.append(Spacer(1, 0.5*cm))
+    
+    # Clôture
+    story.append(Paragraph("La séance est levée à 21h.", styles['normal']))
+    story.append(Spacer(1, 1*cm))
+    
+    # Signatures
+    story.append(Paragraph("Fait à VERRIERES LE BUISSON, le 16 février 2026", styles['center']))
+    story.append(Spacer(1, 0.5*cm))
+    story.append(Paragraph("Signatures : Président / Trésorier / Secrétaire", styles['center']))
+    
+    doc.build(story)
+    print(f"✅ PDF généré : {output_filename}")
+
+
 def generate_statuts_pdf(output_filename="docs/STATUTS_ASSOCIATION_HYPERVISIA.pdf"):
     """Génère le PDF des statuts de l'association"""
     
@@ -104,7 +186,7 @@ def generate_statuts_pdf(output_filename="docs/STATUTS_ASSOCIATION_HYPERVISIA.pd
     story.append(Paragraph("• des événements (conférences, rencontres, hackathons),", styles['normal']))
     story.append(Paragraph("• l'accompagnement de projets et d'expérimentations,", styles['normal']))
     story.append(Paragraph("• la mise en réseau d'acteurs (citoyens, étudiants, professionnels, entreprises, institutions),", styles['normal']))
-    story.append(Paragraph("• l'accès à des outils, plateformes ou ressources, dont notamment la plateforme Softfluid.fr.", styles['normal']))
+    story.append(Paragraph("• l'accès à des outils, plateformes ou ressources, dont notamment la plateforme Softfluid.fr, selon les conditions définies par l'Association.", styles['normal']))
     
     # Article 3
     story.append(Paragraph("Article 3 — Moyens d'action", styles['heading']))
@@ -118,7 +200,7 @@ def generate_statuts_pdf(output_filename="docs/STATUTS_ASSOCIATION_HYPERVISIA.pd
     # Article 4
     story.append(Paragraph("Article 4 — Siège social", styles['heading']))
     story.append(Paragraph(
-        "Le siège social est fixé à : <b>2 square des coquelicots, 91370 Verrières-le-Buisson</b>. "
+        "Le siège social est fixé à : <b>2 square des coquelicots 91370 VERRIERES LE BUISSON</b>. "
         "Il pourra être transféré par décision du Bureau et ratifié par l'Assemblée Générale.",
         styles['normal']
     ))
@@ -169,7 +251,7 @@ def generate_statuts_pdf(output_filename="docs/STATUTS_ASSOCIATION_HYPERVISIA.pd
     story.append(Paragraph("L'Association est administrée par un Bureau composé au minimum de :", styles['normal']))
     story.append(Paragraph("• un Président", styles['normal']))
     story.append(Paragraph("• un Trésorier", styles['normal']))
-    story.append(Paragraph("• un Secrétaire, et un secrétaire adjoint", styles['normal']))
+    story.append(Paragraph("• un Secrétaire", styles['normal']))
     
     # Article 11
     story.append(Paragraph("Article 11 — Élection du Bureau", styles['heading']))
@@ -186,8 +268,10 @@ def generate_statuts_pdf(output_filename="docs/STATUTS_ASSOCIATION_HYPERVISIA.pd
     story.append(Paragraph("• gère les finances,", styles['normal']))
     story.append(Paragraph("• représente l'Association.", styles['normal']))
     story.append(Paragraph(
-        "Le Bureau peut désigner des responsables de pôles ou de commissions thématiques, "
-        "chargés de piloter les actions dans leur domaine.",
+        "Le Bureau peut désigner des responsables de pôles ou de commissions thématiques "
+        "(informatique, mathématique, enseignement, CHR, etc.), chargés de piloter les actions dans leur domaine. "
+        "Ces responsables rendent compte au Bureau, et ne disposent pas, sauf délégation expresse, "
+        "d'un pouvoir de représentation légale.",
         styles['normal']
     ))
     
@@ -241,7 +325,7 @@ def generate_statuts_pdf(output_filename="docs/STATUTS_ASSOCIATION_HYPERVISIA.pd
     
     # Signatures
     story.append(Spacer(1, 1*cm))
-    story.append(Paragraph("Fait à Verrières-le-Buisson, le 16 février 2026", styles['center']))
+    story.append(Paragraph("Fait à VERRIERES LE BUISSON, le 16 février 2026", styles['center']))
     story.append(Spacer(1, 0.5*cm))
     story.append(Paragraph("Signatures : Président / Trésorier / Secrétaire", styles['center']))
     
@@ -287,7 +371,8 @@ def generate_reglement_pdf(output_filename="docs/REGLEMENT_INTERIEUR.pdf"):
     story.append(Paragraph("• les membres bienfaiteurs (optionnel) ;", styles['normal']))
     story.append(Paragraph("• les membres d'honneur (optionnel).", styles['normal']))
     story.append(Paragraph(
-        "Le Bureau peut fixer des modalités d'adhésion spécifiques pour les personnes morales.",
+        "Le Bureau peut fixer des modalités d'adhésion spécifiques pour les personnes morales "
+        "(ex. participation annuelle, convention de partenariat).",
         styles['normal']
     ))
     
@@ -300,7 +385,7 @@ def generate_reglement_pdf(output_filename="docs/REGLEMENT_INTERIEUR.pdf"):
     ))
     story.append(Paragraph("• participation à certains événements ;", styles['normal']))
     story.append(Paragraph("• accès à certains services ou formations ;", styles['normal']))
-    story.append(Paragraph("• usage professionnel de ressources numériques, notamment Softfluid.fr.", styles['normal']))
+    story.append(Paragraph("• usage professionnel de ressources numériques, notamment Softfluid.fr, dans le cadre d'une convention.", styles['normal']))
     
     # Article 4
     story.append(Paragraph("Article 4 — Bureau", styles['heading']))
@@ -319,7 +404,8 @@ def generate_reglement_pdf(output_filename="docs/REGLEMENT_INTERIEUR.pdf"):
     ))
     story.append(Paragraph(
         "Chaque pôle est animé par un responsable de pôle, éventuellement assisté d'un adjoint. "
-        "Les responsables de pôles sont désignés par le Bureau pour une durée de 1 an renouvelable.",
+        "Les responsables de pôles sont désignés par le Bureau pour une durée de 1 an renouvelable, "
+        "ou élus par l'Assemblée Générale si elle en décide.",
         styles['normal']
     ))
     story.append(Paragraph("Le responsable de pôle :", styles['normal']))
@@ -345,7 +431,8 @@ def generate_reglement_pdf(output_filename="docs/REGLEMENT_INTERIEUR.pdf"):
     ))
     story.append(Paragraph(
         "Pour les personnes morales (entreprises), un accès ou une utilisation professionnelle peut donner "
-        "lieu à une convention et à une participation financière.",
+        "lieu à une convention et à une participation financière, conformément aux objectifs de l'Association "
+        "et dans le respect de la réglementation applicable.",
         styles['normal']
     ))
     
@@ -375,12 +462,13 @@ def generate_reglement_pdf(output_filename="docs/REGLEMENT_INTERIEUR.pdf"):
     
     # Signatures
     story.append(Spacer(1, 1*cm))
-    story.append(Paragraph("Fait à Verrières-le-Buisson, le 16 février 2026", styles['center']))
+    story.append(Paragraph("Fait à VERRIERES LE BUISSON, le 16 février 2026.", styles['center']))
     story.append(Spacer(1, 0.5*cm))
     
     signatures_data = [
         ['Le Président', 'Le Trésorier', 'Le Secrétaire'],
         ['Samuel LEPETRE', 'Thibault BRUNEL', 'Nael LEPETRE'],
+        ['Signature :', 'Signature :', 'Signature :']
     ]
     
     signatures_table = Table(signatures_data, colWidths=[5*cm, 5*cm, 5*cm])
@@ -388,9 +476,10 @@ def generate_reglement_pdf(output_filename="docs/REGLEMENT_INTERIEUR.pdf"):
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 10),
-        ('FONTNAME', (0, 1), (-1, 1), 'Helvetica'),
+        ('FONTNAME', (0, 1), (-1, 2), 'Helvetica'),
         ('FONTSIZE', (0, 1), (-1, 1), 9),
-        ('TOPPADDING', (0, 0), (-1, 1), 8),
+        ('FONTSIZE', (0, 2), (-1, 2), 8),
+        ('TOPPADDING', (0, 0), (-1, 2), 8),
     ]))
     
     story.append(signatures_table)
@@ -423,7 +512,7 @@ def generate_dirigeants_pdf(output_filename="docs/LISTE_DES_DIRIGEANTS.pdf"):
     # Informations association
     story.append(Paragraph("<b>Association :</b> HYPERVISIA", styles['normal']))
     story.append(Paragraph(
-        "<b>Siège social :</b> 2 square des coquelicots, 91370 Verrières-le-Buisson",
+        "<b>Siège :</b> 2 square des coquelicots 91370 VERRIERES LE BUISSON",
         styles['normal']
     ))
     story.append(Spacer(1, 1*cm))
@@ -436,7 +525,7 @@ def generate_dirigeants_pdf(output_filename="docs/LISTE_DES_DIRIGEANTS.pdf"):
         ['Fonction', 'Identité'],
         [
             'Président',
-            'Samuel LEPETRE\nNé le 2 août 1969\nNationalité française\nDomicilié au 2 square des coquelicots\n91370 Verrières-le-Buisson'
+            'Samuel LEPETRE\nNé le 2 Aout 1969\nNationalité française\nDomicilié au 2 square des coquelicots\n91370 VERRIERES LE BUISSON'
         ],
         [
             'Trésorier',
@@ -444,7 +533,7 @@ def generate_dirigeants_pdf(output_filename="docs/LISTE_DES_DIRIGEANTS.pdf"):
         ],
         [
             'Secrétaire',
-            'Nael LEPETRE\nNé le 8 mai 2026\nNationalité française\nDomicilié chemin des mouilles\n69130 Écully'
+            'Nael LEPETRE\nNé le 8 Mai 2026\nNationalité française\nDomicilié chemin des mouilles\nECULLY 69130'
         ]
     ]
     
@@ -485,7 +574,7 @@ def generate_dirigeants_pdf(output_filename="docs/LISTE_DES_DIRIGEANTS.pdf"):
     ))
     
     story.append(Spacer(1, 1*cm))
-    story.append(Paragraph("Fait à Verrières-le-Buisson, le 16 février 2026", styles['center']))
+    story.append(Paragraph("Fait à VERRIERES LE BUISSON, le 16 février 2026", styles['center']))
     
     doc.build(story)
     print(f"✅ PDF généré : {output_filename}")
@@ -493,6 +582,7 @@ def generate_dirigeants_pdf(output_filename="docs/LISTE_DES_DIRIGEANTS.pdf"):
 
 if __name__ == "__main__":
     print("Génération des PDFs des documents officiels HYPERVISIA...\n")
+    generate_pv_pdf()
     generate_statuts_pdf()
     generate_reglement_pdf()
     generate_dirigeants_pdf()

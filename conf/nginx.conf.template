@@ -4,7 +4,7 @@ events {
 
 http {
     upstream backend {
-        server ai-hypervisia:8000;
+        server ai-hypervisia:5173;
     }
 
     server {
