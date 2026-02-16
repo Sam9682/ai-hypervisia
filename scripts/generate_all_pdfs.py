@@ -570,7 +570,7 @@ def generate_dirigeants_pdf(output_filename="docs/LISTE_DES_DIRIGEANTS.pdf"):
         ],
         [
             'Secrétaire',
-            'Nael LEPETRE\nNé le 8 Mai 2026\nNationalité française\nDomicilié chemin des mouilles\nECULLY 69130'
+            'Nael LEPETRE\nNé le 8 Mai 2002\nNationalité française\nDomicilié chemin des mouilles\nECULLY 69130'
         ]
     ]
     
