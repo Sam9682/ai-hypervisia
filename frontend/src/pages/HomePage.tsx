@@ -113,13 +113,6 @@ export const HomePage = () => {
                 </a>
               </div>
             </div>
-            <div className="flex items-start">
-              <span className="text-2xl mr-3">📱</span>
-              <div>
-                <p className="font-semibold text-gray-900">Téléphone</p>
-                <p className="text-gray-600">0619899050</p>
-              </div>
-            </div>
           </div>
           <div className="bg-gradient-to-br from-primary-50 to-purple-50 p-6 rounded-xl">
             <h3 className="font-semibold text-gray-900 mb-3">💡 Le saviez-vous ?</h3>

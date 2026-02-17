@@ -26,7 +26,7 @@ export const Layout = ({ children }: LayoutProps) => {
           <div className="flex justify-between h-16">
             <div className="flex">
               <Link to="/" className="flex items-center text-xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent hover:from-primary-700 hover:to-purple-700 transition-all">
-                <img src={hypervisiaLogo} alt="HYPERVISIA" className="h-20 w-100 mr-2 object-contain" />
+                <img src={hypervisiaLogo} alt="HYPERVISIA" className="h-32 w-auto mr-2 object-contain" />
               </Link>
               <div className="hidden sm:ml-8 sm:flex sm:space-x-6">
                 <Link to="/" className="inline-flex items-center px-3 pt-1 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors border-b-2 border-transparent hover:border-primary-600">
