@@ -26,7 +26,7 @@ export const Layout = ({ children }: LayoutProps) => {
           <div className="flex justify-between h-16">
             <div className="flex">
               <Link to="/" className="flex items-center text-xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent hover:from-primary-700 hover:to-purple-700 transition-all">
-                <img src={hypervisiaLogo} alt="HYPERVISIA" className="h-32 w-auto mr-2 object-contain" />
+                <img src={hypervisiaLogo} alt="HYPERVIS-IA" className="h-32 w-auto mr-2 object-contain" />
               </Link>
               <div className="hidden sm:ml-8 sm:flex sm:space-x-6">
                 <Link to="/" className="inline-flex items-center px-3 pt-1 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors border-b-2 border-transparent hover:border-primary-600">
@@ -82,7 +82,7 @@ export const Layout = ({ children }: LayoutProps) => {
         <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
           <div className="text-center text-gray-600">
             <p className="text-sm">© 2026 HYPERVISIA - Association loi 1901</p>
-            <p className="text-xs mt-2">Fait avec ❤️ pour notre communauté</p>
+            <p className="text-xs mt-2">Fait avec ❤️ pour nos agents IA virtuels</p>
           </div>
         </div>
       </footer>
