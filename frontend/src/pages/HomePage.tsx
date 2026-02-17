@@ -19,7 +19,7 @@ export const HomePage = () => {
           <li>des événements (conférences, rencontres, hackathons),</li>
           <li>l'accompagnement de projets et d'expérimentations,</li>
           <li>la mise en réseau d'acteurs (citoyens, étudiants, professionnels, entreprises, institutions),</li>
-          <li>l'accès à des outils, plateformes ou ressources, dont notamment la plateforme <a href="https://softfluid.fr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline transition-colors">softfluid.fr</a>, selon les conditions définies par l'Association.</li>
+          <li>l'accès à des outils, plateformes ou ressources, dont notamment la plateforme <a href="https://softfluid.fr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline transition-colors">softfluid.fr</a></li>
         </ul>
         <p className="text-xl text-gray-700 max-w-3xl mx-auto mt-4">✨</p>
         <div className="mt-8 flex justify-center gap-4">

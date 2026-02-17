@@ -24,7 +24,14 @@ export const LoginPage = () => {
       await authService.login({ email, password });
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Échec de la connexion');
+      console.error('Login error:', err);
+      console.error('Error response:', err.response);
+      const errorMessage = err.response?.data?.detail?.message 
+        || err.response?.data?.detail 
+        || err.response?.data?.error?.message 
+        || err.message 
+        || 'Échec de la connexion';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

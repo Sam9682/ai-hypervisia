@@ -2,7 +2,7 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
-    container_name: ai-hypervisia-postgres-${USER_ID}-5432
+    container_name: ai-hypervisia-postgres-${USER_ID:1}-5432
     environment:
       POSTGRES_DB: hypervisia_db
       POSTGRES_USER: hypervisia_user
@@ -26,7 +26,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: ai-hypervisia-app-${USER_ID}-${HTTP_PORT:-5000}
+    container_name: ai-hypervisia-app-${USER_ID:1}-${HTTP_PORT:-5000}
     ports:
       - "${HTTP_PORT:-6000}:8000"
     env_file:
@@ -58,11 +58,11 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: ai-hypervisia-frontend-${USER_ID}-${HTTP_PORT2:-5000}
+    container_name: ai-hypervisia-frontend-${USER_ID:1}-${HTTP_PORT2:-5000}
     ports:
       - "${HTTP_PORT2:-6003}:8001"
     environment:
-      - VITE_API_URL=${API_URL:-http://localhost:8001}
+      - VITE_API_URL=/api
     restart: unless-stopped
     networks:
       - hypervisia-network
@@ -70,7 +70,7 @@ services:
   # Nginx Reverse Proxy
   nginx:
     image: nginx:alpine
-    container_name: ai-hypervisia-nginx-${USER_ID}-${HTTPS_PORT:-5000}
+    container_name: ai-hypervisia-nginx-${USER_ID:1}-${HTTPS_PORT:-5000}
     ports:
       - "${HTTPS_PORT:-6001}:443"
     volumes:
@@ -93,4 +93,4 @@ volumes:
 networks:
   hypervisia-network:
     driver: bridge
-    name: hypervisia-network-${USER_ID}
+    name: hypervisia-network-${USER_ID:1}
