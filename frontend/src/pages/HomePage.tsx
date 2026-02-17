@@ -11,15 +11,17 @@ export const HomePage = () => {
           Bienvenue à HYPERVISIA
         </h1>
         <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-          L’Association a pour objet de promouvoir la compréhension, l’usage, la recherche appliquée et le développement de l’intelligence artificielle, notamment par :
-          <ul>des actions de sensibilisation et de vulgarisation,</ul>
-          <ul>des formations et ateliers,</ul>
-          <ul>des événements (conférences, rencontres, hackathons),</ul>
-          <ul>l’accompagnement de projets et d’expérimentations,</ul>
-          <ul>la mise en réseau d’acteurs (citoyens, étudiants, professionnels, entreprises, institutions),</ul>
-          <ul>l’accès à des outils, plateformes ou ressources, dont notamment la plateforme <a href="https://<a href="https://softfluid.fr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline transition-colors">softfluid.fr</a>" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline transition-colors">Softfluid.fr</a>, selon les conditions définies par l’Association.</ul>
- ✨
+          L'Association a pour objet de promouvoir la compréhension, l'usage, la recherche appliquée et le développement de l'intelligence artificielle, notamment par :
         </p>
+        <ul className="text-lg text-gray-600 max-w-3xl mx-auto mt-4 space-y-2 list-disc list-inside">
+          <li>des actions de sensibilisation et de vulgarisation,</li>
+          <li>des formations et ateliers,</li>
+          <li>des événements (conférences, rencontres, hackathons),</li>
+          <li>l'accompagnement de projets et d'expérimentations,</li>
+          <li>la mise en réseau d'acteurs (citoyens, étudiants, professionnels, entreprises, institutions),</li>
+          <li>l'accès à des outils, plateformes ou ressources, dont notamment la plateforme <a href="https://softfluid.fr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline transition-colors">softfluid.fr</a>, selon les conditions définies par l'Association.</li>
+        </ul>
+        <p className="text-xl text-gray-700 max-w-3xl mx-auto mt-4">✨</p>
         <div className="mt-8 flex justify-center gap-4">
           <a href="/register" className="btn-primary">
             <span className="mr-2">🎯</span>
@@ -53,7 +55,7 @@ export const HomePage = () => {
           <p className="text-gray-600 leading-relaxed">
             Organisation d'événements, ateliers, conférences et rencontres 
             pour démocratiser l'IA en France. Utilisation d'une plateforme 
-            de test pour du déploiement d'application web par des agents IA <a href="https://<a href="https://softfluid.fr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline transition-colors">softfluid.fr</a>" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline transition-colors"><a href="https://softfluid.fr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline transition-colors">softfluid.fr</a></a> 🎪
+            de test pour du déploiement d'application web par des agents IA <a href="https://softfluid.fr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline transition-colors">softfluid.fr</a> 🎪
           </p>
         </div>
         
