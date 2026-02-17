@@ -11,8 +11,15 @@ http {
         server ai-hypervisia:8000;
     }
 
+    # Map to handle CORS headers properly
+    map $request_method $cors_method {
+        OPTIONS 11;
+        default 0;
+    }
+
     server {
         listen 443 ssl;
+        listen 80;
         server_name hypervisia.fr www.hypervisia.fr;
 
         ssl_certificate /etc/nginx/ssl/fullchain.pem;
