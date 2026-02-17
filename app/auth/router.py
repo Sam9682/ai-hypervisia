@@ -67,11 +67,7 @@ async def register(
             logger.warning(f"Registration attempt with duplicate email: {registration_data.email}")
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=ErrorResponse.create(
-                    code="EMAIL_ALREADY_EXISTS",
-                    message="An account with this email address already exists",
-                    details={"email": registration_data.email}
-                )
+                detail="An account with this email address already exists"
             )
         
         # Hash password (Requirement 9.1)
@@ -127,22 +123,14 @@ async def register(
         logger.error(f"Database integrity error during registration: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=ErrorResponse.create(
-                code="EMAIL_ALREADY_EXISTS",
-                message="An account with this email address already exists",
-                details={"email": registration_data.email}
-            )
+            detail="An account with this email address already exists"
         )
     except ValueError as e:
         # Handle validation errors (e.g., password too long for bcrypt)
         logger.error(f"Validation error during registration: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=ErrorResponse.create(
-                code="VALIDATION_ERROR",
-                message=str(e),
-                details={}
-            )
+            detail=str(e)
         )
     except Exception as e:
         # Handle unexpected errors
@@ -150,11 +138,7 @@ async def register(
         logger.error(f"Unexpected error during registration: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=ErrorResponse.create(
-                code="INTERNAL_ERROR",
-                message="An unexpected error occurred during registration",
-                details={}
-            )
+            detail="An unexpected error occurred during registration"
         )
 
 

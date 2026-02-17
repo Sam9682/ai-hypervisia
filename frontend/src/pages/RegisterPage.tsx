@@ -43,7 +43,13 @@ export const RegisterPage = () => {
       setSuccess(true);
       setTimeout(() => navigate('/login'), 3000);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Échec de l\'inscription');
+      console.error('Registration error:', err.response?.data);
+      const errorMessage = 
+        err.response?.data?.detail?.error?.message || 
+        err.response?.data?.detail || 
+        err.response?.data?.message ||
+        'Échec de l\'inscription';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
