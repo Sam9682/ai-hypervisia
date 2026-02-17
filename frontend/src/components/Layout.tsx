@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { authService } from '../services/authService';
+import hypervisiaLogo from '../assets/hypervisia.png';
 
 interface LayoutProps {
   children: ReactNode;
@@ -25,7 +26,7 @@ export const Layout = ({ children }: LayoutProps) => {
           <div className="flex justify-between h-16">
             <div className="flex">
               <Link to="/" className="flex items-center text-xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent hover:from-primary-700 hover:to-purple-700 transition-all">
-                <span className="text-2xl mr-2">🚀</span>
+                <img src={hypervisiaLogo} alt="HYPERVISIA" className="h-8 w-8 mr-2 object-contain" />
                 HYPERVISIA
               </Link>
               <div className="hidden sm:ml-8 sm:flex sm:space-x-6">
