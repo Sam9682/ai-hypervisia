@@ -17,7 +17,7 @@ export const HomePage = () => {
           <ul>des événements (conférences, rencontres, hackathons),</ul>
           <ul>l’accompagnement de projets et d’expérimentations,</ul>
           <ul>la mise en réseau d’acteurs (citoyens, étudiants, professionnels, entreprises, institutions),</ul>
-          <ul>l’accès à des outils, plateformes ou ressources, dont notamment la plateforme Softfluid.fr, selon les conditions définies par l’Association.</ul>
+          <ul>l’accès à des outils, plateformes ou ressources, dont notamment la plateforme <a href="https://<a href="https://softfluid.fr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline transition-colors">softfluid.fr</a>" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline transition-colors">Softfluid.fr</a>, selon les conditions définies par l’Association.</ul>
  ✨
         </p>
         <div className="mt-8 flex justify-center gap-4">
@@ -53,7 +53,7 @@ export const HomePage = () => {
           <p className="text-gray-600 leading-relaxed">
             Organisation d'événements, ateliers, conférences et rencontres 
             pour démocratiser l'IA en France. Utilisation d'une plateforme 
-            de test et développement <a href="https://softfluid.fr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline transition-colors">softfluid.fr</a> 🎪
+            de test pour du déploiement d'application web par des agents IA <a href="https://<a href="https://softfluid.fr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline transition-colors">softfluid.fr</a>" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline transition-colors"><a href="https://softfluid.fr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline transition-colors">softfluid.fr</a></a> 🎪
           </p>
         </div>
         
