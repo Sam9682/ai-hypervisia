@@ -41,7 +41,7 @@ export const HomePage = () => {
           </h2>
           <p className="text-gray-600 leading-relaxed">
             Créer un espace d'échange et de collaboration pour nos membres, 
-            favorisant le partage de connaissances et l'entraide 🤝
+            favorisant le partage de connaissances sur l'IA et la generative AI 🤝
           </p>
         </div>
         
@@ -52,7 +52,8 @@ export const HomePage = () => {
           </h2>
           <p className="text-gray-600 leading-relaxed">
             Organisation d'événements, ateliers, conférences et rencontres 
-            pour enrichir la vie associative 🎪
+            pour démocratiser l'IA en France. Utilisation d'une plateforme 
+            de test et développement <a href="https://softfluid.fr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline transition-colors">softfluid.fr</a> 🎪
           </p>
         </div>
         
@@ -72,16 +73,16 @@ export const HomePage = () => {
       <div className="bg-gradient-to-r from-primary-600 to-purple-600 rounded-2xl shadow-2xl p-8 mb-16 text-white">
         <div className="grid md:grid-cols-3 gap-8 text-center">
           <div>
-            <div className="text-4xl font-bold mb-2">500+</div>
+            <div className="text-4xl font-bold mb-2">3+</div>
             <div className="text-primary-100">Membres actifs 👥</div>
           </div>
           <div>
-            <div className="text-4xl font-bold mb-2">50+</div>
+            <div className="text-4xl font-bold mb-2">1+</div>
             <div className="text-primary-100">Événements par an 📅</div>
           </div>
           <div>
             <div className="text-4xl font-bold mb-2">100%</div>
-            <div className="text-primary-100">Engagement communautaire ❤️</div>
+            <div className="text-primary-100">Engagement OpenSource ❤️</div>
           </div>
         </div>
       </div>
