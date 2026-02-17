@@ -11,7 +11,14 @@ export const HomePage = () => {
           Bienvenue à HYPERVISIA
         </h1>
         <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-          Association loi 1901 dédiée à la promotion et au développement de nos activités communes ✨
+          AL’Association a pour objet de promouvoir la compréhension, l’usage, la recherche appliquée et le développement de l’intelligence artificielle, notamment par :
+          <b>des actions de sensibilisation et de vulgarisation,</b>
+          <b>des formations et ateliers,</b>
+          <b>des événements (conférences, rencontres, hackathons),</b>
+          <b>l’accompagnement de projets et d’expérimentations,</b>
+          <b>la mise en réseau d’acteurs (citoyens, étudiants, professionnels, entreprises, institutions),</b>
+          <b>l’accès à des outils, plateformes ou ressources, dont notamment la plateforme Softfluid.fr, selon les conditions définies par l’Association.</b>
+ ✨
         </p>
         <div className="mt-8 flex justify-center gap-4">
           <a href="/register" className="btn-primary">
@@ -91,7 +98,7 @@ export const HomePage = () => {
               <span className="text-2xl mr-3">📍</span>
               <div>
                 <p className="font-semibold text-gray-900">Adresse</p>
-                <p className="text-gray-600">[Adresse de l'association]</p>
+                <p className="text-gray-600">2 square des coquelicots 91370 VERRIERES LE BUISSON</p>
               </div>
             </div>
             <div className="flex items-start">
@@ -107,7 +114,7 @@ export const HomePage = () => {
               <span className="text-2xl mr-3">📱</span>
               <div>
                 <p className="font-semibold text-gray-900">Téléphone</p>
-                <p className="text-gray-600">[Numéro de téléphone]</p>
+                <p className="text-gray-600">0619899050</p>
               </div>
             </div>
           </div>

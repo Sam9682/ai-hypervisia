@@ -141,9 +141,9 @@ class InvoiceGenerator:
             story.append(Paragraph("Association HYPERVISIA", heading_style))
             association_info = """
             Association loi 1901<br/>
-            [Adresse de l'association]<br/>
-            [Code postal et ville]<br/>
-            Email: contact@hypervisia.org
+            2 square des coquelicots<br/>
+            91370 VERRIERES LE BUISSON<br/>
+            Email: contact@hypervisia.fr
             """
             story.append(Paragraph(association_info, normal_style))
             story.append(Spacer(1, 10*mm))
