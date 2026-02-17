@@ -125,8 +125,8 @@ export const HomePage = () => {
             <h3 className="font-semibold text-gray-900 mb-3">💡 Le saviez-vous ?</h3>
             <p className="text-gray-600 text-sm leading-relaxed">
               HYPERVISIA est une association dynamique qui rassemble des passionnés 
-              autour de projets communs. Rejoignez-nous pour faire partie d'une 
-              communauté engagée et bienveillante !
+              autour de l'intelligence artificielle et les mathématiques. Rejoignez-nous pour faire partie d'une 
+              communauté engagée !
             </p>
           </div>
         </div>
