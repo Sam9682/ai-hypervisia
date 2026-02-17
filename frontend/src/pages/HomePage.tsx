@@ -11,13 +11,13 @@ export const HomePage = () => {
           Bienvenue à HYPERVISIA
         </h1>
         <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-          AL’Association a pour objet de promouvoir la compréhension, l’usage, la recherche appliquée et le développement de l’intelligence artificielle, notamment par :
-          <b>des actions de sensibilisation et de vulgarisation,</b>
-          <b>des formations et ateliers,</b>
-          <b>des événements (conférences, rencontres, hackathons),</b>
-          <b>l’accompagnement de projets et d’expérimentations,</b>
-          <b>la mise en réseau d’acteurs (citoyens, étudiants, professionnels, entreprises, institutions),</b>
-          <b>l’accès à des outils, plateformes ou ressources, dont notamment la plateforme Softfluid.fr, selon les conditions définies par l’Association.</b>
+          L’Association a pour objet de promouvoir la compréhension, l’usage, la recherche appliquée et le développement de l’intelligence artificielle, notamment par :
+          <ul>des actions de sensibilisation et de vulgarisation,</ul>
+          <ul>des formations et ateliers,</ul>
+          <ul>des événements (conférences, rencontres, hackathons),</ul>
+          <ul>l’accompagnement de projets et d’expérimentations,</ul>
+          <ul>la mise en réseau d’acteurs (citoyens, étudiants, professionnels, entreprises, institutions),</ul>
+          <ul>l’accès à des outils, plateformes ou ressources, dont notamment la plateforme Softfluid.fr, selon les conditions définies par l’Association.</ul>
  ✨
         </p>
         <div className="mt-8 flex justify-center gap-4">
