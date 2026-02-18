@@ -43,7 +43,7 @@ npm install
 npm run dev
 ```
 
-The application will be available at `http://localhost:5173`
+The application will be available at `http://ai-hypervisia:5173`
 
 ### Build
 
@@ -64,7 +64,7 @@ npm run preview
 Create a `.env` file in the frontend directory:
 
 ```
-VITE_API_BASE_URL=http://localhost:8000/api
+VITE_API_BASE_URL=http://ai-hypervisia:8000/api
 ```
 
 ## Features Implemented
@@ -92,7 +92,7 @@ Future tasks will implement:
 
 ## API Integration
 
-The frontend connects to the FastAPI backend at `http://localhost:8000/api` by default. Make sure the backend is running before starting the frontend development server.
+The frontend connects to the FastAPI backend at `http://ai-hypervisia:8000/api` by default. Make sure the backend is running before starting the frontend development server.
 
 ## Code Style
 

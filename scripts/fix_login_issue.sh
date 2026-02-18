@@ -10,7 +10,7 @@ docker-compose ps
 
 echo ""
 echo "2. Checking backend health..."
-curl -s http://localhost:6000/health | jq . || echo "❌ Backend not responding"
+curl -s http://ai-hypervisia:6000/health | jq . || echo "❌ Backend not responding"
 
 echo ""
 echo "3. Checking if admin user exists and is properly configured..."
@@ -19,7 +19,7 @@ docker-compose exec ai-hypervisia python3 scripts/verify_admin_user.py
 echo ""
 echo "4. Testing API endpoint directly..."
 echo "Attempting login with admin@hypervisia.org..."
-curl -X POST http://localhost:6000/api/auth/login \
+curl -X POST http://ai-hypervisia:6000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@hypervisia.org","password":"Admin1234!"}' \
   -v

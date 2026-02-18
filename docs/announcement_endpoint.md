@@ -115,13 +115,13 @@ Returned when request validation fails (empty subject, empty content, etc.).
 
 ```bash
 # Login as administrator
-TOKEN=$(curl -X POST http://localhost:8000/api/auth/login \
+TOKEN=$(curl -X POST http://ai-hypervisia:8000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@hypervisia.org","password":"Admin1234"}' \
   | jq -r '.access_token')
 
 # Send announcement
-curl -X POST http://localhost:8000/api/admin/announcements \
+curl -X POST http://ai-hypervisia:8000/api/admin/announcements \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -138,14 +138,14 @@ import requests
 
 # Login
 response = requests.post(
-    "http://localhost:8000/api/auth/login",
+    "http://ai-hypervisia:8000/api/auth/login",
     json={"email": "admin@hypervisia.org", "password": "Admin1234"}
 )
 token = response.json()["access_token"]
 
 # Send announcement
 response = requests.post(
-    "http://localhost:8000/api/admin/announcements",
+    "http://ai-hypervisia:8000/api/admin/announcements",
     headers={"Authorization": f"Bearer {token}"},
     json={
         "subject": "Assemblée Générale 2024",
@@ -162,7 +162,7 @@ print(f"Sent to {result['notifications_sent']} members")
 
 ```javascript
 // Login
-const loginResponse = await fetch('http://localhost:8000/api/auth/login', {
+const loginResponse = await fetch('http://ai-hypervisia:8000/api/auth/login', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -173,7 +173,7 @@ const loginResponse = await fetch('http://localhost:8000/api/auth/login', {
 const { access_token } = await loginResponse.json();
 
 // Send announcement
-const response = await fetch('http://localhost:8000/api/admin/announcements', {
+const response = await fetch('http://ai-hypervisia:8000/api/admin/announcements', {
   method: 'POST',
   headers: {
     'Authorization': `Bearer ${access_token}`,

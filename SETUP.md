@@ -103,7 +103,7 @@ All tests pass successfully:
 Application starts successfully:
 ```bash
 ./venv/bin/uvicorn app.main:app --reload
-# Server running on http://localhost:8000
+# Server running on http://ai-hypervisia:8000
 ```
 
 ### Next Steps

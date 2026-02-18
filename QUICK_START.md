@@ -16,9 +16,9 @@ docker-compose up -d
 docker-compose logs -f app
 
 # L'application sera disponible sur:
-# - Backend API: http://localhost:8000
-# - Documentation API: http://localhost:8000/docs
-# - Frontend: http://localhost:5173
+# - Backend API: http://ai-hypervisia:8000
+# - Documentation API: http://hypervisia:8000/docs
+# - Frontend: http://hypervisia:5173
 ```
 
 ### Arrêt
@@ -56,7 +56,7 @@ alembic upgrade head
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Backend disponible sur: http://localhost:8000
+Backend disponible sur: http://ai-hypervisia:8000
 
 ### Frontend
 
@@ -68,13 +68,13 @@ npm install
 
 # Configurer l'API
 cp .env.example .env
-# Vérifier que VITE_API_BASE_URL=http://localhost:8000/api
+# Vérifier que VITE_API_BASE_URL=http://ai-hypervisia:8000/api
 
 # Démarrer le serveur de développement
 npm run dev
 ```
 
-Frontend disponible sur: http://localhost:5173
+Frontend disponible sur: http://frontend:5173
 
 ## 📝 Configuration
 
@@ -84,7 +84,7 @@ Le fichier `.env` contient déjà des valeurs par défaut pour le développement
 
 ```env
 # Base de données (requis)
-DATABASE_URL=postgresql://user:password@localhost:5432/hypervisia_db
+DATABASE_URL=postgresql://user:password@postgres:5432/hypervisia_db
 
 # Sécurité (requis)
 SECRET_KEY=your-secret-key-change-in-production
@@ -154,8 +154,8 @@ pytest tests/test_auth.py -v
 
 Une fois le backend démarré, accédez à :
 
-- **Swagger UI** : http://localhost:8000/docs
-- **ReDoc** : http://localhost:8000/redoc
+- **Swagger UI** : http://ai-hypervisia:8000/docs
+- **ReDoc** : http://ai-hypervisia:8000/redoc
 
 ## 🔐 Compte Administrateur Initial
 
@@ -217,10 +217,10 @@ pip install -r requirements.txt
 **Solution** : Vérifier la configuration CORS et l'URL de l'API.
 ```bash
 # Dans frontend/.env
-VITE_API_BASE_URL=http://localhost:8000/api
+VITE_API_BASE_URL=http://ai-hypervisia:8000/api
 
 # Dans backend .env
-ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+ALLOWED_ORIGINS=http://ai-hypervisia:5173,http://ai-hypervisia:3000
 ```
 
 ## 📦 Structure du Projet
@@ -251,11 +251,11 @@ ai-hypervisia/
 
 ## 🌐 URLs Importantes
 
-- **Backend API** : http://localhost:8000
-- **API Docs (Swagger)** : http://localhost:8000/docs
-- **API Docs (ReDoc)** : http://localhost:8000/redoc
-- **Frontend** : http://localhost:5173
-- **Base de données** : localhost:5432
+- **Backend API** : http://ai-hypervisia:8000
+- **API Docs (Swagger)** : http://ai-hypervisia:8000/docs
+- **API Docs (ReDoc)** : http://ai-hypervisia:8000/redoc
+- **Frontend** : http://frontend:5173
+- **Base de données** : ai-hypostgrespervisia:5432
 
 ## 📞 Support
 

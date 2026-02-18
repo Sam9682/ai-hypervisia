@@ -243,8 +243,8 @@ alembic upgrade head
 uvicorn app.main:app --reload
 ```
 
-Backend disponible sur: http://localhost:8000
-Documentation API: http://localhost:8000/docs
+Backend disponible sur: http://ai-hypervisia:8000
+Documentation API: http://ai-hypervisia:8000/docs
 
 ### Frontend
 
@@ -256,13 +256,13 @@ npm install
 
 # Configurer API
 cp .env.example .env
-# VITE_API_BASE_URL=http://localhost:8000/api
+# VITE_API_BASE_URL=http://ai-hypervisia:8000/api
 
 # Démarrer serveur dev
 npm run dev
 ```
 
-Frontend disponible sur: http://localhost:5173
+Frontend disponible sur: http://frontend:5173
 
 ---
 

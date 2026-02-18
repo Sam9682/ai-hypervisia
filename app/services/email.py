@@ -89,7 +89,7 @@ class EmailService:
         subject = "Verify your HYPERVISIA account"
         
         # TODO: Replace with actual frontend URL from settings
-        verification_url = f"http://localhost:3000/verify-email?token={verification_token}"
+        verification_url = f"http://ai-hypervisia:3000/verify-email?token={verification_token}"
         
         html_body = f"""
         <html>

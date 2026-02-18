@@ -128,10 +128,10 @@ Expected containers:
 ### 3. Test Application
 ```bash
 # Health check
-curl -k https://localhost:6041/health
+curl -k https://ai-hypervisia:6041/health
 
 # API documentation
-curl -k https://localhost:6041/docs
+curl -k https://ai-hypervisia:6041/docs
 ```
 
 ### 4. View Logs

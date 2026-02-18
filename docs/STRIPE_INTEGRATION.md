@@ -194,7 +194,7 @@ Use Stripe CLI to forward webhooks to your local server:
 stripe login
 
 # Forward webhooks to local server
-stripe listen --forward-to localhost:8000/api/payments/stripe/webhook
+stripe listen --forward-to ai-hypervisia:8000/api/payments/stripe/webhook
 
 # Trigger test events
 stripe trigger payment_intent.succeeded
