@@ -7,6 +7,7 @@ export const RegisterPage = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    confirmPassword: '',
     firstName: '',
     lastName: '',
   });
@@ -31,6 +32,11 @@ export const RegisterPage = () => {
       return;
     }
 
+    if (formData.password !== formData.confirmPassword) {
+      setError('Les mots de passe ne correspondent pas');
+      return;
+    }
+
     const passwordError = getPasswordStrengthMessage(formData.password);
     if (passwordError) {
       setError(passwordError);
@@ -39,7 +45,13 @@ export const RegisterPage = () => {
 
     setLoading(true);
     try {
-      await authService.register(formData);
+      // Convertir les noms de champs en snake_case pour le backend
+      await authService.register({
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+      });
       setSuccess(true);
       setTimeout(() => navigate('/login'), 3000);
     } catch (err: any) {
@@ -160,6 +172,27 @@ export const RegisterPage = () => {
                   <span className="mr-1">💡</span>
                   Minimum 8 caractères avec majuscule, minuscule et chiffre
                 </p>
+              </div>
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="mr-1">🔑</span> Confirmer le mot de passe
+                </label>
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  required
+                  className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                  placeholder="••••••••"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                />
+                {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                  <p className="mt-2 text-xs text-red-600 flex items-center">
+                    <span className="mr-1">⚠️</span>
+                    Les mots de passe ne correspondent pas
+                  </p>
+                )}
               </div>
             </div>
 

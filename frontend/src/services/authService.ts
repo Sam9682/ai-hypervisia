@@ -37,7 +37,13 @@ export const authService = {
   },
 
   async register(data: RegistrationData): Promise<void> {
-    await api.post('/auth/register', data);
+    // Convertir les noms de champs en snake_case pour le backend
+    await api.post('/auth/register', {
+      email: data.email,
+      password: data.password,
+      first_name: data.firstName,
+      last_name: data.lastName,
+    });
   },
 
   async logout(): Promise<void> {

@@ -50,6 +50,16 @@ export const AdminUsersPage = () => {
     });
   };
 
+  const handleForceActive = () => {
+    // Forcer le statut à "Actif" en cochant email vérifié et en supprimant la date d'expiration
+    setFormData({
+      ...formData,
+      is_email_verified: true,
+      membership_expires_at: '',
+      membership_status: 'active',
+    });
+  };
+
   const handleSave = async () => {
     if (!editingUser) return;
     try {
@@ -211,16 +221,28 @@ export const AdminUsersPage = () => {
                 <label className="block text-sm font-medium mb-1">
                   Statut actuel
                 </label>
-                <div className="w-full px-3 py-2 border rounded-lg bg-gray-50">
-                  <span className={`px-2 py-1 rounded text-sm ${
-                    formData.membership_status === 'active' ? 'bg-green-100 text-green-800' :
-                    formData.membership_status === 'expired' ? 'bg-red-100 text-red-800' :
-                    'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {formData.membership_status === 'active' ? 'Actif' :
-                     formData.membership_status === 'expired' ? 'Expiré' :
-                     'Suspendu'}
-                  </span>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 px-3 py-2 border rounded-lg bg-gray-50">
+                    <span className={`px-2 py-1 rounded text-sm ${
+                      formData.membership_status === 'active' ? 'bg-green-100 text-green-800' :
+                      formData.membership_status === 'expired' ? 'bg-red-100 text-red-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {formData.membership_status === 'active' ? 'Actif' :
+                       formData.membership_status === 'expired' ? 'Expiré' :
+                       'Suspendu'}
+                    </span>
+                  </div>
+                  {formData.membership_status !== 'active' && (
+                    <button
+                      type="button"
+                      onClick={handleForceActive}
+                      className="px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors whitespace-nowrap"
+                      title="Forcer le statut à Actif (vérifie l'email et supprime la date d'expiration)"
+                    >
+                      ✓ Forcer Actif
+                    </button>
+                  )}
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
                   Le statut est calculé automatiquement selon la vérification email et la date d'expiration
