@@ -1,5 +1,5 @@
 """Oracle AI router"""
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from typing import Optional, List
 from app.database import get_db
@@ -24,6 +24,7 @@ router = APIRouter(prefix="/api/oracle", tags=["oracle"])
 @router.post("/ask", response_model=OracleResponse)
 @limiter.limit("10/minute")
 async def ask_oracle(
+    request: Request,
     query: OracleQuery,
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user)
@@ -93,7 +94,8 @@ async def get_all_oracle_history(
 @router.post("/analyze/forum", response_model=ForumAnalysisResponse)
 @limiter.limit("5/hour")
 async def analyze_forum(
-    request: OracleAnalysisRequest,
+    request: Request,
+    analysis_request: OracleAnalysisRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -107,7 +109,7 @@ async def analyze_forum(
     - Rate limited à 5 requêtes par heure (analyse coûteuse)
     """
     try:
-        analysis = await OracleService.analyze_forum(db, request.ai_provider)
+        analysis = await OracleService.analyze_forum(db, analysis_request.ai_provider)
         return analysis
     except Exception as e:
         raise HTTPException(
