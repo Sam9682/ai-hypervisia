@@ -77,12 +77,13 @@ export const HomePage = () => {
       <div className="grid md:grid-cols-3 gap-8 mb-16">
         <div className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-lg card-hover border border-primary-100">
           <div className="text-5xl mb-4">🎯</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-pink-600 to-red-600 bg-clip-text text-transparent">
             Notre Mission
           </h2>
           <p className="text-gray-600 leading-relaxed">
             Créer un espace d'échange et de collaboration pour nos membres, 
-            favorisant le partage de connaissances sur l'IA et la generative AI 🤝
+            pour prendre conscience de l'impact de l'IA sur notre société 🤝
+            Ce site web a été spécifié, construit, deployé en moins de 24h 😱
           </p>
         </div>
         
@@ -92,9 +93,9 @@ export const HomePage = () => {
             Nos Activités
           </h2>
           <p className="text-gray-600 leading-relaxed">
-            Organisation d'événements, ateliers, conférences et rencontres 
-            pour démocratiser l'IA en France. Utilisation d'une plateforme 
-            de test pour du déploiement d'application web par des agents IA <a href="https://softfluid.fr" target="_blank" rel="noopener noreferrer" className="bg-yellow-200 text-primary-600 hover:text-primary-700 underline transition-colors px-1 rounded">softfluid.fr</a> 🎪
+            Utilisation d'une plateforme de test pour du 
+            déploiement d'application web par des agents IA <a href="https://softfluid.fr" target="_blank" rel="noopener noreferrer" className="bg-yellow-200 text-primary-600 hover:text-primary-700 underline transition-colors px-1 rounded">softfluid.fr</a> 🎪
+            Suppression des développeurs, testeurs, intégrateurs, SSII ... 😱
           </p>
         </div>
         
@@ -105,7 +106,8 @@ export const HomePage = () => {
           </h2>
           <p className="text-gray-600 leading-relaxed">
             Devenez membre et participez activement à la vie de l'association. 
-            Ensemble, construisons notre communauté 💪
+            Ensemble, commençons par impulser la transformation de la société 💪
+            en commençant par l'Education et la Formation
           </p>
         </div>
       </div>
