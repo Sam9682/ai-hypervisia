@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { forumService, type Topic } from '../services/forumService';
-import { OracleWidget } from '../components/OracleWidget';
 import { authService } from '../services/authService';
 
 export const HomePage = () => {
@@ -129,13 +128,6 @@ export const HomePage = () => {
           </div>
         </div>
       </div>
-
-      {/* Oracle Widget Section */}
-      {isAuthenticated && (
-        <div className="mb-16">
-          <OracleWidget />
-        </div>
-      )}
 
       {/* Forum Topics Section */}
       <div className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-primary-100 mb-16">
