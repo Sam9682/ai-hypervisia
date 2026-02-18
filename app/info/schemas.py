@@ -81,3 +81,13 @@ class FinancialReportsResponse(BaseModel):
     """
     reports: List[FinancialReport]
     message: str = "Financial reports are available to all members for transparency"
+
+
+class StatsResponse(BaseModel):
+    """Response schema for statistics endpoint
+    
+    Returns public statistics about the association
+    """
+    total_users: int
+    total_events: int
+    total_topics: int

@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL || 'https://ai-hypervisia:8000';
+import api from './api';
 
 interface OracleQuery {
   question: string;
@@ -42,45 +40,28 @@ interface ForumAnalysisResponse {
 }
 
 class OracleService {
-  private getAuthHeader() {
-    const token = localStorage.getItem('access_token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  }
-
   async askOracle(query: OracleQuery): Promise<OracleResponse> {
-    const response = await axios.post(
-      `${API_URL}/api/oracle/ask`,
-      query,
-      { headers: this.getAuthHeader() }
-    );
+    const response = await api.post('/oracle/ask', query);
     return response.data;
   }
 
   async getHistory(limit: number = 50): Promise<OracleHistoryItem[]> {
-    const response = await axios.get(
-      `${API_URL}/api/oracle/history`,
-      {
-        params: { limit },
-        headers: this.getAuthHeader()
-      }
-    );
+    const response = await api.get('/oracle/history', {
+      params: { limit }
+    });
     return response.data;
   }
 
   async analyzeForumMessages(aiProvider: 'kiro' | 'shai' | 'openai' = 'kiro'): Promise<ForumAnalysisResponse> {
-    const response = await axios.post(
-      `${API_URL}/api/oracle/analyze/forum`,
-      {
-        analysis_type: 'forum_summary',
-        ai_provider: aiProvider
-      },
-      { headers: this.getAuthHeader() }
-    );
+    const response = await api.post('/oracle/analyze/forum', {
+      analysis_type: 'forum_summary',
+      ai_provider: aiProvider
+    });
     return response.data;
   }
 
   async getAvailableProviders() {
-    const response = await axios.get(`${API_URL}/api/oracle/providers`);
+    const response = await api.get('/oracle/providers');
     return response.data;
   }
 }

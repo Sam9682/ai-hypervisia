@@ -2,14 +2,19 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { forumService, type Topic } from '../services/forumService';
 import { authService } from '../services/authService';
+import { infoService, type Stats } from '../services/infoService';
+import sampng from '../assets/Sam.png';
 
 export const HomePage = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loadingTopics, setLoadingTopics] = useState(true);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [loadingStats, setLoadingStats] = useState(true);
   const isAuthenticated = authService.isAuthenticated();
 
   useEffect(() => {
     loadTopics();
+    loadStats();
   }, []);
 
   const loadTopics = async () => {
@@ -27,6 +32,20 @@ export const HomePage = () => {
       setTopics([]);
     } finally {
       setLoadingTopics(false);
+    }
+  };
+
+  const loadStats = async () => {
+    try {
+      setLoadingStats(true);
+      const data = await infoService.getStats();
+      setStats(data);
+    } catch (err) {
+      console.error('Error loading stats:', err);
+      // En cas d'erreur, on utilise des valeurs par défaut
+      setStats(null);
+    } finally {
+      setLoadingStats(false);
     }
   };
 
@@ -57,8 +76,7 @@ export const HomePage = () => {
           <li>la compréhension de l'impact majeur sur l'évolution de la société,</li>
           <li>des actions de sensibilisation et de vulgarisation,</li>
           <li>des événements (conférences, rencontres, hackathons),</li>
-          <li>la mise en réseau d'acteurs (citoyens, étudiants, professionnels, entreprises, institutions),</li>
-          <li>l'accès à des outils, plateformes ou ressources, dont notamment la plateforme <a href="https://softfluid.fr" target="_blank" rel="noopener noreferrer" className="bg-yellow-200 text-primary-600 hover:text-primary-700 underline transition-colors px-1 rounded">softfluid.fr</a></li>
+          <li>l'accès à des outils, dont la plateforme <a href="https://softfluid.fr" target="_blank" rel="noopener noreferrer" className="bg-yellow-200 text-primary-600 hover:text-primary-700 underline transition-colors px-1 rounded">softfluid.fr</a></li>
         </ul>
         <p className="text-xl text-gray-700 max-w-3xl mx-auto mt-4">✨</p>
         <div className="mt-8 flex justify-center gap-4">
@@ -116,11 +134,15 @@ export const HomePage = () => {
       <div className="bg-gradient-to-r from-primary-600 to-purple-600 rounded-2xl shadow-2xl p-8 mb-16 text-white">
         <div className="grid md:grid-cols-3 gap-8 text-center">
           <div>
-            <div className="text-4xl font-bold mb-2">3+</div>
+            <div className="text-4xl font-bold mb-2">
+              {loadingStats ? '...' : (stats?.total_users || 0)}+
+            </div>
             <div className="text-primary-100">Membres actifs 👥</div>
           </div>
           <div>
-            <div className="text-4xl font-bold mb-2">1+</div>
+            <div className="text-4xl font-bold mb-2">
+              {loadingStats ? '...' : (stats?.total_events || 0)}+
+            </div>
             <div className="text-primary-100">Événements par an 📅</div>
           </div>
           <div>
@@ -304,11 +326,12 @@ export const HomePage = () => {
             </div>
           </div>
           <div className="bg-gradient-to-br from-primary-50 to-purple-50 p-6 rounded-xl">
-            <h3 className="font-semibold text-gray-900 mb-3">💡 Le saviez-vous ?</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">💡 Les membres du bureau ?</h3>
             <p className="text-gray-600 text-sm leading-relaxed">
-              HYPERVISIA est une association dynamique qui rassemble des passionnés 
-              autour de l'intelligence artificielle et les mathématiques. Rejoignez-nous pour faire partie d'une 
-              communauté engagée !
+              Samuel, Président, ancien ingénieur informatique chez AWS, 25 ans d'expérience, IA depuis 2023 tous les jours
+              Nael, Secrétaire, étudiant en master de Math. et Centrale Lyon, 1ière génération de Maths par l'IA
+              Thibaud, 25 ans d'expérience en informatique
+               <img src={sampng} alt="Président" className="h-32 w-auto mr-2 object-contain" />
             </p>
           </div>
         </div>

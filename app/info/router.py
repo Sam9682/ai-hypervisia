@@ -4,11 +4,14 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.auth.dependencies import get_current_user
 from app.models import User
+from app.models.event import Event
+from app.models.forum import Topic
 from app.info.schemas import (
     HomepageResponse,
     LegalInfoResponse,
     BoardInfoResponse,
-    FinancialReportsResponse
+    FinancialReportsResponse,
+    StatsResponse
 )
 from app.info.config import (
     ASSOCIATION_INFO,
@@ -198,5 +201,59 @@ async def get_financial_reports(
             detail={
                 "code": "INTERNAL_ERROR",
                 "message": "An error occurred while retrieving financial reports"
+            }
+        )
+
+
+
+@router.get(
+    "/stats",
+    response_model=StatsResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        200: {"description": "Statistics retrieved successfully"}
+    }
+)
+async def get_stats(db: Session = Depends(get_db)) -> StatsResponse:
+    """Get public statistics about the association.
+    
+    Returns statistics including:
+    - Total number of users
+    - Total number of events
+    - Total number of forum topics
+    
+    This endpoint is public and does not require authentication.
+    
+    Args:
+        db: Database session
+        
+    Returns:
+        StatsResponse with association statistics
+    """
+    try:
+        logger.info("Statistics requested")
+        
+        # Count total users
+        total_users = db.query(User).count()
+        
+        # Count total events
+        total_events = db.query(Event).count()
+        
+        # Count total topics
+        total_topics = db.query(Topic).count()
+        
+        return StatsResponse(
+            total_users=total_users,
+            total_events=total_events,
+            total_topics=total_topics
+        )
+        
+    except Exception as e:
+        logger.error(f"Error retrieving statistics: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "code": "INTERNAL_ERROR",
+                "message": "An error occurred while retrieving statistics"
             }
         )
