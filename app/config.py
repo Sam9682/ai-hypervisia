@@ -32,7 +32,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "HYPERVISIA"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
-    ALLOWED_ORIGINS: str = "http://ai-hypervisia:3000"
+    ALLOWED_ORIGINS: str = "https://hypervisia.fr"
     
     # File Storage
     UPLOAD_DIR: str = "./storage/uploads"
