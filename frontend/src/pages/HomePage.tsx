@@ -1,4 +1,37 @@
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { forumService, type Topic } from '../services/forumService';
+
 export const HomePage = () => {
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [loadingTopics, setLoadingTopics] = useState(true);
+
+  useEffect(() => {
+    loadTopics();
+  }, []);
+
+  const loadTopics = async () => {
+    try {
+      setLoadingTopics(true);
+      const data = await forumService.getTopics();
+      // Get only the 5 most recent topics
+      setTopics(data.slice(0, 5));
+    } catch (err) {
+      console.error('Error loading topics:', err);
+    } finally {
+      setLoadingTopics(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
   return (
     <div className="px-4 py-8">
       {/* Hero Section */}
@@ -87,6 +120,81 @@ export const HomePage = () => {
             <div className="text-primary-100">Engagement OpenSource ❤️</div>
           </div>
         </div>
+      </div>
+
+      {/* Forum Topics Section */}
+      <div className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-primary-100 mb-16">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center">
+            <span className="text-4xl mr-3">💬</span>
+            <h2 className="text-3xl font-bold text-gray-900">Discussions du Forum</h2>
+          </div>
+          <Link
+            to="/forum"
+            className="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg text-primary-600 hover:text-primary-700 hover:bg-primary-50 transition-all duration-300"
+          >
+            Voir tout <span className="ml-2">→</span>
+          </Link>
+        </div>
+
+        {loadingTopics ? (
+          <div className="flex justify-center items-center py-8">
+            <span className="text-3xl animate-spin inline-block">⏳</span>
+            <p className="ml-3 text-gray-600">Chargement...</p>
+          </div>
+        ) : topics.length === 0 ? (
+          <div className="text-center py-8">
+            <span className="text-5xl mb-3 inline-block">📝</span>
+            <p className="text-gray-600 mb-4">Aucun sujet pour le moment</p>
+            <Link
+              to="/forum/new"
+              className="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <span className="mr-2">✍️</span> Créer le premier sujet
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {topics.map((topic) => (
+              <Link
+                key={topic.id}
+                to={`/forum/topics/${topic.id}`}
+                className="block p-4 rounded-lg hover:bg-gradient-to-r hover:from-primary-50 hover:to-purple-50 transition-all duration-300 border border-gray-100 hover:border-primary-200"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="text-xl">💭</span>
+                      <h3 className="text-base font-semibold text-gray-900 hover:text-primary-700 truncate">
+                        {topic.title}
+                      </h3>
+                      {topic.is_pinned && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-yellow-400 to-orange-400 text-white">
+                          📌
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center text-xs text-gray-500">
+                      <span className="mr-1">👤</span>
+                      <span>{topic.author_name}</span>
+                      <span className="mx-2">•</span>
+                      <span className="mr-1">📅</span>
+                      <span>{formatDate(topic.created_at)}</span>
+                    </div>
+                  </div>
+                  <div className="ml-4 flex-shrink-0">
+                    <div className="inline-flex items-center px-3 py-1 rounded-lg bg-gradient-to-r from-primary-100 to-purple-100">
+                      <span className="mr-1 text-sm">💬</span>
+                      <span className="text-xs font-bold text-primary-700">
+                        {topic.post_count}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Contact Section */}
