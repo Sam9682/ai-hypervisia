@@ -3,7 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import Optional, List
 from app.database import get_db
-from app.auth.dependencies import get_current_user, get_current_admin_user
+from app.auth.dependencies import get_current_user
+from app.events.dependencies import require_admin
 from app.models.user import User
 from app.oracle.schemas import (
     OracleQuery,
@@ -71,7 +72,7 @@ async def get_oracle_history(
 async def get_all_oracle_history(
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_admin_user)
+    current_user: User = Depends(require_admin)
 ):
     """
     Récupérer tout l'historique des questions (admin uniquement)
