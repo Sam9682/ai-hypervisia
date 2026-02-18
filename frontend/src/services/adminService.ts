@@ -42,6 +42,12 @@ export const adminService = {
     await api.put(`/admin/members/${userId}/role`, { role });
   },
 
+  async updateMembershipStatus(userId: string, membershipExpiresAt: string | null): Promise<void> {
+    await api.put(`/admin/members/${userId}/membership-status`, { 
+      membership_expires_at: membershipExpiresAt 
+    });
+  },
+
   async deleteUser(userId: string): Promise<void> {
     await api.put(`/admin/members/${userId}/deactivate`);
   },

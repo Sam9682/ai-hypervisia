@@ -15,6 +15,7 @@ from app.admin.router import router as admin_router
 from app.notifications.router import router as notifications_router
 from app.info.router import router as info_router
 from app.users.router import router as users_router
+from app.oracle.router import router as oracle_router
 from app.scheduler import task_scheduler
 from app.error_handlers import register_exception_handlers
 from app.middleware.rate_limit import limiter
@@ -75,6 +76,7 @@ app.include_router(admin_router)
 app.include_router(notifications_router)
 app.include_router(info_router)
 app.include_router(users_router)
+app.include_router(oracle_router)
 
 
 @app.get("/health")

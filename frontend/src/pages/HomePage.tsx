@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { forumService, type Topic } from '../services/forumService';
+import { OracleWidget } from '../components/OracleWidget';
+import { authService } from '../services/authService';
 
 export const HomePage = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loadingTopics, setLoadingTopics] = useState(true);
+  const isAuthenticated = authService.isAuthenticated();
 
   useEffect(() => {
     loadTopics();
@@ -13,11 +16,16 @@ export const HomePage = () => {
   const loadTopics = async () => {
     try {
       setLoadingTopics(true);
-      const data = await forumService.getTopics();
+      // Utiliser l'endpoint public si l'utilisateur n'est pas connecté
+      const data = isAuthenticated 
+        ? await forumService.getTopics(false)
+        : await forumService.getTopicsPublic();
       // Get only the 5 most recent topics
       setTopics(data.slice(0, 5));
     } catch (err) {
       console.error('Error loading topics:', err);
+      // En cas d'erreur, on continue sans bloquer
+      setTopics([]);
     } finally {
       setLoadingTopics(false);
     }
@@ -122,6 +130,13 @@ export const HomePage = () => {
         </div>
       </div>
 
+      {/* Oracle Widget Section */}
+      {isAuthenticated && (
+        <div className="mb-16">
+          <OracleWidget />
+        </div>
+      )}
+
       {/* Forum Topics Section */}
       <div className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-primary-100 mb-16">
         <div className="flex items-center justify-between mb-6">
@@ -129,13 +144,38 @@ export const HomePage = () => {
             <span className="text-4xl mr-3">💬</span>
             <h2 className="text-3xl font-bold text-gray-900">Discussions du Forum</h2>
           </div>
-          <Link
-            to="/forum"
-            className="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg text-primary-600 hover:text-primary-700 hover:bg-primary-50 transition-all duration-300"
-          >
-            Voir tout <span className="ml-2">→</span>
-          </Link>
+          {isAuthenticated ? (
+            <Link
+              to="/forum"
+              className="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg text-primary-600 hover:text-primary-700 hover:bg-primary-50 transition-all duration-300"
+            >
+              Voir tout <span className="ml-2">→</span>
+            </Link>
+          ) : (
+            <Link
+              to="/login"
+              className="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all duration-300"
+            >
+              <span className="mr-2">🔐</span> Se connecter pour participer
+            </Link>
+          )}
         </div>
+
+        {!isAuthenticated && (
+          <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start">
+              <span className="text-2xl mr-3">ℹ️</span>
+              <div>
+                <p className="text-sm font-semibold text-gray-800 mb-1">
+                  Aperçu des discussions du forum
+                </p>
+                <p className="text-sm text-gray-600">
+                  Connectez-vous pour accéder aux détails des discussions, participer et créer vos propres sujets.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {loadingTopics ? (
           <div className="flex justify-center items-center py-8">
@@ -155,44 +195,92 @@ export const HomePage = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {topics.map((topic) => (
-              <Link
-                key={topic.id}
-                to={`/forum/topics/${topic.id}`}
-                className="block p-4 rounded-lg hover:bg-gradient-to-r hover:from-primary-50 hover:to-purple-50 transition-all duration-300 border border-gray-100 hover:border-primary-200"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <span className="text-xl">💭</span>
-                      <h3 className="text-base font-semibold text-gray-900 hover:text-primary-700 truncate">
-                        {topic.title}
-                      </h3>
-                      {topic.is_pinned && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-yellow-400 to-orange-400 text-white">
-                          📌
+            {topics.map((topic) => {
+              // Si l'utilisateur est connecté, afficher un lien cliquable
+              if (isAuthenticated) {
+                return (
+                  <Link
+                    key={topic.id}
+                    to={`/forum/topics/${topic.id}`}
+                    className="block p-4 rounded-lg hover:bg-gradient-to-r hover:from-primary-50 hover:to-purple-50 transition-all duration-300 border border-gray-100 hover:border-primary-200"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <span className="text-xl">💭</span>
+                          <h3 className="text-base font-semibold text-gray-900 hover:text-primary-700 truncate">
+                            {topic.title}
+                          </h3>
+                          {topic.is_pinned && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-yellow-400 to-orange-400 text-white">
+                              📌
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center text-xs text-gray-500">
+                          <span className="mr-1">👤</span>
+                          <span>{topic.author_name}</span>
+                          <span className="mx-2">•</span>
+                          <span className="mr-1">📅</span>
+                          <span>{formatDate(topic.created_at)}</span>
+                        </div>
+                      </div>
+                      <div className="ml-4 flex-shrink-0">
+                        <div className="inline-flex items-center px-3 py-1 rounded-lg bg-gradient-to-r from-primary-100 to-purple-100">
+                          <span className="mr-1 text-sm">💬</span>
+                          <span className="text-xs font-bold text-primary-700">
+                            {topic.post_count}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              }
+              
+              // Si l'utilisateur n'est pas connecté, afficher un div non cliquable avec un message
+              return (
+                <div
+                  key={topic.id}
+                  className="relative p-4 rounded-lg border border-gray-100 bg-gray-50 cursor-not-allowed opacity-75"
+                  title="Connectez-vous pour accéder aux détails"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className="text-xl">💭</span>
+                        <h3 className="text-base font-semibold text-gray-700 truncate">
+                          {topic.title}
+                        </h3>
+                        {topic.is_pinned && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-yellow-400 to-orange-400 text-white">
+                            📌
+                          </span>
+                        )}
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                          🔒 Connexion requise
                         </span>
-                      )}
+                      </div>
+                      <div className="flex items-center text-xs text-gray-500">
+                        <span className="mr-1">👤</span>
+                        <span>{topic.author_name}</span>
+                        <span className="mx-2">•</span>
+                        <span className="mr-1">📅</span>
+                        <span>{formatDate(topic.created_at)}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center text-xs text-gray-500">
-                      <span className="mr-1">👤</span>
-                      <span>{topic.author_name}</span>
-                      <span className="mx-2">•</span>
-                      <span className="mr-1">📅</span>
-                      <span>{formatDate(topic.created_at)}</span>
-                    </div>
-                  </div>
-                  <div className="ml-4 flex-shrink-0">
-                    <div className="inline-flex items-center px-3 py-1 rounded-lg bg-gradient-to-r from-primary-100 to-purple-100">
-                      <span className="mr-1 text-sm">💬</span>
-                      <span className="text-xs font-bold text-primary-700">
-                        {topic.post_count}
-                      </span>
+                    <div className="ml-4 flex-shrink-0">
+                      <div className="inline-flex items-center px-3 py-1 rounded-lg bg-gray-200">
+                        <span className="mr-1 text-sm">💬</span>
+                        <span className="text-xs font-bold text-gray-600">
+                          {topic.post_count}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </Link>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

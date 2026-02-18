@@ -27,6 +27,57 @@ from app.services.notification_service import notification_service
 router = APIRouter(prefix="/api/forum", tags=["forum"])
 
 
+@router.get("/topics/public", response_model=list[TopicResponse])
+async def list_topics_public(
+    db: Session = Depends(get_db)
+):
+    """List all forum topics (public access).
+    
+    Public endpoint that allows unauthenticated users to see the list of topics.
+    Users must be authenticated to view topic details.
+    
+    Args:
+        db: Database session
+        
+    Returns:
+        List of forum topics with metadata
+    """
+    logger.info("Public access to forum topics list")
+    
+    # Query topics with post count
+    topics = db.query(
+        Topic,
+        func.count(Post.id).label('post_count')
+    ).outerjoin(
+        Post, Topic.id == Post.topic_id
+    ).group_by(
+        Topic.id
+    ).order_by(
+        Topic.is_pinned.desc(),
+        Topic.created_at.desc()
+    ).all()
+    
+    # Build response with author names
+    result = []
+    for topic, post_count in topics:
+        author = db.query(User).filter(User.id == topic.author_id).first()
+        author_name = f"{author.first_name} {author.last_name}" if author else "Unknown"
+        
+        result.append(TopicResponse(
+            id=topic.id,
+            title=topic.title,
+            author_id=topic.author_id,
+            author_name=author_name,
+            is_pinned=topic.is_pinned,
+            is_locked=topic.is_locked,
+            created_at=topic.created_at,
+            updated_at=topic.updated_at,
+            post_count=post_count
+        ))
+    
+    return result
+
+
 @router.get("/topics", response_model=list[TopicResponse])
 async def list_topics(
     db: Session = Depends(get_db),

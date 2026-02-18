@@ -55,6 +55,9 @@ export const Layout = ({ children }: LayoutProps) => {
                     <Link to="/documents" className="inline-flex items-center px-3 pt-1 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors border-b-2 border-transparent hover:border-primary-600">
                       <span className="mr-1">📄</span> Documents
                     </Link>
+                    <Link to="/oracle" className="inline-flex items-center px-3 pt-1 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors border-b-2 border-transparent hover:border-primary-600">
+                      <span className="mr-1">🔮</span> L'Oracle (AI)
+                    </Link>
                     {isAdmin && (
                       <Link to="/admin/users" className="inline-flex items-center px-3 pt-1 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors border-b-2 border-transparent hover:border-primary-600">
                         <span className="mr-1">👥</span> Utilisateurs

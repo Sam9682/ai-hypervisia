@@ -12,6 +12,8 @@ export const AdminUsersPage = () => {
     last_name: '',
     role: 'member',
     password: '',
+    membership_expires_at: '',
+    membership_status: '',
   });
 
   useEffect(() => {
@@ -32,19 +34,32 @@ export const AdminUsersPage = () => {
 
   const handleEdit = (user: User) => {
     setEditingUser(user);
+    const expiresAt = user.membership_expires_at 
+      ? new Date(user.membership_expires_at).toISOString().slice(0, 16)
+      : '';
     setFormData({
       email: user.email,
       first_name: user.first_name,
       last_name: user.last_name,
       role: user.role,
       password: '',
+      membership_expires_at: expiresAt,
+      membership_status: user.membership_status,
     });
   };
 
   const handleSave = async () => {
     if (!editingUser) return;
     try {
+      // Update role
       await adminService.updateUserRole(editingUser.id, formData.role);
+      
+      // Update membership status
+      const membershipExpiresAt = formData.membership_expires_at 
+        ? new Date(formData.membership_expires_at).toISOString()
+        : null;
+      await adminService.updateMembershipStatus(editingUser.id, membershipExpiresAt);
+      
       setEditingUser(null);
       loadUsers();
     } catch (error) {
@@ -72,7 +87,15 @@ export const AdminUsersPage = () => {
         role: formData.role,
       });
       setShowCreateModal(false);
-      setFormData({ email: '', first_name: '', last_name: '', role: 'member', password: '' });
+      setFormData({ 
+        email: '', 
+        first_name: '', 
+        last_name: '', 
+        role: 'member', 
+        password: '',
+        membership_expires_at: '',
+        membership_status: '',
+      });
       loadUsers();
     } catch (error) {
       console.error('Failed to create user:', error);
@@ -177,6 +200,20 @@ export const AdminUsersPage = () => {
                   <option value="member">Membre</option>
                   <option value="administrator">Administrateur</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Date d'expiration de l'adhésion
+                </label>
+                <input
+                  type="datetime-local"
+                  value={formData.membership_expires_at}
+                  onChange={(e) => setFormData({ ...formData, membership_expires_at: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Laissez vide pour une adhésion à vie
+                </p>
               </div>
               <div className="flex justify-end space-x-2">
                 <button

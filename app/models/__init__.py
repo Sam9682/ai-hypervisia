@@ -20,3 +20,4 @@ __all__ = [
     "TokenBlacklist",
     "ScheduledUserDeletion"
 ]
+from app.models.oracle import OracleQuery

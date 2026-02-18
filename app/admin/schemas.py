@@ -31,6 +31,29 @@ class RoleUpdateResponse(BaseModel):
     }
 
 
+class MembershipStatusUpdateRequest(BaseModel):
+    """Request schema for updating membership status
+    
+    Allows administrator to update membership expiration date
+    """
+    membership_expires_at: Optional[datetime] = Field(
+        description="New membership expiration date (null for lifetime membership)"
+    )
+
+
+class MembershipStatusUpdateResponse(BaseModel):
+    """Response schema for successful membership status update"""
+    id: str
+    email: str
+    membership_expires_at: Optional[datetime]
+    membership_status: str
+    message: str = "Membership status updated successfully"
+    
+    model_config = {
+        "from_attributes": True
+    }
+
+
 class MemberSummary(BaseModel):
     """Summary information for a member
     

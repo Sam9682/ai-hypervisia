@@ -9,6 +9,7 @@ import { TopicDetailPage } from './pages/TopicDetailPage';
 import { NewTopicPage } from './pages/NewTopicPage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
 import { AdminEventsPage } from './pages/AdminEventsPage';
+import { OraclePage } from './pages/OraclePage';
 
 function App() {
   return (
@@ -59,6 +60,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <AdminEventsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/oracle"
+                  element={
+                    <ProtectedRoute>
+                      <OraclePage />
                     </ProtectedRoute>
                   }
                 />

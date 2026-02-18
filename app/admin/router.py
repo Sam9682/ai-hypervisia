@@ -10,6 +10,8 @@ from app.events.dependencies import require_admin
 from app.admin.schemas import (
     RoleUpdateRequest,
     RoleUpdateResponse,
+    MembershipStatusUpdateRequest,
+    MembershipStatusUpdateResponse,
     MemberListResponse,
     MemberSummary,
     DeactivateMemberResponse,
@@ -140,6 +142,108 @@ async def update_member_role(
         last_name=member.last_name,
         role=member.role.value,
         message="User role updated successfully"
+    )
+
+
+@router.put(
+    "/members/{member_id}/membership-status",
+    response_model=MembershipStatusUpdateResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        403: {"description": "Insufficient permissions - administrator role required"},
+        404: {"description": "Member not found"}
+    }
+)
+@limiter.limit("30/hour")
+async def update_membership_status(
+    request: Request,
+    member_id: UUID,
+    status_data: MembershipStatusUpdateRequest,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+) -> MembershipStatusUpdateResponse:
+    """Update a member's membership status.
+    
+    Allows administrator to set membership expiration date.
+    Setting to None grants lifetime membership.
+    
+    Args:
+        member_id: UUID of the member to update
+        status_data: New membership status information
+        current_user: Authenticated administrator
+        db: Database session
+        
+    Returns:
+        MembershipStatusUpdateResponse with updated membership details
+        
+    Raises:
+        HTTPException 403: If user is not an administrator
+        HTTPException 404: If member not found
+    """
+    # Fetch the member to update
+    member = db.query(User).filter(User.id == member_id).first()
+    if not member:
+        logger.warning(
+            f"Administrator {current_user.id} attempted to update membership status for "
+            f"non-existent member {member_id}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=ErrorResponse.create(
+                code="MEMBER_NOT_FOUND",
+                message="Member not found",
+                details={"member_id": str(member_id)}
+            )
+        )
+    
+    # Store old status for audit log
+    old_expires_at = member.membership_expires_at
+    
+    # Update the member's membership expiration
+    member.membership_expires_at = status_data.membership_expires_at
+    member.updated_at = datetime.now(timezone.utc)
+    
+    # Calculate new membership status
+    now = datetime.now(timezone.utc)
+    if not member.is_email_verified:
+        membership_status = "suspended"
+    elif member.membership_expires_at is None:
+        membership_status = "active"
+    else:
+        expires_at = member.membership_expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        membership_status = "active" if expires_at > now else "expired"
+    
+    # Create audit log entry
+    audit_entry = AuditLog(
+        admin_id=current_user.id,
+        action="update_membership_status",
+        target_type="user",
+        target_id=member.id,
+        details={
+            "old_membership_expires_at": old_expires_at.isoformat() if old_expires_at else None,
+            "new_membership_expires_at": member.membership_expires_at.isoformat() if member.membership_expires_at else None,
+            "member_email": member.email
+        }
+    )
+    db.add(audit_entry)
+    
+    # Commit changes
+    db.commit()
+    db.refresh(member)
+    
+    logger.info(
+        f"Administrator {current_user.id} ({current_user.email}) updated membership status for "
+        f"member {member.id} ({member.email})"
+    )
+    
+    return MembershipStatusUpdateResponse(
+        id=str(member.id),
+        email=member.email,
+        membership_expires_at=member.membership_expires_at,
+        membership_status=membership_status,
+        message="Membership status updated successfully"
     )
 
 

@@ -36,8 +36,16 @@ export interface CreatePostData {
 }
 
 export const forumService = {
-  async getTopics(): Promise<Topic[]> {
-    const response = await api.get('/forum/topics');
+  async getTopics(publicAccess: boolean = false): Promise<Topic[]> {
+    // Utiliser l'endpoint public si l'utilisateur n'est pas connecté
+    const endpoint = publicAccess ? '/forum/topics/public' : '/forum/topics';
+    const response = await api.get(endpoint);
+    return response.data;
+  },
+
+  async getTopicsPublic(): Promise<Topic[]> {
+    // Endpoint public sans authentification
+    const response = await api.get('/forum/topics/public');
     return response.data;
   },
 
