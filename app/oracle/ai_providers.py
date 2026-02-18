@@ -43,20 +43,38 @@ class KiroAIProvider(AIProvider):
             if context:
                 prompt = f"Contexte: {context}\n\nQuestion: {question}"
             
-            # Execute kiro-cli command
+            # Escape quotes in prompt
+            prompt = prompt.replace('"', '\\"').replace('$', '\\$')
+            
+            # Execute kiro-cli command with timeout
             process = await asyncio.create_subprocess_shell(
-                f'echo "{prompt}" | kiro-cli --temperature {temperature} --max-tokens {max_tokens}',
+                f'echo "{prompt}" | timeout 30 kiro-cli --temperature {temperature} --max-tokens {max_tokens}',
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
             
-            stdout, stderr = await process.communicate()
+            try:
+                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=35.0)
+            except asyncio.TimeoutError:
+                process.kill()
+                logger.error("Kiro CLI timeout after 35 seconds")
+                raise Exception("Kiro CLI timeout - la requête a pris trop de temps")
             
             if process.returncode != 0:
-                logger.error(f"Kiro CLI error: {stderr.decode()}")
-                raise Exception(f"Kiro CLI failed: {stderr.decode()}")
+                error_msg = stderr.decode() if stderr else "Unknown error"
+                logger.error(f"Kiro CLI error: {error_msg}")
+                
+                # Check if kiro-cli is not installed
+                if "not found" in error_msg or "command not found" in error_msg:
+                    raise Exception("Kiro CLI n'est pas installé sur ce serveur. Veuillez utiliser un autre fournisseur d'IA.")
+                
+                raise Exception(f"Kiro CLI a échoué: {error_msg}")
             
             answer = stdout.decode().strip()
+            
+            if not answer:
+                raise Exception("Kiro CLI n'a pas retourné de réponse")
+            
             processing_time = time.time() - start_time
             
             return {
