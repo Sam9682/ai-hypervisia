@@ -56,11 +56,9 @@ export const HomePage = () => {
         <ul className="text-lg text-gray-600 max-w-3xl mx-auto mt-4 space-y-2 list-disc list-inside">
           <li>la compréhension de l'impact majeur sur l'évolution de la société,</li>
           <li>des actions de sensibilisation et de vulgarisation,</li>
-          <li>des formations et ateliers,</li>
           <li>des événements (conférences, rencontres, hackathons),</li>
-          <li>l'accompagnement de projets et d'expérimentations,</li>
           <li>la mise en réseau d'acteurs (citoyens, étudiants, professionnels, entreprises, institutions),</li>
-          <li>l'accès à des outils, plateformes ou ressources, dont notamment la plateforme <a href="https://softfluid.fr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline transition-colors">softfluid.fr</a></li>
+          <li>l'accès à des outils, plateformes ou ressources, dont notamment la plateforme <a href="https://softfluid.fr" target="_blank" rel="noopener noreferrer" className="bg-yellow-200 text-primary-600 hover:text-primary-700 underline transition-colors px-1 rounded">softfluid.fr</a></li>
         </ul>
         <p className="text-xl text-gray-700 max-w-3xl mx-auto mt-4">✨</p>
         <div className="mt-8 flex justify-center gap-4">
@@ -96,7 +94,7 @@ export const HomePage = () => {
           <p className="text-gray-600 leading-relaxed">
             Organisation d'événements, ateliers, conférences et rencontres 
             pour démocratiser l'IA en France. Utilisation d'une plateforme 
-            de test pour du déploiement d'application web par des agents IA <a href="https://softfluid.fr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline transition-colors">softfluid.fr</a> 🎪
+            de test pour du déploiement d'application web par des agents IA <a href="https://softfluid.fr" target="_blank" rel="noopener noreferrer" className="bg-yellow-200 text-primary-600 hover:text-primary-700 underline transition-colors px-1 rounded">softfluid.fr</a> 🎪
           </p>
         </div>
         
