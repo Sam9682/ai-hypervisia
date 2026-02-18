@@ -68,4 +68,8 @@ export const forumService = {
     const response = await api.put(`/forum/posts/${postId}`, data);
     return response.data;
   },
+
+  async deletePost(postId: string): Promise<void> {
+    await api.delete(`/forum/posts/${postId}`);
+  },
 };

@@ -48,6 +48,12 @@ export const adminService = {
     });
   },
 
+  async updateEmailVerification(userId: string, isEmailVerified: boolean): Promise<void> {
+    await api.put(`/admin/members/${userId}/email-verification`, { 
+      is_email_verified: isEmailVerified 
+    });
+  },
+
   async deleteUser(userId: string): Promise<void> {
     await api.put(`/admin/members/${userId}/deactivate`);
   },

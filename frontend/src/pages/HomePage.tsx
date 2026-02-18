@@ -54,6 +54,7 @@ export const HomePage = () => {
           L'Association a pour objet de promouvoir la compréhension, l'usage, la recherche appliquée et le développement de l'intelligence artificielle, notamment par :
         </p>
         <ul className="text-lg text-gray-600 max-w-3xl mx-auto mt-4 space-y-2 list-disc list-inside">
+          <li>la compréhension de l'impact majeur sur l'évolution de la société,</li>
           <li>des actions de sensibilisation et de vulgarisation,</li>
           <li>des formations et ateliers,</li>
           <li>des événements (conférences, rencontres, hackathons),</li>

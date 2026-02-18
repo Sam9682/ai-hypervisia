@@ -54,6 +54,26 @@ class MembershipStatusUpdateResponse(BaseModel):
     }
 
 
+class EmailVerificationUpdateRequest(BaseModel):
+    """Request schema for updating email verification status"""
+    is_email_verified: bool = Field(
+        description="Email verification status"
+    )
+
+
+class EmailVerificationUpdateResponse(BaseModel):
+    """Response schema for successful email verification update"""
+    id: str
+    email: str
+    is_email_verified: bool
+    membership_status: str
+    message: str = "Email verification status updated successfully"
+    
+    model_config = {
+        "from_attributes": True
+    }
+
+
 class MemberSummary(BaseModel):
     """Summary information for a member
     

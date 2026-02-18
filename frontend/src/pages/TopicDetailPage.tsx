@@ -14,14 +14,16 @@ export const TopicDetailPage = () => {
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState('');
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get current user ID from localStorage
+    // Get current user ID and role from localStorage
     const userStr = localStorage.getItem('user');
     if (userStr) {
       try {
         const user = JSON.parse(userStr);
         setCurrentUserId(user.id);
+        setCurrentUserRole(user.role);
       } catch (e) {
         console.error('Error parsing user:', e);
       }
@@ -85,6 +87,27 @@ export const TopicDetailPage = () => {
     } catch (err: any) {
       alert(err.response?.data?.error?.message || 'Erreur lors de la modification');
     }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce message ? Cette action est irréversible.')) {
+      return;
+    }
+
+    try {
+      await forumService.deletePost(postId);
+      await loadTopic();
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || 'Erreur lors de la suppression');
+    }
+  };
+
+  const canEditPost = (post: Post) => {
+    return currentUserId === post.author_id || currentUserRole === 'administrator';
+  };
+
+  const canDeletePost = () => {
+    return currentUserRole === 'administrator';
   };
 
   const formatDate = (dateString: string) => {
@@ -180,13 +203,25 @@ export const TopicDetailPage = () => {
                         <p className="text-xs text-gray-400 italic">Modifié le {formatDate(post.updated_at)}</p>
                       )}
                     </div>
-                    {currentUserId === post.author_id && editingPostId !== post.id && (
-                      <button
-                        onClick={() => handleEditPost(post)}
-                        className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
-                      >
-                        ✏️ Modifier
-                      </button>
+                    {editingPostId !== post.id && (
+                      <div className="flex gap-2">
+                        {canEditPost(post) && (
+                          <button
+                            onClick={() => handleEditPost(post)}
+                            className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                          >
+                            ✏️ Modifier
+                          </button>
+                        )}
+                        {canDeletePost() && (
+                          <button
+                            onClick={() => handleDeletePost(post.id)}
+                            className="text-sm text-red-600 hover:text-red-700 font-medium transition-colors"
+                          >
+                            🗑️ Supprimer
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                   

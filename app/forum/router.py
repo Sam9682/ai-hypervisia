@@ -384,7 +384,7 @@ async def update_post(
     """Update a forum post.
     
     Requires authenticated member access and post ownership.
-    Users can only edit their own posts.
+    Users can only edit their own posts, but administrators can edit any post.
     
     Args:
         post_id: UUID of the post to update
@@ -398,9 +398,10 @@ async def update_post(
     Raises:
         HTTPException 400: If post ID format is invalid
         HTTPException 404: If post not found
-        HTTPException 403: If user is not the post author
+        HTTPException 403: If user is not the post author and not an administrator
     """
     from uuid import UUID
+    from app.models.user import UserRole
     
     try:
         post_uuid = UUID(post_id)
@@ -426,8 +427,8 @@ async def update_post(
             )
         )
     
-    # Check if user is the post author
-    if post.author_id != current_user.id:
+    # Check if user is the post author or an administrator
+    if post.author_id != current_user.id and current_user.role != UserRole.ADMINISTRATOR:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=ErrorResponse.create(
@@ -445,7 +446,9 @@ async def update_post(
     db.commit()
     db.refresh(post)
     
-    author_name = f"{current_user.first_name} {current_user.last_name}"
+    # Get the post author's name for the response
+    post_author = db.query(User).filter(User.id == post.author_id).first()
+    author_name = f"{post_author.first_name} {post_author.last_name}" if post_author else "Unknown"
     
     return PostResponse(
         id=post.id,
@@ -537,4 +540,85 @@ async def hide_post(
         "message": "Post has been hidden successfully",
         "post_id": str(post.id)
     }
+
+
+@router.delete("/posts/{post_id}", status_code=status.HTTP_200_OK)
+async def delete_post(
+    post_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_administrator)
+):
+    """Delete a forum post (admin only).
+
+    Requires administrator role.
+    Permanently deletes the post from the database.
+    Logs deletion action in audit log.
+
+    Args:
+        post_id: UUID of the post to delete
+        db: Database session
+        current_user: Authenticated administrator
+
+    Returns:
+        Success message
+
+    Raises:
+        HTTPException 400: If post ID format is invalid
+        HTTPException 404: If post not found
+    """
+    from uuid import UUID
+    from app.models import AuditLog
+
+    try:
+        post_uuid = UUID(post_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorResponse.create(
+                code="INVALID_POST_ID",
+                message="Invalid post ID format",
+                details={}
+            )
+        )
+
+    # Fetch post
+    post = db.query(Post).filter(Post.id == post_uuid).first()
+    if not post:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=ErrorResponse.create(
+                code="POST_NOT_FOUND",
+                message="Post not found",
+                details={"post_id": post_id}
+            )
+        )
+
+    # Log deletion action in audit log before deleting
+    audit_entry = AuditLog(
+        admin_id=current_user.id,
+        action="delete_post",
+        target_type="post",
+        target_id=post.id,
+        details={
+            "post_id": str(post.id),
+            "topic_id": str(post.topic_id),
+            "author_id": str(post.author_id),
+            "content_preview": post.content[:100] if len(post.content) > 100 else post.content
+        }
+    )
+
+    db.add(audit_entry)
+    
+    # Delete the post
+    db.delete(post)
+    db.commit()
+
+    logger.info(f"Administrator {current_user.id} deleted post {post_id}")
+
+    return {
+        "success": True,
+        "message": "Post has been deleted successfully",
+        "post_id": str(post_id)
+    }
+
 

@@ -14,6 +14,7 @@ export const AdminUsersPage = () => {
     password: '',
     membership_expires_at: '',
     membership_status: '',
+    is_email_verified: true,
   });
 
   useEffect(() => {

@@ -12,6 +12,8 @@ from app.admin.schemas import (
     RoleUpdateResponse,
     MembershipStatusUpdateRequest,
     MembershipStatusUpdateResponse,
+    EmailVerificationUpdateRequest,
+    EmailVerificationUpdateResponse,
     MemberListResponse,
     MemberSummary,
     DeactivateMemberResponse,
@@ -244,6 +246,108 @@ async def update_membership_status(
         membership_expires_at=member.membership_expires_at,
         membership_status=membership_status,
         message="Membership status updated successfully"
+    )
+
+
+@router.put(
+    "/members/{member_id}/email-verification",
+    response_model=EmailVerificationUpdateResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        403: {"description": "Insufficient permissions - administrator role required"},
+        404: {"description": "Member not found"}
+    }
+)
+@limiter.limit("30/hour")
+async def update_email_verification(
+    request: Request,
+    member_id: UUID,
+    verification_data: EmailVerificationUpdateRequest,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+) -> EmailVerificationUpdateResponse:
+    """Update a member's email verification status.
+    
+    Allows administrator to manually verify or unverify a member's email.
+    This affects the membership status (suspended if not verified).
+    
+    Args:
+        member_id: UUID of the member to update
+        verification_data: New email verification status
+        current_user: Authenticated administrator
+        db: Database session
+        
+    Returns:
+        EmailVerificationUpdateResponse with updated verification details
+        
+    Raises:
+        HTTPException 403: If user is not an administrator
+        HTTPException 404: If member not found
+    """
+    # Fetch the member to update
+    member = db.query(User).filter(User.id == member_id).first()
+    if not member:
+        logger.warning(
+            f"Administrator {current_user.id} attempted to update email verification for "
+            f"non-existent member {member_id}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=ErrorResponse.create(
+                code="MEMBER_NOT_FOUND",
+                message="Member not found",
+                details={"member_id": str(member_id)}
+            )
+        )
+    
+    # Store old status for audit log
+    old_verified = member.is_email_verified
+    
+    # Update the member's email verification status
+    member.is_email_verified = verification_data.is_email_verified
+    member.updated_at = datetime.now(timezone.utc)
+    
+    # Calculate new membership status
+    now = datetime.now(timezone.utc)
+    if not member.is_email_verified:
+        membership_status = "suspended"
+    elif member.membership_expires_at is None:
+        membership_status = "active"
+    else:
+        expires_at = member.membership_expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        membership_status = "active" if expires_at > now else "expired"
+    
+    # Create audit log entry
+    audit_entry = AuditLog(
+        admin_id=current_user.id,
+        action="update_email_verification",
+        target_type="user",
+        target_id=member.id,
+        details={
+            "old_is_email_verified": old_verified,
+            "new_is_email_verified": member.is_email_verified,
+            "member_email": member.email
+        }
+    )
+    db.add(audit_entry)
+    
+    # Commit changes
+    db.commit()
+    db.refresh(member)
+    
+    logger.info(
+        f"Administrator {current_user.id} ({current_user.email}) updated email verification for "
+        f"member {member.id} ({member.email}) from {old_verified} to {member.is_email_verified}"
+    )
+    
+    return EmailVerificationUpdateResponse(
+        id=str(member.id),
+        email=member.email,
+        is_email_verified=member.is_email_verified,
+        membership_status=membership_status,
+        message="Email verification status updated successfully"
     )
 
 

@@ -46,7 +46,7 @@ export const RichTextEditor = ({ value, onChange, placeholder, disabled }: RichT
     }
   };
 
-  const emojis = ['😀', '😂', '❤️', '👍', '🎉', '🔥', '✨', '💡', '🚀', '👏', '🤔', '😍'];
+  const emojis = ['😀', '😂', '❤️', '👍', '🎉', '🔥', '✨', '💡', '🚀', '👏', '🤔', '😍', '😭', '😡', '😱'];
 
   return (
     <div className="border border-gray-300 rounded-lg overflow-hidden bg-white">
