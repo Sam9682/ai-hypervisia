@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { eventService, Event } from '../services/eventService';
+import { eventService, type Event } from '../services/eventService';
 
 export const AdminEventsPage = () => {
   const [events, setEvents] = useState<Event[]>([]);

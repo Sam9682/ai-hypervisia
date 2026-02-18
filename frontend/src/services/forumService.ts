@@ -55,4 +55,9 @@ export const forumService = {
     const response = await api.post(`/forum/topics/${topicId}/posts`, data);
     return response.data;
   },
+
+  async updatePost(postId: string, data: CreatePostData): Promise<Post> {
+    const response = await api.put(`/forum/posts/${postId}`, data);
+    return response.data;
+  },
 };

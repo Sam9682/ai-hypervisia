@@ -323,6 +323,91 @@ async def create_post(
     )
 
 
+@router.put("/posts/{post_id}", response_model=PostResponse)
+async def update_post(
+    post_id: str,
+    post_data: PostCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_verified_member)
+):
+    """Update a forum post.
+    
+    Requires authenticated member access and post ownership.
+    Users can only edit their own posts.
+    
+    Args:
+        post_id: UUID of the post to update
+        post_data: Updated post content
+        db: Database session
+        current_user: Authenticated and verified member
+        
+    Returns:
+        Updated post with metadata
+        
+    Raises:
+        HTTPException 400: If post ID format is invalid
+        HTTPException 404: If post not found
+        HTTPException 403: If user is not the post author
+    """
+    from uuid import UUID
+    
+    try:
+        post_uuid = UUID(post_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorResponse.create(
+                code="INVALID_POST_ID",
+                message="Invalid post ID format",
+                details={}
+            )
+        )
+    
+    # Fetch post
+    post = db.query(Post).filter(Post.id == post_uuid).first()
+    if not post:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=ErrorResponse.create(
+                code="POST_NOT_FOUND",
+                message="Post not found",
+                details={"post_id": post_id}
+            )
+        )
+    
+    # Check if user is the post author
+    if post.author_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=ErrorResponse.create(
+                code="NOT_POST_AUTHOR",
+                message="You can only edit your own posts",
+                details={"post_id": post_id}
+            )
+        )
+    
+    logger.info(f"User {current_user.id} updating post {post_id}")
+    
+    # Update post content
+    post.content = post_data.content
+    
+    db.commit()
+    db.refresh(post)
+    
+    author_name = f"{current_user.first_name} {current_user.last_name}"
+    
+    return PostResponse(
+        id=post.id,
+        topic_id=post.topic_id,
+        author_id=post.author_id,
+        author_name=author_name,
+        content=post.content,
+        is_hidden=post.is_hidden,
+        created_at=post.created_at,
+        updated_at=post.updated_at
+    )
+
+
 @router.put("/posts/{post_id}/hide", status_code=status.HTTP_200_OK)
 async def hide_post(
     post_id: str,

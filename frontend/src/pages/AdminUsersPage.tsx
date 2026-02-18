@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { adminService, User } from '../services/adminService';
+import { adminService, type User } from '../services/adminService';
 
 export const AdminUsersPage = () => {
   const [users, setUsers] = useState<User[]>([]);
