@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     SMTP_PORT: int = 587
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
-    SMTP_FROM: str = "noreply@hypervisia.org"
+    SMTP_FROM: str = "noreply@hypervisia.fr"
     
     # Payment (optional for development)
     STRIPE_API_KEY: str = "sk_test_dummy_key"
