@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { authService } from '../services/authService';
 import hypervisiaLogo from '../assets/hypervisia.png';
@@ -9,6 +10,8 @@ interface LayoutProps {
 
 export const Layout = ({ children }: LayoutProps) => {
   const isAuthenticated = authService.isAuthenticated();
+  const isAdmin = authService.isAdmin();
+  const [showEventsMenu, setShowEventsMenu] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -37,12 +40,26 @@ export const Layout = ({ children }: LayoutProps) => {
                     <Link to="/forum" className="inline-flex items-center px-3 pt-1 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors border-b-2 border-transparent hover:border-primary-600">
                       <span className="mr-1">💬</span> Forum
                     </Link>
-                    <Link to="/events" className="inline-flex items-center px-3 pt-1 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors border-b-2 border-transparent hover:border-primary-600">
-                      <span className="mr-1">📅</span> Événements
-                    </Link>
+                    <div className="relative" onMouseEnter={() => setShowEventsMenu(true)} onMouseLeave={() => setShowEventsMenu(false)}>
+                      <Link to="/events" className="inline-flex items-center px-3 pt-1 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors border-b-2 border-transparent hover:border-primary-600">
+                        <span className="mr-1">📅</span> Événements {isAdmin && <span className="ml-1">▾</span>}
+                      </Link>
+                      {isAdmin && showEventsMenu && (
+                        <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                          <Link to="/admin/events" className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">
+                            ➕ Gérer les événements
+                          </Link>
+                        </div>
+                      )}
+                    </div>
                     <Link to="/documents" className="inline-flex items-center px-3 pt-1 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors border-b-2 border-transparent hover:border-primary-600">
                       <span className="mr-1">📄</span> Documents
                     </Link>
+                    {isAdmin && (
+                      <Link to="/admin/users" className="inline-flex items-center px-3 pt-1 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors border-b-2 border-transparent hover:border-primary-600">
+                        <span className="mr-1">👥</span> Utilisateurs
+                      </Link>
+                    )}
                   </>
                 )}
               </div>

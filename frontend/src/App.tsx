@@ -7,6 +7,8 @@ import { RegisterPage } from './pages/RegisterPage';
 import { ForumPage } from './pages/ForumPage';
 import { TopicDetailPage } from './pages/TopicDetailPage';
 import { NewTopicPage } from './pages/NewTopicPage';
+import { AdminUsersPage } from './pages/AdminUsersPage';
+import { AdminEventsPage } from './pages/AdminEventsPage';
 
 function App() {
   return (
@@ -41,6 +43,22 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <TopicDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/users"
+                  element={
+                    <ProtectedRoute>
+                      <AdminUsersPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/events"
+                  element={
+                    <ProtectedRoute>
+                      <AdminEventsPage />
                     </ProtectedRoute>
                   }
                 />

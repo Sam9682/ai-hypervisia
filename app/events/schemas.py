@@ -38,6 +38,16 @@ class EventCreateRequest(BaseModel):
         return v
 
 
+class EventUpdateRequest(BaseModel):
+    """Request schema for updating an event"""
+    title: Optional[str] = Field(None, min_length=1, max_length=255, description="Event title")
+    description: Optional[str] = Field(None, description="Event description")
+    start_date: Optional[datetime] = Field(None, description="Event start date and time")
+    end_date: Optional[datetime] = Field(None, description="Event end date and time")
+    location: Optional[str] = Field(None, max_length=255, description="Event location")
+    max_participants: Optional[int] = Field(None, ge=1, description="Maximum number of participants")
+
+
 class EventResponse(BaseModel):
     """Response schema for event data"""
     id: UUID

@@ -10,7 +10,7 @@ from sqlalchemy import func
 from datetime import datetime, timezone
 from app.database import get_db
 from app.models import User, Event, EventStatus, EventRegistration, NotificationPreferences, UserRole
-from app.events.schemas import EventCreateRequest, EventCreateResponse, EventResponse, EventListResponse, EventRegistrationResponse, EventUnregistrationResponse, EventCancellationResponse
+from app.events.schemas import EventCreateRequest, EventCreateResponse, EventResponse, EventListResponse, EventRegistrationResponse, EventUnregistrationResponse, EventCancellationResponse, EventUpdateRequest
 from app.events.dependencies import require_admin
 from app.auth.dependencies import get_current_user
 from app.services.email_service import email_service
@@ -554,6 +554,76 @@ async def unregister_from_event(
             )
         )
 
+
+
+@router.put("/{event_id}", response_model=EventResponse, status_code=status.HTTP_200_OK)
+async def update_event(
+    event_id: str,
+    event_data: EventUpdateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin)
+):
+    """Update an event (admin only)"""
+    try:
+        event_uuid = uuid.UUID(event_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorResponse.create(
+                code="INVALID_EVENT_ID",
+                message="Invalid event ID format",
+                details={}
+            )
+        )
+    
+    event = db.query(Event).filter(Event.id == event_uuid).first()
+    if not event:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=ErrorResponse.create(
+                code="EVENT_NOT_FOUND",
+                message="Event not found",
+                details={}
+            )
+        )
+    
+    if event_data.title is not None:
+        event.title = event_data.title
+    if event_data.description is not None:
+        event.description = event_data.description
+    if event_data.start_date is not None:
+        event.start_date = event_data.start_date
+    if event_data.end_date is not None:
+        event.end_date = event_data.end_date
+    if event_data.location is not None:
+        event.location = event_data.location
+    if event_data.max_participants is not None:
+        event.max_participants = event_data.max_participants
+    
+    event.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(event)
+    
+    participant_count = db.query(func.count(EventRegistration.id)).filter(
+        EventRegistration.event_id == event_uuid
+    ).scalar() or 0
+    
+    logger.info(f"Event {event.id} updated by admin {current_user.id}")
+    
+    return EventResponse(
+        id=event.id,
+        title=event.title,
+        description=event.description,
+        start_date=event.start_date,
+        end_date=event.end_date,
+        location=event.location,
+        max_participants=event.max_participants,
+        created_by=event.created_by,
+        status=event.status.value,
+        created_at=event.created_at,
+        updated_at=event.updated_at,
+        participant_count=participant_count
+    )
 
 
 @router.put("/{event_id}/cancel", response_model=EventCancellationResponse, status_code=status.HTTP_200_OK)
