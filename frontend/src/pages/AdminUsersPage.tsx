@@ -46,6 +46,7 @@ export const AdminUsersPage = () => {
       password: '',
       membership_expires_at: expiresAt,
       membership_status: user.membership_status,
+      is_email_verified: user.is_email_verified,
     });
   };
 
@@ -96,6 +97,7 @@ export const AdminUsersPage = () => {
         password: '',
         membership_expires_at: '',
         membership_status: '',
+        is_email_verified: true,
       });
       loadUsers();
     } catch (error) {
