@@ -117,7 +117,7 @@ Returned when request validation fails (empty subject, empty content, etc.).
 # Login as administrator
 TOKEN=$(curl -X POST http://ai-hypervisia:8000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@hypervisia.org","password":"Admin1234"}' \
+  -d '{"email":"admin@hypervisia.fr","password":"Admin1234!"}' \
   | jq -r '.access_token')
 
 # Send announcement
@@ -139,7 +139,7 @@ import requests
 # Login
 response = requests.post(
     "http://ai-hypervisia:8000/api/auth/login",
-    json={"email": "admin@hypervisia.org", "password": "Admin1234"}
+    json={"email": "admin@hypervisia.fr", "password": "Admin1234!"}
 )
 token = response.json()["access_token"]
 
@@ -166,8 +166,8 @@ const loginResponse = await fetch('http://ai-hypervisia:8000/api/auth/login', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    email: 'admin@hypervisia.org',
-    password: 'Admin1234'
+    email: 'admin@hypervisia.fr',
+    password: 'Admin1234!'
   })
 });
 const { access_token } = await loginResponse.json();

@@ -26,8 +26,8 @@ client = TestClient(app)
 def admin_user(db_session: Session) -> User:
     """Create an administrator user for testing"""
     admin = User(
-        email="admin@hypervisia.org",
-        password_hash=hash_password("AdminPass123"),
+        email="admin@hypervisia.fr",
+        password_hash=hash_password("Admin1234!"),
         first_name="Admin",
         last_name="User",
         role=UserRole.ADMINISTRATOR,
@@ -46,8 +46,8 @@ def admin_headers(client, admin_user: User):
     response = client.post(
         "/api/auth/login",
         json={
-            "email": "admin@hypervisia.org",
-            "password": "AdminPass123"
+            "email": "admin@hypervisia.fr",
+            "password": "Admin1234!"
         }
     )
     assert response.status_code == 200

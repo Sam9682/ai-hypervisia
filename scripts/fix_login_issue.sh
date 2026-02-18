@@ -18,10 +18,10 @@ docker-compose exec ai-hypervisia python3 scripts/verify_admin_user.py
 
 echo ""
 echo "4. Testing API endpoint directly..."
-echo "Attempting login with admin@hypervisia.org..."
+echo "Attempting login with admin@hypervisia.fr..."
 curl -X POST http://ai-hypervisia:6000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@hypervisia.org","password":"Admin1234!"}' \
+  -d '{"email":"admin@hypervisia.fr","password":"Admin1234!"}' \
   -v
 
 echo ""

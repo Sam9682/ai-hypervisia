@@ -172,7 +172,7 @@ from app.auth.password import hash_password
 
 db = SessionLocal()
 admin = User(
-    email="admin@hypervisia.org",
+    email="admin@hypervisia.fr",
     password_hash=hash_password("Admin1234!"),
     first_name="Admin",
     last_name="HYPERVISIA",
@@ -181,7 +181,7 @@ admin = User(
 )
 db.add(admin)
 db.commit()
-print("✅ Administrateur créé : admin@hypervisia.org / Admin1234!")
+print("✅ Administrateur créé : admin@hypervisia.fr / Admin1234!")
 ```
 
 ## 🐛 Dépannage
