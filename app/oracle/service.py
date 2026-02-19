@@ -1,5 +1,6 @@
 """Oracle AI service layer"""
 from typing import Optional, List
+from uuid import UUID
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from app.models.oracle import OracleQuery as OracleQueryModel
