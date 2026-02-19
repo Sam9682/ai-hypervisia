@@ -2,7 +2,7 @@
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models.user import User, UserRole
-from app.auth.password import get_password_hash
+from app.auth.password import hash_password
 from app.logging_config import logger
 
 
@@ -19,7 +19,7 @@ def create_default_admin():
             # Create default admin user
             default_admin = User(
                 email="admin@hypervisia.fr",
-                password_hash=get_password_hash("Admin1234!"),
+                password_hash=hash_password("Admin1234!"),
                 first_name="Admin",
                 last_name="HYPERVISIA",
                 role=UserRole.ADMINISTRATOR,
