@@ -43,14 +43,20 @@ class KiroAIProvider(AIProvider):
             if context:
                 prompt = f"Contexte: {context}\n\nQuestion: {question}"
 
-            # Use full path to kiro-cli and set proper environment
+            # Set up environment with proper PATH
             import os
             env = os.environ.copy()
-            # Ensure PATH includes common locations for kiro-cli
-            env['PATH'] = f"/home/ubuntu/.local/bin:{env.get('PATH', '')}"
+            # Ensure PATH includes Kiro CLI installation locations
+            kiro_paths = [
+                "/root/.local/bin",
+                "/home/ubuntu/.local/bin",
+                os.path.expanduser("~/.local/bin")
+            ]
+            current_path = env.get('PATH', '')
+            env['PATH'] = ':'.join(kiro_paths + [current_path])
 
             # Execute kiro-cli chat command with timeout
-            # Note: kiro-cli doesn't support temperature/max_tokens, using --no-interactive for non-interactive mode
+            # Using shell=True to ensure PATH is properly resolved
             process = await asyncio.create_subprocess_shell(
                 f'kiro-cli chat --no-interactive "{prompt}"',
                 stdout=asyncio.subprocess.PIPE,
@@ -71,7 +77,7 @@ class KiroAIProvider(AIProvider):
 
                 # Check if kiro-cli is not installed
                 if "not found" in error_msg or "command not found" in error_msg or "No such file or directory" in error_msg:
-                    raise Exception("Kiro CLI n'est pas installé sur ce serveur. Veuillez utiliser un autre fournisseur d'IA.")
+                    raise Exception("Kiro CLI n'est pas installé. Veuillez reconstruire le container Docker ou utiliser un autre fournisseur d'IA.")
 
                 raise Exception(f"Kiro CLI a échoué: {error_msg}")
 

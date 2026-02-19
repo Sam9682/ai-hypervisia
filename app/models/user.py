@@ -68,6 +68,11 @@ class User(Base):
         DateTime(timezone=True),
         nullable=True
     )
+    membership_status: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True,
+        default=None
+    )
     
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(

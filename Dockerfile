@@ -6,7 +6,15 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     curl \
     postgresql-client \
+    bash \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Amazon Kiro CLI for Oracle AI
+RUN curl -fsSL https://cli.kiro.dev/install | bash && \
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+
+# Ensure Kiro CLI is in PATH for all users
+ENV PATH="/root/.local/bin:${PATH}"
 
 # Copy requirements first for better caching
 COPY requirements.txt .

@@ -34,10 +34,16 @@ class RoleUpdateResponse(BaseModel):
 class MembershipStatusUpdateRequest(BaseModel):
     """Request schema for updating membership status
     
-    Allows administrator to update membership expiration date
+    Allows administrator to update membership expiration date and/or force a specific status
     """
     membership_expires_at: Optional[datetime] = Field(
+        default=None,
         description="New membership expiration date (null for lifetime membership)"
+    )
+    membership_status: Optional[str] = Field(
+        default=None,
+        description="Force a specific membership status (pending, active, expired, suspended)",
+        pattern="^(pending|active|expired|suspended)$"
     )
 
 

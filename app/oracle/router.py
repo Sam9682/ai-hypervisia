@@ -126,9 +126,9 @@ async def get_available_providers():
     return {
         "providers": [
             {
-                "id": "openai",
-                "name": "OpenAI",
-                "description": "GPT-4 d'OpenAI",
+                "id": "kiro",
+                "name": "Kiro AI",
+                "description": "IA locale via kiro-cli (inclus dans le container)",
                 "default": True
             },
             {
@@ -138,9 +138,9 @@ async def get_available_providers():
                 "default": False
             },
             {
-                "id": "kiro",
-                "name": "Kiro AI",
-                "description": "IA locale via kiro-cli (Ubuntu) - Nécessite installation",
+                "id": "openai",
+                "name": "OpenAI",
+                "description": "GPT-4 d'OpenAI",
                 "default": False
             }
         ]

@@ -7,15 +7,13 @@
     "license": "MIT"
   },
   "providers": {
-    "openai": {
-      "name": "OpenAI",
-      "type": "cloud",
-      "api_url": "https://api.openai.com/v1/chat/completions",
-      "requires_api_key": true,
-      "env_var": "OPENAI_API_KEY",
-      "model": "gpt-4",
+    "kiro": {
+      "name": "Kiro AI",
+      "type": "local",
+      "command": "kiro-cli",
+      "requires_api_key": false,
       "default": true,
-      "description": "GPT-4 d'OpenAI"
+      "description": "IA locale via kiro-cli (inclus dans le container Docker)"
     },
     "shai": {
       "name": "Shai AI",
@@ -25,13 +23,14 @@
       "env_var": "SHAI_API_KEY",
       "description": "IA d'OVH Cloud"
     },
-    "kiro": {
-      "name": "Kiro AI",
-      "type": "local",
-      "command": "kiro-cli",
-      "requires_api_key": false,
-      "default": false,
-      "description": "IA locale via kiro-cli (Ubuntu) - Nécessite installation"
+    "openai": {
+      "name": "OpenAI",
+      "type": "cloud",
+      "api_url": "https://api.openai.com/v1/chat/completions",
+      "requires_api_key": true,
+      "env_var": "OPENAI_API_KEY",
+      "model": "gpt-4",
+      "description": "GPT-4 d'OpenAI"
     }
   },
   "rate_limits": {

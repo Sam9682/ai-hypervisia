@@ -54,11 +54,15 @@ export const AdminUsersPage = () => {
       // Update role
       await adminService.updateUserRole(editingUser.id, formData.role);
       
-      // Update membership status
+      // Update membership status and expiration
       const membershipExpiresAt = formData.membership_expires_at 
         ? new Date(formData.membership_expires_at).toISOString()
         : null;
-      await adminService.updateMembershipStatus(editingUser.id, membershipExpiresAt);
+      await adminService.updateMembershipStatus(
+        editingUser.id, 
+        membershipExpiresAt,
+        formData.membership_status
+      );
       
       setEditingUser(null);
       loadUsers();
@@ -199,6 +203,18 @@ export const AdminUsersPage = () => {
                   <option value="visitor">Visiteur</option>
                   <option value="member">Membre</option>
                   <option value="administrator">Administrateur</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Statut d'adhésion</label>
+                <select
+                  value={formData.membership_status}
+                  onChange={(e) => setFormData({ ...formData, membership_status: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                >
+                  <option value="pending">En attente</option>
+                  <option value="active">Actif</option>
+                  <option value="expired">Expiré</option>
                 </select>
               </div>
               <div>

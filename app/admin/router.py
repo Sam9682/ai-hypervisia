@@ -200,22 +200,31 @@ async def update_membership_status(
     
     # Store old status for audit log
     old_expires_at = member.membership_expires_at
+    old_status = member.membership_status
     
-    # Update the member's membership expiration
-    member.membership_expires_at = status_data.membership_expires_at
-    member.updated_at = datetime.now(timezone.utc)
+    # Update the member's membership expiration if provided
+    if status_data.membership_expires_at is not None:
+        member.membership_expires_at = status_data.membership_expires_at
     
-    # Calculate new membership status
-    now = datetime.now(timezone.utc)
-    if not member.is_email_verified:
-        membership_status = "suspended"
-    elif member.membership_expires_at is None:
-        membership_status = "active"
+    # Update membership_status if explicitly provided (admin override)
+    if status_data.membership_status is not None:
+        member.membership_status = status_data.membership_status
+        membership_status = status_data.membership_status
     else:
-        expires_at = member.membership_expires_at
-        if expires_at.tzinfo is None:
-            expires_at = expires_at.replace(tzinfo=timezone.utc)
-        membership_status = "active" if expires_at > now else "expired"
+        # Calculate membership status automatically if not forced
+        now = datetime.now(timezone.utc)
+        if not member.is_email_verified:
+            membership_status = "suspended"
+        elif member.membership_expires_at is None:
+            membership_status = "active"
+        else:
+            expires_at = member.membership_expires_at
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+            membership_status = "active" if expires_at > now else "expired"
+        member.membership_status = membership_status
+    
+    member.updated_at = datetime.now(timezone.utc)
     
     # Create audit log entry
     audit_entry = AuditLog(
@@ -226,6 +235,8 @@ async def update_membership_status(
         details={
             "old_membership_expires_at": old_expires_at.isoformat() if old_expires_at else None,
             "new_membership_expires_at": member.membership_expires_at.isoformat() if member.membership_expires_at else None,
+            "old_membership_status": old_status,
+            "new_membership_status": membership_status,
             "member_email": member.email
         }
     )
@@ -387,21 +398,18 @@ async def list_members(
     now = datetime.now(timezone.utc)
     
     for member in members:
-        # Determine membership status
-        if not member.is_email_verified:
-            membership_status = "suspended"  # Unverified accounts are suspended
+        # Use stored membership_status if available (admin override), otherwise calculate
+        if member.membership_status:
+            membership_status = member.membership_status
+        elif not member.is_email_verified:
+            membership_status = "suspended"
         elif member.membership_expires_at is None:
-            membership_status = "active"  # No expiration means active (e.g., lifetime membership)
+            membership_status = "active"
         else:
-            # Ensure timezone-aware comparison
             expires_at = member.membership_expires_at
             if expires_at.tzinfo is None:
                 expires_at = expires_at.replace(tzinfo=timezone.utc)
-            
-            if expires_at > now:
-                membership_status = "active"
-            else:
-                membership_status = "expired"
+            membership_status = "active" if expires_at > now else "expired"
         
         member_summaries.append(
             MemberSummary(

@@ -52,7 +52,7 @@ class OracleService {
     return response.data;
   }
 
-  async analyzeForumMessages(aiProvider: 'kiro' | 'shai' | 'openai' = 'openai'): Promise<ForumAnalysisResponse> {
+  async analyzeForumMessages(aiProvider: 'kiro' | 'shai' | 'openai' = 'kiro'): Promise<ForumAnalysisResponse> {
     const response = await api.post('/oracle/analyze/forum', {
       analysis_type: 'forum_summary',
       ai_provider: aiProvider

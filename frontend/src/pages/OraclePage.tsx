@@ -14,7 +14,7 @@ export const OraclePage = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [provider, setProvider] = useState<'kiro' | 'shai' | 'openai'>('openai');
+  const [provider, setProvider] = useState<'kiro' | 'shai' | 'openai'>('kiro');
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
 
@@ -132,9 +132,9 @@ export const OraclePage = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               disabled={loading}
             >
-              <option value="openai">🧠 OpenAI GPT-4</option>
+              <option value="kiro">🤖 Kiro AI (Local - Gratuit)</option>
               <option value="shai">☁️ Shai AI (OVH)</option>
-              <option value="kiro">🤖 Kiro AI (Local - Nécessite installation)</option>
+              <option value="openai">🧠 OpenAI GPT-4</option>
             </select>
           </div>
 

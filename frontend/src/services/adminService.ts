@@ -42,10 +42,14 @@ export const adminService = {
     await api.put(`/admin/members/${userId}/role`, { role });
   },
 
-  async updateMembershipStatus(userId: string, membershipExpiresAt: string | null): Promise<void> {
-    await api.put(`/admin/members/${userId}/membership-status`, { 
+  async updateMembershipStatus(userId: string, membershipExpiresAt: string | null, membershipStatus?: string): Promise<void> {
+    const payload: any = { 
       membership_expires_at: membershipExpiresAt 
-    });
+    };
+    if (membershipStatus) {
+      payload.membership_status = membershipStatus;
+    }
+    await api.put(`/admin/members/${userId}/membership-status`, payload);
   },
 
   async updateEmailVerification(userId: string, isEmailVerified: boolean): Promise<void> {
