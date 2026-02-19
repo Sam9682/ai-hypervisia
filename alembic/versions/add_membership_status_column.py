@@ -1,7 +1,7 @@
 """add membership_status column to users
 
-Revision ID: add_membership_status
-Revises: add_oracle_queries_table
+Revision ID: add_membership_status_col
+Revises: add_oracle_queries
 Create Date: 2026-02-19
 
 """
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'add_membership_status'
-down_revision = 'add_oracle_queries_table'
+revision = 'add_membership_status_col'
+down_revision = 'add_oracle_queries'
 branch_labels = None
 depends_on = None
 
