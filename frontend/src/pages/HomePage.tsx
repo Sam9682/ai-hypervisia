@@ -295,8 +295,10 @@ export const HomePage = () => {
               - Nael LEPETRE, Secrétaire, étudiant en master de Math. et Centrale Lyon, 1ière génération de Maths par l'IA<br />
               - Thibaud BRUNEL, Trésorier, 25 ans d'expérience en informatique
             </p>
-            <img src={sampng} alt="Président" className="h-32 w-auto mr-2 object-contain" />
-            <img src={ninipng} alt="Secrétaire" className="h-32 w-auto mr-2 object-contain" />
+            <div className="flex items-center mt-4">
+              <img src={sampng} alt="Président" className="h-32 w-auto mr-2 object-contain" />
+              <img src={ninipng} alt="Secrétaire" className="h-32 w-auto object-contain" />
+            </div>
           </div>
         </div>
       </div>

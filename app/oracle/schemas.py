@@ -8,7 +8,7 @@ class OracleQuery(BaseModel):
     """Schema for Oracle AI query"""
     question: str = Field(..., min_length=1, max_length=5000, description="Question à poser à l'Oracle")
     context: Optional[str] = Field(None, max_length=10000, description="Contexte additionnel pour la question")
-    ai_provider: Literal["kiro", "shai", "openai"] = Field(default="kiro", description="Fournisseur d'IA à utiliser")
+    ai_provider: Literal["kiro", "shai", "openai"] = Field(default="openai", description="Fournisseur d'IA à utiliser")
     temperature: Optional[float] = Field(default=0.7, ge=0.0, le=2.0, description="Température pour la génération")
     max_tokens: Optional[int] = Field(default=2000, ge=100, le=8000, description="Nombre maximum de tokens")
 
@@ -40,7 +40,7 @@ class OracleAnalysisRequest(BaseModel):
     """Schema for internal Oracle analysis request"""
     analysis_type: Literal["forum_summary", "event_prediction", "user_sentiment", "custom"]
     parameters: Optional[dict] = Field(default_factory=dict)
-    ai_provider: Literal["kiro", "shai", "openai"] = Field(default="kiro")
+    ai_provider: Literal["kiro", "shai", "openai"] = Field(default="openai")
 
 
 class ForumAnalysisResponse(BaseModel):
