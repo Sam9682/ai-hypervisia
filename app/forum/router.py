@@ -268,6 +268,94 @@ async def get_topic(
     )
 
 
+@router.get("/topics/{topic_id}/public", response_model=TopicDetailResponse)
+async def get_topic_public(
+    topic_id: str,
+    db: Session = Depends(get_db)
+):
+    """Get a specific topic with all its posts (public access, read-only).
+    
+    Public endpoint that allows unauthenticated users to read forum topics.
+    Users must be authenticated to post replies.
+    
+    Args:
+        topic_id: UUID of the topic
+        db: Database session
+        
+    Returns:
+        Topic details with all posts
+        
+    Raises:
+        HTTPException 404: If topic not found
+    """
+    from uuid import UUID
+    
+    try:
+        topic_uuid = UUID(topic_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorResponse.create(
+                code="INVALID_TOPIC_ID",
+                message="Invalid topic ID format",
+                details={}
+            )
+        )
+    
+    # Fetch topic
+    topic = db.query(Topic).filter(Topic.id == topic_uuid).first()
+    if not topic:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=ErrorResponse.create(
+                code="TOPIC_NOT_FOUND",
+                message="Topic not found",
+                details={"topic_id": topic_id}
+            )
+        )
+    
+    # Fetch posts ordered chronologically
+    posts = db.query(Post).filter(
+        Post.topic_id == topic_uuid,
+        Post.is_hidden == False  # Don't show hidden posts
+    ).order_by(Post.created_at.asc()).all()
+    
+    # Build response with author names
+    topic_author = db.query(User).filter(User.id == topic.author_id).first()
+    topic_author_name = f"{topic_author.first_name} {topic_author.last_name}" if topic_author else "Unknown"
+    
+    post_responses = []
+    for post in posts:
+        post_author = db.query(User).filter(User.id == post.author_id).first()
+        post_author_name = f"{post_author.first_name} {post_author.last_name}" if post_author else "Unknown"
+        
+        post_responses.append(PostResponse(
+            id=post.id,
+            topic_id=post.topic_id,
+            author_id=post.author_id,
+            author_name=post_author_name,
+            content=post.content,
+            is_hidden=post.is_hidden,
+            created_at=post.created_at,
+            updated_at=post.updated_at
+        ))
+    
+    logger.info(f"Public access to topic {topic_id}")
+    
+    return TopicDetailResponse(
+        id=topic.id,
+        title=topic.title,
+        author_id=topic.author_id,
+        author_name=topic_author_name,
+        is_pinned=topic.is_pinned,
+        is_locked=topic.is_locked,
+        created_at=topic.created_at,
+        updated_at=topic.updated_at,
+        post_count=len(post_responses),
+        posts=post_responses
+    )
+
+
 @router.post("/topics/{topic_id}/posts", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
 async def create_post(
     topic_id: str,

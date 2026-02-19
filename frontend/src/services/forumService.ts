@@ -54,6 +54,12 @@ export const forumService = {
     return response.data;
   },
 
+  async getTopicPublic(topicId: string): Promise<TopicDetail> {
+    // Endpoint public sans authentification
+    const response = await api.get(`/forum/topics/${topicId}/public`);
+    return response.data;
+  },
+
   async createTopic(data: CreateTopicData): Promise<Topic> {
     const response = await api.post('/forum/topics', data);
     return response.data;

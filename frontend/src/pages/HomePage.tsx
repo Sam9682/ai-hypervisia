@@ -4,6 +4,7 @@ import { forumService, type Topic } from '../services/forumService';
 import { authService } from '../services/authService';
 import { infoService, type Stats } from '../services/infoService';
 import sampng from '../assets/Sam.png';
+import ninipng from '../assets/Nini.png';
 
 export const HomePage = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -113,7 +114,7 @@ export const HomePage = () => {
           <p className="text-gray-600 leading-relaxed">
             Utilisation d'une plateforme de test pour du 
             déploiement d'application web par des agents IA <a href="https://softfluid.fr" target="_blank" rel="noopener noreferrer" className="bg-yellow-200 text-primary-600 hover:text-primary-700 underline transition-colors px-1 rounded">softfluid.fr</a> 🎪
-            Suppression des développeurs, testeurs, intégrateurs, SSII ... 😱
+            Suppression des développeurs, testeurs, intégrateurs, SSII ... 😱Ce site est deployé par des IA sur Softfluid.fr
           </p>
         </div>
         
@@ -213,60 +214,18 @@ export const HomePage = () => {
         ) : (
           <div className="space-y-3">
             {topics.map((topic) => {
-              // Si l'utilisateur est connecté, afficher un lien cliquable
-              if (isAuthenticated) {
-                return (
-                  <Link
-                    key={topic.id}
-                    to={`/forum/topics/${topic.id}`}
-                    className="block p-4 rounded-lg hover:bg-gradient-to-r hover:from-primary-50 hover:to-purple-50 transition-all duration-300 border border-gray-100 hover:border-primary-200"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <span className="text-xl">💭</span>
-                          <h3 className="text-base font-semibold text-gray-900 hover:text-primary-700 truncate">
-                            {topic.title}
-                          </h3>
-                          {topic.is_pinned && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gradient-to-r from-yellow-400 to-orange-400 text-white">
-                              📌
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center text-xs text-gray-500">
-                          <span className="mr-1">👤</span>
-                          <span>{topic.author_name}</span>
-                          <span className="mx-2">•</span>
-                          <span className="mr-1">📅</span>
-                          <span>{formatDate(topic.created_at)}</span>
-                        </div>
-                      </div>
-                      <div className="ml-4 flex-shrink-0">
-                        <div className="inline-flex items-center px-3 py-1 rounded-lg bg-gradient-to-r from-primary-100 to-purple-100">
-                          <span className="mr-1 text-sm">💬</span>
-                          <span className="text-xs font-bold text-primary-700">
-                            {topic.post_count}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              }
-              
-              // Si l'utilisateur n'est pas connecté, afficher un div non cliquable avec un message
+              // Afficher un lien cliquable pour tous les utilisateurs (connectés ou non)
               return (
-                <div
+                <Link
                   key={topic.id}
-                  className="relative p-4 rounded-lg border border-gray-100 bg-gray-50 cursor-not-allowed opacity-75"
-                  title="Connectez-vous pour accéder aux détails"
+                  to={`/forum/topics/${topic.id}`}
+                  className="block p-4 rounded-lg hover:bg-gradient-to-r hover:from-primary-50 hover:to-purple-50 transition-all duration-300 border border-gray-100 hover:border-primary-200"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-1">
                         <span className="text-xl">💭</span>
-                        <h3 className="text-base font-semibold text-gray-700 truncate">
+                        <h3 className="text-base font-semibold text-gray-900 hover:text-primary-700 truncate">
                           {topic.title}
                         </h3>
                         {topic.is_pinned && (
@@ -274,9 +233,11 @@ export const HomePage = () => {
                             📌
                           </span>
                         )}
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">
-                          🔒 Connexion requise
-                        </span>
+                        {!isAuthenticated && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+                            👁️ Lecture seule
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center text-xs text-gray-500">
                         <span className="mr-1">👤</span>
@@ -287,15 +248,15 @@ export const HomePage = () => {
                       </div>
                     </div>
                     <div className="ml-4 flex-shrink-0">
-                      <div className="inline-flex items-center px-3 py-1 rounded-lg bg-gray-200">
+                      <div className="inline-flex items-center px-3 py-1 rounded-lg bg-gradient-to-r from-primary-100 to-purple-100">
                         <span className="mr-1 text-sm">💬</span>
-                        <span className="text-xs font-bold text-gray-600">
+                        <span className="text-xs font-bold text-primary-700">
                           {topic.post_count}
                         </span>
                       </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
@@ -330,11 +291,12 @@ export const HomePage = () => {
           <div className="bg-gradient-to-br from-primary-50 to-purple-50 p-6 rounded-xl">
             <h3 className="font-semibold text-gray-900 mb-3">💡 Les membres du bureau ?</h3>
             <p className="text-gray-600 text-sm leading-relaxed">
-              Samuel LEPETRE, Président, ancien ingénieur informatique chez AWS, 25 ans d'expérience, IA depuis 2023 tous les jours<br />
-              Nael LEPETRE, Secrétaire, étudiant en master de Math. et Centrale Lyon, 1ière génération de Maths par l'IA<br />
-              Thibaud BRUNEL, Trésorier, 25 ans d'expérience en informatique
+              - Samuel LEPETRE, Président, ancien ingénieur informatique chez AWS, 25 ans d'expérience, IA depuis 2023 tous les jours<br />
+              - Nael LEPETRE, Secrétaire, étudiant en master de Math. et Centrale Lyon, 1ière génération de Maths par l'IA<br />
+              - Thibaud BRUNEL, Trésorier, 25 ans d'expérience en informatique
             </p>
             <img src={sampng} alt="Président" className="h-32 w-auto mr-2 object-contain" />
+            <img src={ninipng} alt="Secrétaire" className="h-32 w-auto mr-2 object-contain" />
           </div>
         </div>
       </div>

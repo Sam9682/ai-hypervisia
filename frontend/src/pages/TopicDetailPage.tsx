@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { forumService, type TopicDetail, type Post } from '../services/forumService';
+import { authService } from '../services/authService';
 import { RichTextEditor } from '../components/RichTextEditor';
 
 export const TopicDetailPage = () => {
@@ -15,6 +16,7 @@ export const TopicDetailPage = () => {
   const [editContent, setEditContent] = useState('');
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const isAuthenticated = authService.isAuthenticated();
 
   useEffect(() => {
     // Get current user ID and role from localStorage
@@ -40,7 +42,10 @@ export const TopicDetailPage = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await forumService.getTopic(topicId);
+      // Utiliser l'endpoint public si l'utilisateur n'est pas connecté
+      const data = isAuthenticated 
+        ? await forumService.getTopic(topicId)
+        : await forumService.getTopicPublic(topicId);
       setTopic(data);
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Erreur lors du chargement du sujet');
@@ -203,7 +208,7 @@ export const TopicDetailPage = () => {
                         <p className="text-xs text-gray-400 italic">Modifié le {formatDate(post.updated_at)}</p>
                       )}
                     </div>
-                    {editingPostId !== post.id && (
+                    {isAuthenticated && editingPostId !== post.id && (
                       <div className="flex gap-2">
                         {canEditPost(post) && (
                           <button
