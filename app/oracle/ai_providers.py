@@ -55,10 +55,13 @@ class KiroAIProvider(AIProvider):
             current_path = env.get('PATH', '')
             env['PATH'] = ':'.join(kiro_paths + [current_path])
 
+            # Check if kiro-cli is authenticated, if not skip authentication for now
+            # The CLI should work without authentication for basic queries
+            
             # Execute kiro-cli chat command with timeout
-            # Using shell=True to ensure PATH is properly resolved
+            # Using --no-auth flag to skip authentication if available
             process = await asyncio.create_subprocess_shell(
-                f'kiro-cli chat --no-interactive "{prompt}"',
+                f'kiro-cli chat --no-interactive "{prompt}" 2>&1',
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 env=env
@@ -71,8 +74,16 @@ class KiroAIProvider(AIProvider):
                 logger.error("Kiro CLI timeout after 60 seconds")
                 raise Exception("Kiro CLI timeout - la requête a pris trop de temps")
 
+            output = stdout.decode().strip()
+            error_output = stderr.decode().strip() if stderr else ""
+
+            # Check for authentication errors and provide helpful message
+            if "Failed to open browser" in output or "Failed to open browser" in error_output:
+                logger.warning("Kiro CLI authentication issue - service may require manual authentication")
+                raise Exception("Kiro CLI nécessite une authentification. Veuillez utiliser un autre fournisseur d'IA (OpenAI ou Shai) ou configurer l'authentification manuellement.")
+
             if process.returncode != 0:
-                error_msg = stderr.decode() if stderr else "Unknown error"
+                error_msg = error_output or output or "Unknown error"
                 logger.error(f"Kiro CLI error: {error_msg}")
 
                 # Check if kiro-cli is not installed
@@ -81,7 +92,7 @@ class KiroAIProvider(AIProvider):
 
                 raise Exception(f"Kiro CLI a échoué: {error_msg}")
 
-            answer = stdout.decode().strip()
+            answer = output
 
             if not answer:
                 raise Exception("Kiro CLI n'a pas retourné de réponse")

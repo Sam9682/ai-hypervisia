@@ -17,6 +17,10 @@ RUN curl -fsSL https://cli.kiro.dev/install | bash && \
 # Ensure Kiro CLI is in PATH for all users
 ENV PATH="/root/.local/bin:${PATH}"
 
+# Note: Kiro CLI authentication should be done manually or via device flow
+# Run: docker-compose exec ai-hypervisia kiro-cli login --use-device-flow
+# Or configure OPENAI_API_KEY or SHAI_API_KEY as alternative providers
+
 # Copy requirements first for better caching
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
