@@ -101,7 +101,7 @@ export const HomePage = () => {
           <p className="text-gray-600 leading-relaxed">
             Créer un espace d'échange et de collaboration pour nos membres, 
             pour prendre conscience de l'impact de l'IA sur notre société 🤝
-            Ce site web a été spécifié, construit, deployé en moins de 24h 😱
+            Ce site web a été spécifié, construit, deployé en moins de 24h pour un coût de €1 😱
           </p>
         </div>
         
@@ -146,8 +146,10 @@ export const HomePage = () => {
             <div className="text-primary-100">Événements programmés 📅</div>
           </div>
           <div>
-            <div className="text-4xl font-bold mb-2">100%</div>
-            <div className="text-primary-100">Engagement OpenSource ❤️</div>
+            <div className="text-4xl font-bold mb-2">
+              {loadingStats ? '...' : (stats?.total_topics || 0)}+
+            </div>
+            <div className="text-primary-100">Discussions du forum 💬</div>
           </div>
         </div>
       </div>
