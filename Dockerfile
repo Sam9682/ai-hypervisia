@@ -5,6 +5,7 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     curl \
+    unzip \
     postgresql-client \
     bash \
     && rm -rf /var/lib/apt/lists/*
