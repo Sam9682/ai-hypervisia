@@ -291,7 +291,7 @@ export const HomePage = () => {
           <div className="bg-gradient-to-br from-primary-50 to-purple-50 p-6 rounded-xl">
             <h3 className="font-semibold text-gray-900 mb-3">💡 Les membres du bureau ?</h3>
             <p className="text-gray-600 text-sm leading-relaxed">
-              - Samuel LEPETRE, Président, ancien ingénieur informatique chez AWS, 25 ans d'expérience, IA depuis 2023 tous les jours<br />
+              - Samuel LEPETRE, Président, ancien ingénieur informatique chez AWS, 25 ans d'expérience, IA depuis 2023 et les jours<br />
               - Nael LEPETRE, Secrétaire, étudiant en master de Math. et Centrale Lyon, 1ière génération de Maths par l'IA<br />
               - Thibaud BRUNEL, Trésorier, 25 ans d'expérience en informatique
             </p>

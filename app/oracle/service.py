@@ -68,9 +68,76 @@ class OracleService:
             raise
     
     @staticmethod
+    async def ask_oracle_stream(
+        db: Session,
+        query: OracleQuery,
+        user_id: Optional[UUID] = None
+    ):
+        """Ask a question to the Oracle with streaming response"""
+        import time
+        
+        start_time = time.time()
+        full_answer = ""
+        
+        try:
+            # Get AI provider
+            provider = get_ai_provider(query.ai_provider)
+            
+            # Query the AI and get full response
+            result = await provider.query(
+                question=query.question,
+                context=query.context,
+                temperature=query.temperature,
+                max_tokens=query.max_tokens
+            )
+            
+            full_answer = result["answer"]
+            
+            # Stream the answer word by word for better UX
+            words = full_answer.split()
+            for i, word in enumerate(words):
+                yield {
+                    'type': 'token',
+                    'content': word + (' ' if i < len(words) - 1 else ''),
+                    'index': i
+                }
+            
+            processing_time = time.time() - start_time
+            
+            # Save to database
+            db_query = OracleQueryModel(
+                user_id=user_id,
+                question=query.question,
+                answer=full_answer,
+                context=query.context,
+                ai_provider=result["provider"],
+                processing_time=processing_time,
+                tokens_used=result.get("tokens_used")
+            )
+            db.add(db_query)
+            db.commit()
+            db.refresh(db_query)
+            
+            # Send completion event
+            yield {
+                'type': 'done',
+                'id': db_query.id,
+                'provider': result["provider"],
+                'processing_time': processing_time,
+                'tokens_used': result.get("tokens_used")
+            }
+            
+        except Exception as e:
+            logger.error(f"Oracle stream query failed: {str(e)}")
+            yield {
+                'type': 'error',
+                'message': str(e)
+            }
+    
+    @staticmethod
     def get_history(
         db: Session,
-        user_id: Optional[int] = None,
+        user_id: Optional[UUID] = None,
         limit: int = 50
     ) -> List[OracleHistoryItem]:
         """Get Oracle query history"""

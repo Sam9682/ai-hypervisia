@@ -1,7 +1,10 @@
 """Oracle AI router"""
 from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from typing import Optional, List
+import json
+import asyncio
 from app.database import get_db
 from app.auth.dependencies import get_current_user
 from app.events.dependencies import require_admin
@@ -17,6 +20,7 @@ from app.oracle.service import OracleService
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from app.middleware.rate_limit import limiter
+from app.logging_config import logger
 
 router = APIRouter(prefix="/api/oracle", tags=["oracle"])
 
@@ -45,6 +49,61 @@ async def ask_oracle(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erreur lors de la consultation de l'Oracle: {str(e)}"
         )
+
+
+@router.post("/ask/stream")
+@limiter.limit("10/minute")
+async def ask_oracle_stream(
+    request: Request,
+    query: OracleQuery,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user)
+):
+    """
+    Poser une question à l'Oracle AI avec streaming SSE
+    
+    - Retourne les réponses en temps réel via Server-Sent Events
+    - Supporte plusieurs fournisseurs d'IA: kiro (défaut), shai, openai
+    - Historique sauvegardé pour les utilisateurs connectés
+    - Rate limited à 10 requêtes par minute
+    """
+    async def event_generator():
+        try:
+            user_id = current_user.id if current_user else None
+            
+            # Send start event
+            yield f"data: {json.dumps({'type': 'start', 'provider': query.ai_provider})}\n\n"
+            
+            # Stream the response
+            async for chunk in OracleService.ask_oracle_stream(db, query, user_id):
+                if chunk['type'] == 'token':
+                    yield f"data: {json.dumps(chunk)}\n\n"
+                elif chunk['type'] == 'done':
+                    yield f"data: {json.dumps(chunk)}\n\n"
+                elif chunk['type'] == 'error':
+                    yield f"data: {json.dumps(chunk)}\n\n"
+                    break
+                
+                # Small delay to prevent overwhelming the client
+                await asyncio.sleep(0.01)
+            
+        except Exception as e:
+            logger.error(f"SSE stream error: {str(e)}")
+            error_data = {
+                'type': 'error',
+                'message': f"Erreur: {str(e)}"
+            }
+            yield f"data: {json.dumps(error_data)}\n\n"
+    
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"  # Disable nginx buffering
+        }
+    )
 
 
 @router.get("/history", response_model=List[OracleHistoryItem])

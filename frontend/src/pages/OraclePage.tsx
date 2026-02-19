@@ -40,7 +40,7 @@ export const OraclePage = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
 
@@ -52,36 +52,73 @@ export const OraclePage = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const questionText = input;
     setInput('');
     setLoading(true);
 
+    // Create placeholder for streaming response
+    const assistantMessageId = (Date.now() + 1).toString();
+    const assistantMessage: Message = {
+      id: assistantMessageId,
+      role: 'assistant',
+      content: '',
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, assistantMessage]);
+
     try {
-      const response = await oracleService.askOracle({
-        question: input,
-        ai_provider: provider,
-        temperature: 0.7,
-        max_tokens: 2000
-      });
-
-      const assistantMessage: Message = {
-        id: response.id.toString(),
-        role: 'assistant',
-        content: response.answer,
-        timestamp: new Date(response.created_at),
-        provider: response.ai_provider,
-        processingTime: response.processing_time
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
+      await oracleService.askOracleStream(
+        {
+          question: questionText,
+          ai_provider: provider,
+          temperature: 0.7,
+          max_tokens: 2000
+        },
+        // onToken
+        (content: string) => {
+          setMessages(prev => 
+            prev.map(msg => 
+              msg.id === assistantMessageId
+                ? { ...msg, content: msg.content + content }
+                : msg
+            )
+          );
+        },
+        // onDone
+        (data: any) => {
+          setMessages(prev =>
+            prev.map(msg =>
+              msg.id === assistantMessageId
+                ? {
+                    ...msg,
+                    provider: data.provider,
+                    processingTime: data.processing_time
+                  }
+                : msg
+            )
+          );
+          setLoading(false);
+        },
+        // onError
+        (error: string) => {
+          setMessages(prev =>
+            prev.map(msg =>
+              msg.id === assistantMessageId
+                ? { ...msg, content: `❌ Erreur: ${error}` }
+                : msg
+            )
+          );
+          setLoading(false);
+        }
+      );
     } catch (error: any) {
-      const errorMessage: Message = {
-        id: Date.now().toString(),
-        role: 'assistant',
-        content: `❌ Erreur: ${error.message || 'Impossible de contacter l\'Oracle'}`,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === assistantMessageId
+            ? { ...msg, content: `❌ Erreur: ${error.message || 'Impossible de contacter l\'Oracle'}` }
+            : msg
+        )
+      );
       setLoading(false);
     }
   };
