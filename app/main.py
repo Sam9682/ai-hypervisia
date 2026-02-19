@@ -19,6 +19,7 @@ from app.oracle.router import router as oracle_router
 from app.scheduler import task_scheduler
 from app.error_handlers import register_exception_handlers
 from app.middleware.rate_limit import limiter
+from app.startup import create_default_admin
 
 
 @asynccontextmanager
@@ -27,6 +28,9 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info(f"Debug mode: {settings.DEBUG}")
+    
+    # Create default admin user if no users exist
+    create_default_admin()
     
     # Start background task scheduler
     task_scheduler.start()
