@@ -143,7 +143,7 @@ export const HomePage = () => {
             <div className="text-4xl font-bold mb-2">
               {loadingStats ? '...' : (stats?.total_events || 0)}+
             </div>
-            <div className="text-primary-100">Événements par an 📅</div>
+            <div className="text-primary-100">Événements programmés 📅</div>
           </div>
           <div>
             <div className="text-4xl font-bold mb-2">100%</div>
