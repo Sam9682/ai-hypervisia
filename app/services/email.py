@@ -88,7 +88,7 @@ class EmailService:
         """
         subject = "Verify your HYPERVISIA account"
         
-        verification_url = f"https://hypervisia.fr/verify-email?token={verification_token}"
+        verification_url = f"https://hypervisia.fr/api/auth/verify-email?token={verification_token}"
         
         html_body = f"""
         <html>
