@@ -6,7 +6,8 @@ topics and posts. All endpoints require authenticated member access.
 Validates Requirements 3.1, 3.2, 3.3, 3.4, 10.2
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.database import get_db
@@ -354,6 +355,73 @@ async def get_topic_public(
         post_count=len(post_responses),
         posts=post_responses
     )
+
+
+@router.get("/topics/{topic_id}/publichtml", response_class=HTMLResponse)
+async def get_topic_public_html(
+    topic_id: str,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Get a specific topic with all its posts as HTML (public access)."""
+    from uuid import UUID
+    
+    try:
+        topic_uuid = UUID(topic_id)
+    except ValueError:
+        return HTMLResponse(content="<h1>Invalid topic ID</h1>", status_code=400)
+    
+    topic = db.query(Topic).filter(Topic.id == topic_uuid).first()
+    if not topic:
+        return HTMLResponse(content="<h1>Topic not found</h1>", status_code=404)
+    
+    posts = db.query(Post).filter(
+        Post.topic_id == topic_uuid,
+        Post.is_hidden == False
+    ).order_by(Post.created_at.asc()).all()
+    
+    topic_author = db.query(User).filter(User.id == topic.author_id).first()
+    topic_author_name = f"{topic_author.first_name} {topic_author.last_name}" if topic_author else "Unknown"
+    
+    posts_html = ""
+    for post in posts:
+        post_author = db.query(User).filter(User.id == post.author_id).first()
+        post_author_name = f"{post_author.first_name} {post_author.last_name}" if post_author else "Unknown"
+        posts_html += f"""
+        <div style="border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; background: #f9f9f9;">
+            <div style="font-weight: bold; color: #333;">{post_author_name}</div>
+            <div style="font-size: 0.85em; color: #666; margin: 5px 0;">{post.created_at.strftime('%d/%m/%Y %H:%M')}</div>
+            <div style="margin-top: 10px; white-space: pre-wrap;">{post.content}</div>
+        </div>
+        """
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{topic.title} - HYPERVISIA Forum</title>
+        <style>
+            body {{ font-family: Arial, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background: #fff; }}
+            h1 {{ color: #1a1a1a; border-bottom: 2px solid #1a1a1a; padding-bottom: 10px; }}
+            .meta {{ color: #666; font-size: 0.9em; margin: 10px 0; }}
+        </style>
+    </head>
+    <body>
+        <h1>{topic.title}</h1>
+        <div class="meta">
+            Créé par {topic_author_name} le {topic.created_at.strftime('%d/%m/%Y %H:%M')}
+        </div>
+        <div style="margin-top: 30px;">
+            {posts_html}
+        </div>
+    </body>
+    </html>
+    """
+    
+    logger.info(f"Public HTML access to topic {topic_id}")
+    return HTMLResponse(content=html_content)
 
 
 @router.post("/topics/{topic_id}/posts", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
