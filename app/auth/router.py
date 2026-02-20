@@ -1,5 +1,5 @@
 """Authentication API endpoints"""
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from app.database import get_db
@@ -469,9 +469,34 @@ async def verify_email(
         HTTPException 404: If user not found
         HTTPException 409: If email already verified
     """
+    return await _verify_email_logic(verification_data.token, db)
+
+
+@router.get(
+    "/verify-email",
+    response_model=EmailVerificationResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        400: {"description": "Invalid or expired verification token"},
+        404: {"description": "User not found"},
+        409: {"description": "Email already verified"}
+    }
+)
+@limiter.limit("10/hour")
+async def verify_email_get(
+    request: Request,
+    token: str = Query(..., description="Email verification token"),
+    db: Session = Depends(get_db)
+) -> EmailVerificationResponse:
+    """Verify user's email address using verification token from query parameter."""
+    return await _verify_email_logic(token, db)
+
+
+async def _verify_email_logic(token: str, db: Session) -> EmailVerificationResponse:
+    """Verify user's email address using verification token - shared logic."""
     try:
         # Verify and decode token
-        payload = verify_token(verification_data.token)
+        payload = verify_token(token)
         if not payload:
             logger.warning(f"Email verification attempt with invalid token")
             raise HTTPException(
