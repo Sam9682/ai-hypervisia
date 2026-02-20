@@ -6,7 +6,7 @@ from typing import Optional, List
 import json
 import asyncio
 from app.database import get_db
-from app.auth.dependencies import get_current_user
+from app.auth.dependencies import get_current_user, get_current_user_optional
 from app.events.dependencies import require_admin
 from app.models.user import User
 from app.oracle.schemas import (
@@ -31,7 +31,7 @@ async def ask_oracle(
     request: Request,
     query: OracleQuery,
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """
     Poser une question à l'Oracle AI
@@ -57,7 +57,7 @@ async def ask_oracle_stream(
     request: Request,
     query: OracleQuery,
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """
     Poser une question à l'Oracle AI avec streaming SSE
