@@ -1,5 +1,6 @@
 """Oracle AI database models"""
 from sqlalchemy import Column, Integer, String, Text, Float, DateTime, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from app.database import Base
 
@@ -9,7 +10,7 @@ class OracleQuery(Base):
     __tablename__ = "oracle_queries"
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
     question = Column(Text, nullable=False)
     answer = Column(Text, nullable=False)
     context = Column(Text, nullable=True)

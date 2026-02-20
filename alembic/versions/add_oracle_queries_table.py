@@ -21,7 +21,7 @@ def upgrade() -> None:
     op.create_table(
         'oracle_queries',
         sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('user_id', sa.Integer(), nullable=True),
+        sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column('question', sa.Text(), nullable=False),
         sa.Column('answer', sa.Text(), nullable=False),
         sa.Column('context', sa.Text(), nullable=True),
