@@ -2,11 +2,19 @@
 import asyncio
 import time
 import json
+import re
 from abc import ABC, abstractmethod
 from typing import Optional, Dict, Any
 import httpx
 from app.config import settings
 from app.logging_config import logger
+
+
+def strip_ansi_codes(text: str) -> str:
+    """Remove ANSI escape codes from text"""
+    # Pattern to match ANSI escape sequences
+    ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+    return ansi_escape.sub('', text)
 
 
 class AIProvider(ABC):
@@ -92,7 +100,33 @@ class KiroAIProvider(AIProvider):
 
                 raise Exception(f"Kiro CLI a échoué: {error_msg}")
 
-            answer = output
+            # Strip ANSI escape codes and clean up the output
+            answer = strip_ansi_codes(output)
+            
+            # Remove common CLI artifacts
+            answer = answer.strip()
+            
+            # Remove "Did you know?" boxes and other UI elements
+            lines = answer.split('\n')
+            cleaned_lines = []
+            skip_box = False
+            
+            for line in lines:
+                # Skip decorative boxes
+                if '╭' in line or '╰' in line or '│' in line:
+                    skip_box = True
+                    continue
+                if skip_box and ('─' in line or not line.strip()):
+                    continue
+                skip_box = False
+                
+                # Skip timing information
+                if '▸ Time:' in line or line.strip().startswith('Time:'):
+                    continue
+                    
+                cleaned_lines.append(line)
+            
+            answer = '\n'.join(cleaned_lines).strip()
 
             if not answer:
                 raise Exception("Kiro CLI n'a pas retourné de réponse")
