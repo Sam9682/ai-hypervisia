@@ -216,13 +216,15 @@ export const HomePage = () => {
             {topics.map((topic) => {
               // Afficher un lien cliquable pour tous les utilisateurs (connectés ou non)
               return (
-                <Link
+                <div
                   key={topic.id}
-                  to={`/forum/topics/${topic.id}`}
                   className="block p-4 rounded-lg hover:bg-gradient-to-r hover:from-primary-50 hover:to-purple-50 transition-all duration-300 border border-gray-100 hover:border-primary-200"
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
+                    <Link
+                      to={`/forum/topics/${topic.id}`}
+                      className="flex-1 min-w-0"
+                    >
                       <div className="flex items-center space-x-2 mb-1">
                         <span className="text-xl">💭</span>
                         <h3 className="text-base font-semibold text-gray-900 hover:text-primary-700 truncate">
@@ -246,17 +248,28 @@ export const HomePage = () => {
                         <span className="mr-1">📅</span>
                         <span>{formatDate(topic.created_at)}</span>
                       </div>
-                    </div>
-                    <div className="ml-4 flex-shrink-0">
+                    </Link>
+                    <div className="ml-4 flex-shrink-0 flex items-center gap-2">
                       <div className="inline-flex items-center px-3 py-1 rounded-lg bg-gradient-to-r from-primary-100 to-purple-100">
                         <span className="mr-1 text-sm">💬</span>
                         <span className="text-xs font-bold text-primary-700">
                           {topic.post_count}
                         </span>
                       </div>
+                      {!isAuthenticated && (
+                        <a
+                          href={`https://hypervisia.fr/api/forum/topics/${topic.id}/publichtml`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-lg text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-sm hover:shadow-md transition-all duration-300"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <span className="mr-1">👁️</span> Voir le post
+                        </a>
+                      )}
                     </div>
                   </div>
-                </Link>
+                </div>
               );
             })}
           </div>

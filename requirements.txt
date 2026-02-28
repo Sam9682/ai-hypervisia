@@ -41,3 +41,6 @@ icalendar==6.1.0
 
 # Rate Limiting
 slowapi==0.1.9
+
+# AWS S3 for backups
+boto3==1.35.94

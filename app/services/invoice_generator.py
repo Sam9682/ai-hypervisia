@@ -140,7 +140,7 @@ class InvoiceGenerator:
             # Association information
             story.append(Paragraph("Association HYPERVISIA", heading_style))
             association_info = """
-            Association loi 1901<br/>
+            Association loi 1901 - N° W913016363 <br/>
             2 square des coquelicots<br/>
             91370 VERRIERES LE BUISSON<br/>
             Email: contact@hypervisia.fr
