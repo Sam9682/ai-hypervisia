@@ -24,7 +24,7 @@ export const OraclePage = () => {
       {
         id: '0',
         role: 'assistant',
-        content: "🔮 Bienvenue à l'Oracle AI. Je suis ici pour répondre à vos questions sur l'intelligence artificielle et son impact sur l'humanité. Posez-moi vos questions...",
+        content: "🔮 Bienvenue à l'Oracle AI. Je suis ici pour répondre à vos questions sur l'intelligence artificielle et son impact sur l'humanité. Posez-moi vos questions...\n\n# Note: Kiro CLI authentication should be done manually or via device flow\n# Run: docker-compose exec ai-hypervisia kiro-cli login --use-device-flow\n# Or configure OPENAI_API_KEY or SHAI_API_KEY as alternative providers",
         timestamp: new Date()
       }
     ]);
