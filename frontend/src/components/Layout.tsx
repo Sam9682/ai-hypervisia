@@ -214,7 +214,7 @@ export const Layout = ({ children }: LayoutProps) => {
         <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
           <div className="text-center text-gray-600">
             <p className="text-sm">© 2026 HYPERVISIA - Association loi 1901 - N° W913016363</p>
-            <p className="text-xs mt-2">Fait avec ❤️ pour nos agents IA virtuels</p>
+            <p className="text-xs mt-2">💡 Dévelopé et hébergé sur OVH par des agents virtuels IA - softfluid.fr</p>
           </div>
         </div>
       </footer>
