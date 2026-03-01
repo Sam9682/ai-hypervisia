@@ -18,7 +18,7 @@ RUN curl -fsSL https://cli.kiro.dev/install | bash && \
 ENV PATH="/root/.local/bin:${PATH}"
 
 # Note: Kiro CLI authentication should be done manually or via device flow
-# Run: docker-compose exec ai-hypervisia kiro-cli login --use-device-flow
+# Run: docker exec ai-hypervisia-app-1-6136 kiro-cli login --use-device-flow
 # Or configure OPENAI_API_KEY or SHAI_API_KEY as alternative providers
 
 # Copy requirements first for better caching
