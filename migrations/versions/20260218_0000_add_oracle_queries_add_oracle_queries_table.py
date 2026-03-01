@@ -11,7 +11,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = 'add_oracle_queries'
-down_revision = None  # Update this with the latest revision ID
+down_revision = 'b4bf46d2c974'  # Last migration: create_scheduled_user_deletions_table
 branch_labels = None
 depends_on = None
 
