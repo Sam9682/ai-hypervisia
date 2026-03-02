@@ -24,7 +24,7 @@ export const OraclePage = () => {
       {
         id: '0',
         role: 'assistant',
-        content: "🔮 Bienvenue à l'Oracle AI. Je suis ici pour répondre à vos questions sur l'intelligence artificielle et son impact sur l'humanité. Posez-moi vos questions...\n\n# Note: Kiro CLI authentication should be done manually or via device flow\n# Run: docker exec ai-hypervisia-app-1-6136 kiro-cli login --use-device-flow\n# Or configure SHAI_API_KEY like : docker exec ai-hypervisia-app-1-6136 /bin/sh -c 'export SHAI_API_KEY=eyJhbGciOiJFZERTQSIsImtpZCI6IjgzMkFGNUE5ODg3MzFCMDNGM0EzMTRFMDJFRUJFRjBGNDE5MUY0Q0YiLCJraW5kIjoicGF0IiwidHlwIjoiSldUIn0' \n or configure OPEN_API_KEY as alternative providers",
+        content: "🔮 Bienvenue à l'Oracle AI. Je suis ici pour répondre à vos questions sur l'intelligence artificielle et son impact sur l'humanité. Posez-moi vos questions...\n\n# Note: Kiro CLI authentication should be done manually or via device flow\n# Run: docker exec ai-hypervisia-app-1-6136 kiro-cli login --use-device-flow\n# Or configure SHAI_API_KEY like : docker exec ai-hypervisia-app-1-6136 /bin/sh -c 'export SHAI_API_KEY=eyJhbGciOi...' \n or configure OPEN_API_KEY as alternative providers",
         timestamp: new Date()
       }
     ]);
