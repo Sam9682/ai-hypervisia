@@ -185,15 +185,15 @@ async def get_available_providers():
     return {
         "providers": [
             {
-                "id": "kiro",
-                "name": "Kiro AI",
-                "description": "IA locale via kiro-cli (inclus dans le container)",
+                "id": "shai",
+                "name": "Shai AI",
+                "description": "IA d'OVH Cloud (recommandé)",
                 "default": True
             },
             {
-                "id": "shai",
-                "name": "Shai AI",
-                "description": "IA d'OVH Cloud",
+                "id": "kiro",
+                "name": "Kiro AI",
+                "description": "IA locale via kiro-cli (inclus dans le container)",
                 "default": False
             },
             {

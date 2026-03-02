@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4"
     SHAI_API_KEY: str = ""
-    SHAI_API_URL: str = "https://api.ovh.com/shai/v1/chat"
+    SHAI_API_URL: str = "https://eu.api.ovh.com/shai/v1/chat"  # Use EU endpoint to avoid redirect
     
     model_config = {
         "env_file": ".env",

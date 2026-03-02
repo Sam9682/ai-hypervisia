@@ -19,10 +19,11 @@ fi
 echo ""
 echo "Step 2: Checking if SHAI_API_URL exists in .env..."
 if grep -q "^SHAI_API_URL=" .env 2>/dev/null; then
-    echo "  ✓ SHAI_API_URL already configured"
+    echo "  Updating SHAI_API_URL to use EU endpoint..."
+    sed -i "s|^SHAI_API_URL=.*|SHAI_API_URL=https://eu.api.ovh.com/shai/v1/chat|" .env
 else
     echo "  Adding SHAI_API_URL to .env..."
-    echo "SHAI_API_URL=https://api.ovh.com/shai/v1/chat" >> .env
+    echo "SHAI_API_URL=https://eu.api.ovh.com/shai/v1/chat" >> .env
 fi
 
 echo ""
