@@ -68,8 +68,9 @@ class KiroAIProvider(AIProvider):
             
             # Execute kiro-cli chat command with timeout
             # Using --no-auth flag to skip authentication if available
-            process = await asyncio.create_subprocess_shell(
-                f'kiro-cli chat --no-interactive "{prompt}" 2>&1',
+            # Use exec to pass prompt as argument instead of shell interpolation to avoid quote issues
+            process = await asyncio.create_subprocess_exec(
+                'kiro-cli', 'chat', '--no-interactive', prompt,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 env=env
@@ -149,8 +150,8 @@ class ShaiAIProvider(AIProvider):
     """Shai AI Provider - OVH's AI service"""
     
     def __init__(self):
-        self.api_key = getattr(settings, "SHAI_API_KEY", None)
-        self.api_url = getattr(settings, "SHAI_API_URL", "https://api.ovh.com/shai/v1/chat")
+        self.api_key = settings.SHAI_API_KEY
+        self.api_url = settings.SHAI_API_URL
     
     async def query(
         self,
@@ -163,7 +164,7 @@ class ShaiAIProvider(AIProvider):
         start_time = time.time()
         
         if not self.api_key:
-            raise Exception("SHAI_API_KEY not configured")
+            raise Exception("SHAI_API_KEY n'est pas configurée. Veuillez ajouter SHAI_API_KEY dans le fichier .env")
         
         try:
             messages = []
@@ -201,6 +202,9 @@ class ShaiAIProvider(AIProvider):
                     "provider": "shai"
                 }
                 
+        except httpx.HTTPStatusError as e:
+            logger.error(f"Shai AI HTTP error: {e.response.status_code} - {e.response.text}")
+            raise Exception(f"Erreur Shai AI: {e.response.status_code} - Vérifiez votre clé API")
         except Exception as e:
             logger.error(f"Shai AI query failed: {str(e)}")
             raise
@@ -210,9 +214,9 @@ class OpenAIProvider(AIProvider):
     """OpenAI Provider - Fallback option"""
     
     def __init__(self):
-        self.api_key = getattr(settings, "OPENAI_API_KEY", None)
+        self.api_key = settings.OPENAI_API_KEY
         self.api_url = "https://api.openai.com/v1/chat/completions"
-        self.model = getattr(settings, "OPENAI_MODEL", "gpt-4")
+        self.model = settings.OPENAI_MODEL
     
     async def query(
         self,
@@ -225,7 +229,7 @@ class OpenAIProvider(AIProvider):
         start_time = time.time()
         
         if not self.api_key:
-            raise Exception("OPENAI_API_KEY not configured")
+            raise Exception("OPENAI_API_KEY n'est pas configurée. Veuillez ajouter OPENAI_API_KEY dans le fichier .env")
         
         try:
             messages = []
@@ -264,6 +268,9 @@ class OpenAIProvider(AIProvider):
                     "provider": "openai"
                 }
                 
+        except httpx.HTTPStatusError as e:
+            logger.error(f"OpenAI HTTP error: {e.response.status_code} - {e.response.text}")
+            raise Exception(f"Erreur OpenAI: {e.response.status_code} - Vérifiez votre clé API")
         except Exception as e:
             logger.error(f"OpenAI query failed: {str(e)}")
             raise

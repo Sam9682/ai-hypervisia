@@ -41,6 +41,12 @@ class Settings(BaseSettings):
     # Membership
     ANNUAL_MEMBERSHIP_FEE: float = 50.00
     
+    # Oracle AI Configuration (optional)
+    OPENAI_API_KEY: str = ""
+    OPENAI_MODEL: str = "gpt-4"
+    SHAI_API_KEY: str = ""
+    SHAI_API_URL: str = "https://api.ovh.com/shai/v1/chat"
+    
     model_config = {
         "env_file": ".env",
         "case_sensitive": True,

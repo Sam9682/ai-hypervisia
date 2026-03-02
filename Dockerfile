@@ -14,6 +14,9 @@ RUN apt-get update && apt-get install -y \
 RUN curl -fsSL https://cli.kiro.dev/install | bash && \
     echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 
+# Install SHAI OVH
+RUN curl -fsSL https://raw.githubusercontent.com/ovh/shai/main/install.sh | sh
+
 # Ensure Kiro CLI is in PATH for all users
 ENV PATH="/root/.local/bin:${PATH}"
 

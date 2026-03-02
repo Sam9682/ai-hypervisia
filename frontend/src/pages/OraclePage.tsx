@@ -24,7 +24,7 @@ export const OraclePage = () => {
       {
         id: '0',
         role: 'assistant',
-        content: "🔮 Bienvenue à l'Oracle AI. Je suis ici pour répondre à vos questions sur l'intelligence artificielle et son impact sur l'humanité. Posez-moi vos questions...\n\n# Note: Kiro CLI authentication should be done manually or via device flow\n# Run: docker exec ai-hypervisia-app-1-6136 kiro-cli login --use-device-flow\n# Or configure OPENAI_API_KEY or SHAI_API_KEY as alternative providers",
+        content: "🔮 Bienvenue à l'Oracle AI. Je suis ici pour répondre à vos questions sur l'intelligence artificielle et son impact sur l'humanité. Posez-moi vos questions...\n\n# Note: Kiro CLI authentication should be done manually or via device flow\n# Run: docker exec ai-hypervisia-app-1-6136 kiro-cli login --use-device-flow\n# Or configure SHAI_API_KEY like : docker exec ai-hypervisia-app-1-6136 /bin/sh -c 'export SHAI_API_KEY=eyJhbGciOiJFZERTQSIsImtpZCI6IjgzMkFGNUE5ODg3MzFCMDNGM0EzMTRFMDJFRUJFRjBGNDE5MUY0Q0YiLCJraW5kIjoicGF0IiwidHlwIjoiSldUIn0' \n or configure OPEN_API_KEY as alternative providers",
         timestamp: new Date()
       }
     ]);
@@ -169,9 +169,9 @@ export const OraclePage = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               disabled={loading}
             >
-              <option value="kiro">🤖 Kiro AI (Local - Gratuit)</option>
               <option value="shai">☁️ Shai AI (OVH)</option>
-              <option value="openai">🧠 OpenAI GPT-4</option>
+              <option value="kiro">🤖 Kiro AI (AWS)</option>
+              <option value="openai">🧠 ChatGPT (OpenAI)</option>
             </select>
           </div>
 
