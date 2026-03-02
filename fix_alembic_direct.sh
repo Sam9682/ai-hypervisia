@@ -20,9 +20,17 @@ echo "4. Verifying the fix..."
 docker-compose exec postgres psql -U hypervisia_user -d hypervisia_db -c "SELECT * FROM alembic_version;"
 
 echo ""
-echo "5. Restarting the backend container..."
+echo "5. Checking DATABASE_URL in container..."
+docker-compose exec ai-hypervisia printenv DATABASE_URL
+
+echo ""
+echo "6. Testing database connection from container..."
+docker-compose exec ai-hypervisia python -c "from app.config import settings; print(f'DB URL: {settings.DATABASE_URL}')" || echo "Failed to load config"
+
+echo ""
+echo "7. Restarting the backend container..."
 docker-compose restart ai-hypervisia
 
 echo ""
-echo "6. Checking logs (Ctrl+C to exit)..."
+echo "8. Checking logs (Ctrl+C to exit)..."
 docker-compose logs -f ai-hypervisia
