@@ -12,6 +12,8 @@ from app.auth.schemas import (
     LogoutResponse,
     EmailVerificationRequest,
     EmailVerificationResponse,
+    PasswordResetRequest,
+    PasswordResetConfirm,
     ErrorResponse
 )
 from app.auth.password import hash_password, verify_password
@@ -614,3 +616,113 @@ async def _verify_email_logic(token: str, db: Session) -> EmailVerificationRespo
                 details={}
             )
         )
+
+
+@router.post("/password-reset", status_code=status.HTTP_200_OK)
+@limiter.limit("5/hour")
+async def request_password_reset(
+    request: Request,
+    reset_data: PasswordResetRequest,
+    db: Session = Depends(get_db)
+):
+    """Request password reset email."""
+    user = db.query(User).filter(User.email == reset_data.email).first()
+    
+    # Always return success to prevent email enumeration
+    if not user:
+        logger.info(f"Password reset requested for non-existent email: {reset_data.email}")
+        return {"message": "Si cet email existe, un lien de réinitialisation a été envoyé."}
+    
+    # Generate reset token
+    reset_token = create_access_token(
+        data={"sub": str(user.id), "type": "password_reset"},
+        expires_delta=timedelta(hours=1)
+    )
+    
+    # Send reset email
+    email_sent = email_service.send_password_reset_email(
+        to_email=user.email,
+        reset_token=reset_token,
+        user_name=user.first_name
+    )
+    
+    if email_sent:
+        logger.info(f"Password reset email sent to {user.email}")
+    else:
+        logger.warning(f"Failed to send password reset email to {user.email}")
+    
+    return {"message": "Si cet email existe, un lien de réinitialisation a été envoyé."}
+
+
+@router.post("/password-reset/confirm", status_code=status.HTTP_200_OK)
+@limiter.limit("5/hour")
+async def confirm_password_reset(
+    request: Request,
+    reset_data: PasswordResetConfirm,
+    db: Session = Depends(get_db)
+):
+    """Confirm password reset with token."""
+    payload = verify_token(reset_data.token)
+    if not payload or payload.get("type") != "password_reset":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorResponse.create(
+                code="INVALID_TOKEN",
+                message="Invalid or expired reset token",
+                details={}
+            )
+        )
+    
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorResponse.create(
+                code="INVALID_TOKEN",
+                message="Invalid token format",
+                details={}
+            )
+        )
+    
+    from uuid import UUID
+    try:
+        user_uuid = UUID(user_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorResponse.create(
+                code="INVALID_TOKEN",
+                message="Invalid token format",
+                details={}
+            )
+        )
+    
+    user = db.query(User).filter(User.id == user_uuid).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=ErrorResponse.create(
+                code="USER_NOT_FOUND",
+                message="User not found",
+                details={}
+            )
+        )
+    
+    # Update password
+    user.password_hash = hash_password(reset_data.new_password)
+    user.updated_at = datetime.now(timezone.utc)
+    
+    # Log password reset
+    audit_log = AuditLog(
+        admin_id=user.id,
+        action="PASSWORD_RESET",
+        target_type="user",
+        target_id=user.id,
+        details={"email": user.email}
+    )
+    db.add(audit_log)
+    db.commit()
+    
+    logger.info(f"Password reset successful for user: {user.email}")
+    
+    return {"message": "Mot de passe réinitialisé avec succès."}
