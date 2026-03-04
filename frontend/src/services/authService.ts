@@ -32,6 +32,7 @@ export const authService = {
     localStorage.setItem('access_token', access_token);
     if (user) {
       localStorage.setItem('user_role', user.role);
+      localStorage.setItem('user', JSON.stringify(user));
     }
     return response.data;
   },
@@ -50,6 +51,7 @@ export const authService = {
     await api.post('/auth/logout');
     localStorage.removeItem('access_token');
     localStorage.removeItem('user_role');
+    localStorage.removeItem('user');
   },
 
   async verifyEmail(token: string): Promise<void> {
