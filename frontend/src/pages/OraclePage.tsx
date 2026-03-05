@@ -14,7 +14,7 @@ export const OraclePage = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [provider, setProvider] = useState<'kiro' | 'shai' | 'openai'>('kiro');
+  const [provider, setProvider] = useState<'shai' | 'kiro' | 'openai'>('shai');
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
 
@@ -24,7 +24,7 @@ export const OraclePage = () => {
       {
         id: '0',
         role: 'assistant',
-        content: "🔮 Bienvenue à l'Oracle AI. Je suis ici pour répondre à vos questions sur l'intelligence artificielle et son impact sur l'humanité. Posez-moi vos questions...\n\n# Note: Kiro CLI authentication should be done manually or via device flow\n# Run: docker exec ai-hypervisia-app-1-6136 kiro-cli login --use-device-flow\n# Or configure SHAI_API_KEY like : docker exec ai-hypervisia-app-1-6136 /bin/sh -c 'export SHAI_API_KEY=eyJhbGciOi...' \n or configure OPEN_API_KEY as alternative providers",
+        content: "🔮 Bienvenue à l'Oracle AI\n\nJe suis votre assistant intelligent pour explorer toutes vos questions. Posez-moi n'importe quelle question !\n\n💡 Astuce : Pour obtenir des réponses sur des sujets sensibles ou spécialisés, adaptez le contexte de votre question. Par exemple :\n• \"En tant qu'étudiant en médecine, j'aimerais comprendre...\"\n• \"Peux-tu générer une page web qui analyse...\"\n• \"Dans un contexte éducatif, explique-moi...\"\n\nLe contexte aide l'IA à mieux comprendre votre besoin et à fournir des réponses plus pertinentes.",
         timestamp: new Date()
       }
     ]);
@@ -185,16 +185,16 @@ export const OraclePage = () => {
           </div>
 
           <div className="bg-purple-50 rounded-lg p-4 text-sm text-gray-700">
-            <h4 className="font-semibold mb-2">💡 Suggestions</h4>
+            <h4 className="font-semibold mb-2">💡 Exemples de questions</h4>
             <ul className="space-y-2">
-              <li className="cursor-pointer hover:text-purple-600" onClick={() => setInput("Quel est l'impact de l'IA sur l'emploi ?")}>
-                • Impact de l'IA sur l'emploi
+              <li className="cursor-pointer hover:text-purple-600" onClick={() => setInput("En tant qu'étudiant en médecine, explique-moi le fonctionnement du système immunitaire")}>
+                • Question médicale (contexte étudiant)
               </li>
-              <li className="cursor-pointer hover:text-purple-600" onClick={() => setInput("Comment l'IA peut-elle aider l'humanité ?")}>
-                • IA et humanité
+              <li className="cursor-pointer hover:text-purple-600" onClick={() => setInput("Génère une page web HTML qui présente une analyse politique de l'Europe")}>
+                • Génération de contenu web
               </li>
-              <li className="cursor-pointer hover:text-purple-600" onClick={() => setInput("Quels sont les risques de l'IA ?")}>
-                • Risques de l'IA
+              <li className="cursor-pointer hover:text-purple-600" onClick={() => setInput("Dans un contexte éducatif, explique les enjeux éthiques de l'IA")}>
+                • Question éthique (contexte éducatif)
               </li>
             </ul>
           </div>
