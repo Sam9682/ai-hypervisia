@@ -110,13 +110,20 @@ export const LoginPage = () => {
               </button>
             </div>
           </form>
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Pas encore membre ?{' '}
-              <a href="/register" className="font-semibold text-primary-600 hover:text-primary-700 transition-colors">
-                Inscrivez-vous ici ✨
+          <div className="mt-6 space-y-3">
+            <div className="text-center">
+              <a href="/forgot-password" className="text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors">
+                🔑 Mot de passe oublié ?
               </a>
-            </p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                Pas encore membre ?{' '}
+                <a href="/register" className="font-semibold text-primary-600 hover:text-primary-700 transition-colors">
+                  Inscrivez-vous ici ✨
+                </a>
+              </p>
+            </div>
           </div>
         </div>
       </div>
