@@ -66,8 +66,8 @@ npm run dev
 ### Interface utilisateur
 
 1. **Sélectionner le fournisseur d'IA**
-   - Kiro AI (local, par défaut)
-   - Shai AI (OVH Cloud)
+   - Shai AI (OVH Cloud, par défaut)
+   - Kiro AI (local)
    - OpenAI (GPT-4)
 
 2. **Poser une question**

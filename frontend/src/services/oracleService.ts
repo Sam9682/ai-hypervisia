@@ -3,7 +3,7 @@ import api from './api';
 interface OracleQuery {
   question: string;
   context?: string;
-  ai_provider?: 'kiro' | 'shai' | 'openai';
+  ai_provider?: 'shai' | 'kiro' | 'openai';
   temperature?: number;
   max_tokens?: number;
 }
@@ -123,7 +123,7 @@ class OracleService {
     return response.data;
   }
 
-  async analyzeForumMessages(aiProvider: 'kiro' | 'shai' | 'openai' = 'kiro'): Promise<ForumAnalysisResponse> {
+  async analyzeForumMessages(aiProvider: 'shai' | 'kiro' | 'openai' = 'kiro'): Promise<ForumAnalysisResponse> {
     const response = await api.post('/oracle/analyze/forum', {
       analysis_type: 'forum_summary',
       ai_provider: aiProvider

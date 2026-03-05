@@ -182,8 +182,8 @@ class NewAIProvider(AIProvider):
 ```python
 def get_ai_provider(provider_name: str):
     providers = {
-        "kiro": KiroAIProvider,
         "shai": ShaiAIProvider,
+        "kiro": KiroAIProvider,
         "openai": OpenAIProvider,
         "new": NewAIProvider  # Nouveau
     }
