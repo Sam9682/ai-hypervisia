@@ -58,6 +58,17 @@ export const authService = {
     await api.post('/auth/verify-email', { token });
   },
 
+  async requestPasswordReset(email: string): Promise<void> {
+    await api.post('/auth/password-reset', { email });
+  },
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    await api.post('/auth/password-reset/confirm', { 
+      token, 
+      new_password: newPassword 
+    });
+  },
+
   isAuthenticated(): boolean {
     return !!localStorage.getItem('access_token');
   },
