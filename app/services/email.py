@@ -40,6 +40,11 @@ class EmailService:
         Returns:
             True if email was sent successfully, False otherwise
         """
+        # Check if SMTP is properly configured
+        if not self.smtp_password or self.smtp_password == "your-email-password":
+            logger.warning(f"SMTP not configured - skipping email to {to_email}. Please set SMTP_PASSWORD in .env")
+            return False
+        
         try:
             # Create message
             msg = MIMEMultipart('alternative')
@@ -56,7 +61,7 @@ class EmailService:
             msg.attach(part2)
             
             # Send email
-            with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
+            with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=10) as server:
                 server.starttls()
                 server.login(self.smtp_user, self.smtp_password)
                 server.send_message(msg)
@@ -64,6 +69,9 @@ class EmailService:
             logger.info(f"Email sent successfully to {to_email}")
             return True
             
+        except smtplib.SMTPAuthenticationError as e:
+            logger.error(f"SMTP authentication failed for {to_email}: {str(e)}. Check SMTP_USER and SMTP_PASSWORD in .env")
+            return False
         except Exception as e:
             logger.error(f"Failed to send email to {to_email}: {str(e)}")
             return False
