@@ -99,33 +99,8 @@ class KiroAIProvider(AIProvider):
 
                 raise Exception(f"Kiro CLI a échoué: {error_msg}")
 
-            # Strip ANSI escape codes and clean up the output
+            # Strip ANSI escape codes only
             answer = strip_ansi_codes(output)
-            
-            # Remove common CLI artifacts
-            answer = answer.strip()
-            
-            # Remove "Did you know?" boxes and other UI elements
-            lines = answer.split('\n')
-            cleaned_lines = []
-            skip_box = False
-            
-            for line in lines:
-                # Skip decorative boxes
-                if '╭' in line or '╰' in line or '│' in line:
-                    skip_box = True
-                    continue
-                if skip_box and ('─' in line or not line.strip()):
-                    continue
-                skip_box = False
-                
-                # Skip timing information
-                if '▸ Time:' in line or line.strip().startswith('Time:'):
-                    continue
-                    
-                cleaned_lines.append(line)
-            
-            answer = '\n'.join(cleaned_lines).strip()
 
             if not answer:
                 raise Exception("Kiro CLI n'a pas retourné de réponse")
