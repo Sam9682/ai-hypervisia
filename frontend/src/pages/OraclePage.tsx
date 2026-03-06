@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { oracleService } from '../services/oracleService';
 
 interface Message {
@@ -17,6 +17,7 @@ export const OraclePage = () => {
   const [provider, setProvider] = useState<'shai' | 'kiro' | 'openai'>('shai');
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Welcome message
@@ -29,6 +30,10 @@ export const OraclePage = () => {
       }
     ]);
   }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const loadHistory = async () => {
     try {
@@ -237,6 +242,7 @@ export const OraclePage = () => {
                   </div>
                 </div>
               )}
+              <div ref={messagesEndRef} />
             </div>
 
             {/* Input */}

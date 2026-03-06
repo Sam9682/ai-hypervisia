@@ -67,10 +67,8 @@ class KiroAIProvider(AIProvider):
             # The CLI should work without authentication for basic queries
             
             # Execute kiro-cli chat command with timeout
-            # Using --no-auth flag to skip authentication if available
-            # Use exec to pass prompt as argument instead of shell interpolation to avoid quote issues
             process = await asyncio.create_subprocess_exec(
-                'kiro-cli', 'chat', '--no-interactive', prompt,
+                'kiro-cli', 'chat', '--no-interactive', '--trust-all-tools', prompt,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 env=env
