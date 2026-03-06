@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { oracleService } from '../services/oracleService';
+import { MarkdownRenderer } from '../components/MarkdownRenderer';
 
 interface Message {
   id: string;
@@ -222,7 +223,11 @@ export const OraclePage = () => {
                         : 'bg-gray-100 text-gray-800'
                     }`}
                   >
-                    <div className="whitespace-pre-wrap">{message.content}</div>
+                    {message.role === 'user' ? (
+                      <div className="whitespace-pre-wrap">{message.content}</div>
+                    ) : (
+                      <MarkdownRenderer content={message.content} />
+                    )}
                     {message.provider && (
                       <div className="text-xs mt-2 opacity-70">
                         {message.provider} • {message.processingTime?.toFixed(2)}s
