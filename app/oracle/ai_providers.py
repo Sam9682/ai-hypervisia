@@ -147,11 +147,7 @@ class KiroAIProvider(AIProvider):
 
 
 class ShaiAIProvider(AIProvider):
-    """Shai AI Provider - OVH's AI service"""
-    
-    def __init__(self):
-        self.api_key = settings.SHAI_API_KEY
-        self.api_url = settings.SHAI_API_URL
+    """Shai CLI AI Provider - Uses local Ubuntu session with shai CLI"""
     
     async def query(
         self,
@@ -160,51 +156,84 @@ class ShaiAIProvider(AIProvider):
         temperature: float = 0.7,
         max_tokens: int = 2000
     ) -> Dict[str, Any]:
-        """Query Shai AI via OVH API"""
+        """Query Shai AI via CLI"""
         start_time = time.time()
-        
-        if not self.api_key:
-            raise Exception("SHAI_API_KEY n'est pas configurée. Veuillez ajouter SHAI_API_KEY dans le fichier .env")
-        
+
         try:
-            messages = []
+            prompt = question
             if context:
-                messages.append({"role": "system", "content": context})
-            messages.append({"role": "user", "content": question})
+                prompt = f"Contexte: {context}\n\nQuestion: {question}"
+
+            import os
+            env = os.environ.copy()
+            shai_paths = [
+                "/root/.local/bin",
+                "/home/ubuntu/.local/bin",
+                os.path.expanduser("~/.local/bin")
+            ]
+            current_path = env.get('PATH', '')
+            env['PATH'] = ':'.join(shai_paths + [current_path])
+
+            process = await asyncio.create_subprocess_exec(
+                'shai', prompt,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                env=env
+            )
+
+            try:
+                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=60.0)
+            except asyncio.TimeoutError:
+                process.kill()
+                logger.error("Shai CLI timeout after 60 seconds")
+                raise Exception("Shai CLI timeout - la requête a pris trop de temps")
+
+            output = stdout.decode().strip()
+            error_output = stderr.decode().strip() if stderr else ""
+
+            if process.returncode != 0:
+                error_msg = error_output or output or "Unknown error"
+                logger.error(f"Shai CLI error: {error_msg}")
+
+                if "not found" in error_msg or "command not found" in error_msg or "No such file or directory" in error_msg:
+                    raise Exception("Shai CLI n'est pas installé. Veuillez reconstruire le container Docker ou utiliser un autre fournisseur d'IA.")
+
+                raise Exception(f"Shai CLI a échoué: {error_msg}")
+
+            answer = strip_ansi_codes(output)
+            answer = answer.strip()
             
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    self.api_url,
-                    headers={
-                        "Authorization": f"Bearer {self.api_key}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "messages": messages,
-                        "temperature": temperature,
-                        "max_tokens": max_tokens
-                    },
-                    timeout=60.0
-                )
+            lines = answer.split('\n')
+            cleaned_lines = []
+            skip_box = False
+            
+            for line in lines:
+                if '╭' in line or '╰' in line or '│' in line:
+                    skip_box = True
+                    continue
+                if skip_box and ('─' in line or not line.strip()):
+                    continue
+                skip_box = False
                 
-                response.raise_for_status()
-                data = response.json()
-                
-                answer = data.get("choices", [{}])[0].get("message", {}).get("content", "")
-                tokens_used = data.get("usage", {}).get("total_tokens", 0)
-                
-                processing_time = time.time() - start_time
-                
-                return {
-                    "answer": answer,
-                    "processing_time": processing_time,
-                    "tokens_used": tokens_used,
-                    "provider": "shai"
-                }
-                
-        except httpx.HTTPStatusError as e:
-            logger.error(f"Shai AI HTTP error: {e.response.status_code} - {e.response.text}")
-            raise Exception(f"Erreur Shai AI: {e.response.status_code} - Vérifiez votre clé API")
+                if '▸ Time:' in line or line.strip().startswith('Time:'):
+                    continue
+                    
+                cleaned_lines.append(line)
+            
+            answer = '\n'.join(cleaned_lines).strip()
+
+            if not answer:
+                raise Exception("Shai CLI n'a pas retourné de réponse")
+
+            processing_time = time.time() - start_time
+
+            return {
+                "answer": answer,
+                "processing_time": processing_time,
+                "tokens_used": len(answer.split()),
+                "provider": "shai"
+            }
+
         except Exception as e:
             logger.error(f"Shai AI query failed: {str(e)}")
             raise
