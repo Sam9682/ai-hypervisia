@@ -395,6 +395,9 @@ async def get_topic_public_html(
         </div>
         """
     
+    # Get first post content for description
+    first_post_content = posts[0].content[:200] if posts else "Discussion sur le forum HYPERVISIA"
+    
     html_content = f"""
     <!DOCTYPE html>
     <html>
@@ -402,6 +405,12 @@ async def get_topic_public_html(
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{topic.title} - HYPERVISIA Forum</title>
+        <meta property="og:title" content="{topic.title}" />
+        <meta property="og:description" content="{first_post_content}" />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content="https://hypervisia.fr/api/forum/topics/{topic_id}/publichtml" />
+        <meta property="og:site_name" content="HYPERVISIA Forum" />
+        <meta name="description" content="{first_post_content}" />
         <style>
             body {{ font-family: Arial, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background: #fff; }}
             h1 {{ color: #1a1a1a; border-bottom: 2px solid #1a1a1a; padding-bottom: 10px; }}
