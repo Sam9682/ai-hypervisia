@@ -66,7 +66,7 @@ export const HomePage = () => {
       <div className="text-center mb-16 relative">
         <div className="absolute inset-0 bg-gradient-to-r from-primary-400/20 to-purple-400/20 blur-3xl -z-10"></div>
         <div className="inline-block mb-4">
-          <span className="text-6xl animate-bounce inline-block">🚀</span>
+          <span className="text-6xl animate-bounce inline-block">🤖🔮</span>
         </div>
         <h1 className="text-5xl md:text-6xl font-extrabold mb-6 bg-gradient-to-r from-primary-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
           Bienvenue à HYPERVISIA
