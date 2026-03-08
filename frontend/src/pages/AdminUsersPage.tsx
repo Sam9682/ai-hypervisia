@@ -48,6 +48,10 @@ export const AdminUsersPage = () => {
     });
   };
 
+  const handleStatusChange = (newStatus: string) => {
+    setFormData({ ...formData, membership_status: newStatus });
+  };
+
   const handleSave = async () => {
     if (!editingUser) return;
     try {
@@ -63,6 +67,13 @@ export const AdminUsersPage = () => {
         membershipExpiresAt,
         formData.membership_status
       );
+      
+      // If status changed from pending/expired to active, verify email
+      const previousStatus = editingUser.membership_status;
+      const newStatus = formData.membership_status;
+      if ((previousStatus === 'pending' || previousStatus === 'expired') && newStatus === 'active') {
+        await adminService.updateEmailVerification(editingUser.id, true);
+      }
       
       setEditingUser(null);
       loadUsers();
@@ -210,13 +221,20 @@ export const AdminUsersPage = () => {
                 <label className="block text-sm font-medium mb-1 text-gray-700">Statut d'adhésion</label>
                 <select
                   value={formData.membership_status}
-                  onChange={(e) => setFormData({ ...formData, membership_status: e.target.value })}
+                  onChange={(e) => handleStatusChange(e.target.value)}
                   className="w-full px-3 py-2 border rounded-lg text-gray-900"
                 >
                   <option value="pending">En attente</option>
                   <option value="active">Actif</option>
                   <option value="expired">Expiré</option>
                 </select>
+                {editingUser && 
+                 (editingUser.membership_status === 'pending' || editingUser.membership_status === 'expired') && 
+                 formData.membership_status === 'active' && (
+                  <p className="text-xs text-green-600 mt-1">
+                    ℹ️ L'email sera automatiquement vérifié lors de l'enregistrement
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-700">
