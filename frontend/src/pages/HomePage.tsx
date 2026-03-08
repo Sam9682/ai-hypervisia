@@ -5,6 +5,7 @@ import { authService } from '../services/authService';
 import { infoService, type Stats } from '../services/infoService';
 import sampng from '../assets/Sam.png';
 import ninipng from '../assets/Nini.png';
+import hypervisiapng from '/hypervisia.png';
 
 export const HomePage = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -70,6 +71,13 @@ export const HomePage = () => {
         <h1 className="text-5xl md:text-6xl font-extrabold mb-6 bg-gradient-to-r from-primary-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
           Bienvenue à HYPERVISIA
         </h1>
+        <div className="flex justify-center mb-6">
+          <img 
+            src={hypervisiapng} 
+            alt="Différences entre l'Homme et l'IA" 
+            className="max-w-2xl w-full h-auto rounded-2xl shadow-2xl border-4 border-primary-200 hover:scale-105 transition-transform duration-300"
+          />
+        </div>
         <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
           L'Association a pour objet de promouvoir la compréhension, l'usage, la recherche appliquée et le développement de l'intelligence artificielle, notamment par :
         </p>
