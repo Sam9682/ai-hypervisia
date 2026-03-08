@@ -115,7 +115,7 @@ export const HomePage = () => {
         </div>
         
         <div className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-lg card-hover border border-purple-100">
-          <div className="text-5xl mb-4">🎨</div>
+          <div className="text-5xl mb-4">🤖</div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             Nos Activités
           </h2>
