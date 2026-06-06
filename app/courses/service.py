@@ -172,6 +172,9 @@ class CourseService:
                 f"Le fournisseur IA '{ai_provider}' n'a retourné aucun contenu"
             )
 
+        # Clean AI response: extract pure LaTeX content
+        latex_content = self._clean_latex_response(latex_content)
+
         logger.info(
             f"Course generated: {course_name} for {audience} via {ai_provider} "
             f"(user: {user_id})"
@@ -361,6 +364,37 @@ class CourseService:
     # ------------------------------------------------------------------
     # Private helpers
     # ------------------------------------------------------------------
+
+    def _clean_latex_response(self, content: str) -> str:
+        """
+        Clean AI response to extract pure LaTeX content.
+
+        AI models often wrap LaTeX in markdown code fences or add explanatory
+        text. This method extracts just the LaTeX document.
+        """
+        import re as _re
+
+        # Strip markdown code fences (```latex ... ``` or ```tex ... ``` or ``` ... ```)
+        # Try to find content between code fences first
+        fence_pattern = _re.compile(
+            r"```(?:latex|tex)?\s*\n(.*?)```",
+            _re.DOTALL,
+        )
+        matches = fence_pattern.findall(content)
+        if matches:
+            # Use the longest match (likely the full document)
+            content = max(matches, key=len)
+
+        # If content has \documentclass, extract from there to \end{document}
+        doc_match = _re.search(
+            r"(\\documentclass.*?\\end\{document\})",
+            content,
+            _re.DOTALL,
+        )
+        if doc_match:
+            content = doc_match.group(1)
+
+        return content.strip()
 
     def _generate_filename(self, course_name: str, audience: str) -> str:
         """

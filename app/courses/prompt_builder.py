@@ -18,6 +18,8 @@ SYSTEM_PROMPT = (
 # LaTeX constraints applied to all audience levels
 LATEX_CONSTRAINTS = """[CONTRAINTES LATEX]
 - Produire du LaTeX valide et compilable
+- Répondre UNIQUEMENT avec le code LaTeX, sans balises markdown (pas de ```), sans texte explicatif avant ou après
+- Le document doit commencer par \\documentclass et se terminer par \\end{document}
 - Préserver les environnements mathématiques : theorem, definition, proof, equation, align
 - Préserver les packages : amsmath, amssymb, amsthm
 - Conserver la structure globale du document (sections, sous-sections)
