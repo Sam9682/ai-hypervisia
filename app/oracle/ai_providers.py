@@ -75,10 +75,10 @@ class KiroAIProvider(AIProvider):
             )
 
             try:
-                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=60.0)
+                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=1800.0)
             except asyncio.TimeoutError:
                 process.kill()
-                logger.error("Kiro CLI timeout after 60 seconds")
+                logger.error("Kiro CLI timeout after 1800 seconds")
                 raise Exception("Kiro CLI timeout - la requête a pris trop de temps")
 
             output = stdout.decode().strip()
@@ -155,10 +155,10 @@ class ShaiAIProvider(AIProvider):
             )
 
             try:
-                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=60.0)
+                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=1800.0)
             except asyncio.TimeoutError:
                 process.kill()
-                logger.error("Shai CLI timeout after 60 seconds")
+                logger.error("Shai CLI timeout after 1800 seconds")
                 raise Exception("Shai CLI timeout - la requête a pris trop de temps")
 
             output = stdout.decode().strip()
@@ -252,7 +252,7 @@ class OpenAIProvider(AIProvider):
                         "temperature": temperature,
                         "max_tokens": max_tokens
                     },
-                    timeout=60.0
+                    timeout=1800.0
                 )
                 
                 response.raise_for_status()

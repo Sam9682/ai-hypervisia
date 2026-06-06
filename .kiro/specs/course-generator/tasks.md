@@ -112,7 +112,7 @@ Transformer la page Oracle existante en un générateur de cours mathématiques 
     - Remove or keep the old `OraclePage.tsx` file (can be removed if no longer needed)
     - _Requirements: 8.1_
 
-- [-] 9. Checkpoint - Full integration verification
+- [x] 9. Checkpoint - Full integration verification
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 10. Ensure Dockerfile has LaTeX support
@@ -122,7 +122,7 @@ Transformer la page Oracle existante en un générateur de cours mathématiques 
     - Confirm `storage/generated_pdfs/` directory is created in the image
     - _Requirements: 5.1_
 
-- [~] 11. Final checkpoint - Ensure all tests pass
+- [x] 11. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
