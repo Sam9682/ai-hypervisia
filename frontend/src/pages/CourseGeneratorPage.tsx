@@ -123,19 +123,7 @@ export const CourseGeneratorPage = () => {
     URL.revokeObjectURL(url);
   }, [result]);
 
-  // --- Download PDF ---
-  const handleDownloadPdf = useCallback(() => {
-    if (!result?.download_id) return;
 
-    // Check expiration
-    if (result.expires_at && new Date(result.expires_at) < new Date()) {
-      setPdfExpired(true);
-      return;
-    }
-
-    const url = getDownloadUrl(result.download_id);
-    window.open(url, '_blank');
-  }, [result]);
 
   const canGenerate = selectedCourse !== null && !generating;
 
