@@ -16,6 +16,8 @@ from app.notifications.router import router as notifications_router
 from app.info.router import router as info_router
 from app.users.router import router as users_router
 from app.oracle.router import router as oracle_router
+from app.courses.router import router as courses_router
+from app.courses.service import course_service
 from app.scheduler import task_scheduler
 from app.error_handlers import register_exception_handlers
 from app.middleware.rate_limit import limiter
@@ -31,6 +33,9 @@ async def lifespan(app: FastAPI):
     
     # Create default admin user if no users exist
     create_default_admin()
+    
+    # Ensure storage directory for generated PDFs exists
+    course_service  # Singleton initialization ensures storage/generated_pdfs/ and index.json exist
     
     # Start background task scheduler
     task_scheduler.start()
@@ -81,6 +86,7 @@ app.include_router(notifications_router)
 app.include_router(info_router)
 app.include_router(users_router)
 app.include_router(oracle_router)
+app.include_router(courses_router)
 
 
 @app.get("/health")

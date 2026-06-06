@@ -5,12 +5,14 @@ Validates Requirements 4.6, 6.4, 9.4
 import logging
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.services.membership_reminder_service import membership_reminder_service
 from app.services.event_reminder_service import event_reminder_service
 from app.services.user_deletion_service import UserDeletionService
+from app.courses.service import course_service
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +72,20 @@ class TaskScheduler:
         finally:
             db.close()
     
+    def cleanup_expired_pdfs_job(self):
+        """Job to clean up expired generated PDF files.
+
+        Validates Requirements 6.3, 5.2:
+        - Removes PDF files older than 1 hour from storage
+        - Removes corresponding metadata entries from index.json
+        """
+        logger.info("Running cleanup expired PDFs job")
+        try:
+            removed_count = course_service.cleanup_expired_pdfs()
+            logger.info(f"Cleanup expired PDFs job completed: {removed_count} removed")
+        except Exception as e:
+            logger.error(f"Error in cleanup expired PDFs job: {str(e)}", exc_info=True)
+
     def start(self):
         """Start the scheduler with all configured jobs"""
         # Run membership reminder check daily at 9:00 AM
@@ -96,6 +112,15 @@ class TaskScheduler:
             trigger=CronTrigger(hour=2, minute=0),
             id='user_deletion',
             name='Process scheduled user deletions',
+            replace_existing=True
+        )
+        
+        # Run cleanup of expired generated PDFs every 15 minutes
+        self.scheduler.add_job(
+            self.cleanup_expired_pdfs_job,
+            trigger=IntervalTrigger(minutes=15),
+            id='cleanup_expired_pdfs',
+            name='Clean up expired generated PDF files',
             replace_existing=True
         )
         

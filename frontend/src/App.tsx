@@ -11,7 +11,7 @@ import { TopicDetailPage } from './pages/TopicDetailPage';
 import { NewTopicPage } from './pages/NewTopicPage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
 import { AdminEventsPage } from './pages/AdminEventsPage';
-import { OraclePage } from './pages/OraclePage';
+import { CourseGeneratorPage } from './pages/CourseGeneratorPage';
 
 function App() {
   return (
@@ -71,7 +71,7 @@ function App() {
                   path="/oracle"
                   element={
                     <ProtectedRoute>
-                      <OraclePage />
+                      <CourseGeneratorPage />
                     </ProtectedRoute>
                   }
                 />

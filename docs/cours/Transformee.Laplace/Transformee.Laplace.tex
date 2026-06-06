@@ -1,0 +1,254 @@
+\documentclass[11pt, a4paper]{article}
+
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{geometry}
+\usepackage{hyperref}
+
+\geometry{margin=2.8cm}
+
+\newtheoremstyle{plain_style}{8pt}{8pt}{\normalfont}{0pt}{\bfseries}{.}{.5em}{}
+\theoremstyle{plain_style}
+\newtheorem{definition}{D\'{e}finition}
+\newtheorem{proposition}{Proposition}
+\newtheorem{remarque}{Remarque}
+\newtheorem{exemple}{Exemple}
+
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
+
+\title{\textbf{Vers la transform\'{e}e de Laplace}\\
+\large Une motivation par les vecteurs propres et les produits scalaires}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{L'op\'{e}rateur de d\'{e}rivation et ses vecteurs propres}
+
+Consid\'{e}rons l'espace vectoriel $\mathcal{F}$ des fonctions
+$f : [0, +\infty) \to \mathbb{C}$ ind\'{e}finiment d\'{e}rivables.
+Sur cet espace, l'op\'{e}rateur de d\'{e}rivation
+\[
+  \frac{d}{dt} : \mathcal{F} \longrightarrow \mathcal{F},
+  \qquad f \longmapsto f'
+\]
+est un op\'{e}rateur lin\'{e}aire. Comme en alg\`{e}bre lin\'{e}aire de dimension finie,
+on peut se demander s'il admet des \emph{vecteurs propres}, c'est-\`{a}-dire des fonctions
+$\varphi$ telles que
+\[
+  \frac{d}{dt}\varphi = s\,\varphi
+\]
+pour un certain scalaire $s \in \mathbb{C}$.
+
+Cette \'{e}quation diff\'{e}rentielle \'{e}l\'{e}mentaire admet pour solution la famille
+\[
+  \varphi_s : t \longmapsto e^{st}, \qquad s \in \mathbb{C}.
+\]
+Les exponentielles complexes sont donc exactement les \emph{vecteurs propres} de l'op\'{e}rateur
+$d/dt$, associ\'{e}s \`{a} la valeur propre $s$.
+
+\begin{remarque}
+En alg\`{e}bre lin\'{e}aire de dimension finie, si un op\'{e}rateur est diagonalisable,
+tout vecteur de l'espace se d\'{e}compose en somme de vecteurs propres.
+L'ambition de Laplace est analogue~: d\'{e}composer une fonction $f$ arbitraire en une
+superposition (continue) d'exponentielles.
+\end{remarque}
+
+\section{Sonder $f$ : l'idée du produit scalaire}
+Pour d\'{e}tecter la pr\'{e}sence d'une exponentielle $e^{st}$ dans $f$, on s'inspire du
+produit scalaire usuel. Dans $\mathbb{R}^n$, le produit scalaire $\langle u, v \rangle$ mesure
+l'\emph{alignement} de deux vecteurs~: il est nul lorsqu'ils sont orthogonaux, et maximal
+lorsque l'un est multiple de l'autre.
+
+\begin{exemple}
+Dans $\mathbb{R}^2$, les vecteurs $(1,0)$ et $(0,1)$ ont un produit scalaire nul~:
+ils n'ont rien en commun. En revanche,
+$\langle (1,0),\,(2,0) \rangle = 2$~: ils partagent la m\^{e}me direction.
+\end{exemple}
+
+Le produit scalaire naturel sur $\mathcal{F}$ est l'int\'{e}grale~:
+\[
+  \langle f, g \rangle = \int_0^{+\infty} f(t)\,\overline{g(t)}\,dt.
+\]
+Pour sonder $f$ avec l'exponentielle $e^{st}$, on calcule~:
+\[
+  \langle f,\, e^{s\,\cdot} \rangle
+  = \int_0^{+\infty} f(t)\,e^{\bar{s}\,t}\,dt.
+\]
+En adoptant la convention usuelle $s \mapsto -s$ (afin de garantir la convergence
+pour les parties r\'{e}elles positives de $s$), on obtient le
+\emph{prototype de la transform\'{e}e de Laplace}~:
+\[
+  \boxed{F(s) \;=\; \int_0^{+\infty} f(t)\,e^{-st}\,dt.}
+\]
+
+\section{Test du d\'{e}tecteur~: \texorpdfstring{$f(t) = e^{mt}$}{f(t) = e^{mt}}}
+
+Testons notre sonde sur la fonction la plus simple~: $f(t) = e^{mt}$,
+avec $m \in \mathbb{C}$. On calcule~:
+\[
+  F(s) = \int_0^{+\infty} e^{mt}\,e^{-st}\,dt
+       = \int_0^{+\infty} e^{(m-s)t}\,dt.
+\]
+Posons $\alpha = m - s$ et notons $\sigma = \mathrm{Re}(s)$, $\mu = \mathrm{Re}(m)$.
+Trois cas se pr\'{e}sentent~:
+\begin{align*}
+  \sigma > \mu \;(\alpha < 0)
+    &:\quad e^{\alpha t} \to 0,\quad
+     F(s) = \frac{1}{s-m} \quad\text{(int\'{e}grale convergente),}\\[4pt]
+  \sigma < \mu \;(\alpha > 0)
+    &:\quad e^{\alpha t} \to +\infty,\quad\text{int\'{e}grale divergente,}\\[4pt]
+  s = m \;(\alpha = 0)
+    &:\quad e^{\alpha t} = 1,\quad
+     \int_0^{+\infty} 1\,dt = +\infty.
+\end{align*}
+
+Le troisi\`{e}me cas est le plus r\'{e}v\'{e}lateur. Lorsque $s = m$, l'int\'{e}grande
+vaut identiquement $1$ et l'int\'{e}grale diverge~: notre d\'{e}tecteur
+\emph{s'affole} exactement au point $s = m$.
+La sonde a reconnu l'exponentielle cach\'{e}e dans $f$ et le signale par une divergence.
+
+\begin{proposition}
+Lorsque $f(t) = e^{mt}$, la transform\'{e}e de Laplace admet un \emph{p\^{o}le} en $s = m$~:
+\[
+  F(s) = \frac{1}{s - m}, \qquad \mathrm{Re}(s) > \mathrm{Re}(m).
+\]
+La position du p\^{o}le encode exactement le param\`{e}tre $m$ de l'exponentielle composant $f$.
+\end{proposition}
+
+\begin{remarque}
+La condition $\mathrm{Re}(s) > \mathrm{Re}(m)$ d\'{e}finit le \emph{demi-plan de convergence}
+de la transform\'{e}e~: la r\'{e}gion du plan complexe dans laquelle la sonde est assez
+d\'{e}croissante pour compenser la croissance de $f$.
+\end{remarque}
+
+\section{Pourquoi int\'{e}grer sur \texorpdfstring{$[0,+\infty)$}{[0, +infini)} et non sur \texorpdfstring{$\mathbb{R}$}{R}~?}
+\paragraph{Causalit\'{e} physique.}
+En physique et en ing\'{e}nierie, $t$ repr\'{e}sente le temps~: un syst\`{e}me ne r\'{e}agit
+qu'apr\`{e}s avoir re\c{c}u une excitation \`{a} $t = 0$. Int\'{e}grer sur $(-\infty, 0)$
+supposerait une m\'{e}moire infinie du pass\'{e}.
+
+\paragraph{Convergence.}
+Si $\mathrm{Re}(m) > 0$, alors $f(t) \to +\infty$ quand $t \to -\infty$~:
+l'int\'{e}grale $\int_{-\infty}^{0} e^{mt} e^{-st}\,dt$ diverge quelle que soit la valeur de $s$.
+
+\paragraph{Conditions initiales.}
+L'int\'{e}gration \`{a} partir de $0$ permet d'incorporer naturellement les conditions
+initiales. C'est gr\^{a}ce \`{a} ce choix que l'on obtient la formule cl\'{e}~:
+\[
+  \mathcal{L}\{f'\}(s) = s\,F(s) - f(0),
+\]
+qui transforme une \'{e}quation diff\'{e}rentielle en une \'{e}quation alg\'{e}brique en $F(s)$.
+
+\begin{remarque}
+La transform\'{e}e de Fourier bil\'{e}at\'{e}rale int\`{e}gre sur $\mathbb{R}$ entier, mais
+exige que $f$ soit int\'{e}grable sur $\mathbb{R}$, ce qui exclut les signaux croissants et
+toute injection de conditions initiales. Laplace g\'{e}n\'{e}ralise Fourier en autorisant une
+croissance exponentielle mod\'{e}r\'{e}e.
+\end{remarque}
+
+\section{Bilan et prolongements naturels}
+
+Le raisonnement suivi se r\'{e}sume ainsi~:
+\begin{enumerate}
+  \item Les exponentielles $t \mapsto e^{st}$ sont les vecteurs propres de $d/dt$.
+  \item Pour d\'{e}tecter la composante en $e^{st}$ de $f$, on forme le produit scalaire
+        $\displaystyle\int_0^{+\infty} f(t)\,e^{-st}\,dt$.
+  \item Sur $f(t) = e^{mt}$, ce produit scalaire diverge exactement en $s = m$,
+        signalant la pr\'{e}sence de l'exponentielle.
+  \item $F(s)$ encode l'\emph{ADN exponentiel} de $f$~: ses p\^{o}les r\'{e}v\`{e}lent
+        les fr\'{e}quences propres.
+\end{enumerate}
+
+Les prolongements naturels sont les suivants.
+
+\paragraph{La transform\'{e}e inverse (formule de Bromwich).}
+Si $F(s)$ encode $f$, comment reconstruire $f$ depuis $F$~?
+\[
+  f(t) = \frac{1}{2\pi j}
+         \int_{\sigma - j\infty}^{\sigma + j\infty} F(s)\,e^{st}\,ds.
+\]
+Cette formule boucle la boucle~: elle reconstitue $f$ comme superposition continue
+d'exponentielles, exactement l'ambition annonc\'{e}e au d\'{e}part.
+
+\paragraph{Fractions partielles et lecture directe.}
+Lorsque $F(s)$ est une fraction rationnelle, la d\'{e}composer en \'{e}l\'{e}ments simples
+revient \`{a} lire les exponentielles composant $f$ \`{a} l'\oe{}il nu.
+
+\paragraph{P\^{o}les et stabilit\'{e}.}
+La position des p\^{o}les dans le plan complexe r\'{e}v\`{e}le la stabilit\'{e} du syst\`{e}me~:
+p\^{o}les \`{a} partie r\'{e}elle n\'{e}gative (syst\`{e}me amorti), sur l'axe imaginaire
+(oscillations permanentes), ou \`{a} partie r\'{e}elle positive (divergence).
+
+\section{Injectivité, reconstruction et propriétés opérationnelles}
+
+Maintenant que l'on sait comment la transformée $\mathcal{L}\{f\} = F$ permet de détecter l'ADN de $f$ sous forme d'exponentielles, la question naturelle est de savoir si elle capte suffisamment d'informations pour que l'on puisse reconstruire $f$ connaissant sa transformée de Laplace. La réponse est affirmative et repose sur l'injectivité de l'opérateur.
+
+\subsection{Unicité et reconstruction}
+
+Pour reconstruire $f$ de manière unique, il faut s'assurer que deux fonctions distinctes ne possèdent pas la même transformée. On se place ici dans le cadre des fonctions continues par morceaux et à croissance exponentielle.
+
+\begin{proposition}[Théorème d'unicité de Lerch]
+Soient $f$ et $g$ deux fonctions continues sur $[0, +\infty)$ possédant le même demi-plan de convergence. Si, pour tout $s$ dans ce demi-plan, on a $F(s) = G(s)$, alors :
+\[
+  f(t) = g(t) \quad \forall t \ge 0.
+\]
+\end{proposition}
+
+\begin{proof}
+Par linéarité de l'intégrale, il suffit de montrer que si $F(s) = 0$ pour tout $s > \sigma_0$, alors $f$ est identiquement nulle. Supposons pour simplifier $f$ continue. Quitte à étudier $t \mapsto f(t)e^{-\sigma_1 t}$ avec $\sigma_1 > \sigma_0$, on peut supposer que l'intégrale converge pour $s=0$. On a alors pour tout entier $n \ge 1$ :
+\[
+  F(n) = \int_0^{+\infty} f(t)e^{-nt}\,dt = 0.
+\]
+Effectuons le changement de variable $x = e^{-t}$ (donc $dt = -\frac{dx}{x}$). L'intervalle $[0, +\infty)$ devient $(0, 1]$, et l'intégrale se réécrit :
+\[
+  \int_0^1 f(-\ln x) x^{n-1}\,dx = 0 \quad \forall n \ge 1.
+\]
+En posant $h(x) = f(-\ln x)$ (prolongée par continuité en $0$), la fonction $h$ est continue sur $[0,1]$ et orthogonale à tous les monômes $x^k$. D'après le théorème d'approximation de Weierstrass, les polynômes sont denses dans l'espace des fonctions continues sur $[0,1]$ pour la norme de la convergence uniforme. Ainsi, $\int_0^1 h(x)^2\,dx = 0$, ce qui implique $h = 0$, et par conséquent $f = 0$.
+\end{proof}
+
+\begin{remarque}
+L'existence de cette bijection permet d'affirmer que $F(s)$ contient toute l'information de $f(t)$. La formule de reconstruction explicite (inversion de Bromwich) vue précédemment découle de la formule d'inversion de Fourier appliquée à la fonction $t \mapsto f(t)e^{-\sigma t}$.
+\end{remarque}
+
+\subsection{Comportement vis-à-vis des opérateurs}
+
+Une seconde question émerge : puisque les exponentielles sont les vecteurs propres de l'opérateur de dérivation $d/dt$, comment la transformée de Laplace se comporte-t-elle vis-à-vis des opérateurs usuels (dérivation, intégration, décalage) ?
+
+\begin{proposition}[Théorème de dérivation et de translation]
+Soit $f$ une fonction continûment dérivable et de croissance exponentielle. On a :
+\begin{align*}
+  \mathcal{L}\{f'\}(s) &= s\,F(s) - f(0) \quad \text{\small (Opérateur de dérivation)} \\
+  \mathcal{L}\{t \mapsto f(t)e^{at}\}(s) &= F(s-a) \quad \text{\small (Opérateur de translation fréquentielle)}
+\end{align*}
+\end{proposition}
+
+\begin{proof}
+Pour la dérivation, on utilise une intégration par parties sur l'intervalle $[0, X]$ :
+\[
+  \int_0^X f'(t)e^{-st}\,dt = \left[ f(t)e^{-st} \right]_0^X - \int_0^X f(t)(-s)e^{-st}\,dt
+\]
+En développant les bornes :
+\[
+  \int_0^X f'(t)e^{-st}\,dt = f(X)e^{-sX} - f(0) + s\int_0^X f(t)e^{-st}\,dt
+\]
+Puisque $s$ est choisi dans le demi-plan de convergence, la fonction $f$ grandit moins vite que $e^{st}$, donc $\lim_{X \to +\infty} f(X)e^{-sX} = 0$. En faisant tendre $X$ vers $+\infty$, on obtient bien :
+\[
+  \mathcal{L}\{f'\}(s) = s\,F(s) - f(0).
+\]
+
+Pour la translation fréquentielle (qui correspond à un produit par une exponentielle dans le domaine temporel), le calcul est direct par substitution dans la définition :
+\[
+  \mathcal{L}\{f(t)e^{at}\}(s) = \int_0^{+\infty} \left(f(t)e^{at}\right)e^{-st}\,dt = \int_0^{+\infty} f(t)e^{-(s-a)t}\,dt = F(s-a).
+\]
+\end{proof}
+
+\begin{remarque}
+La formule de dérivation montre la puissance de l'approche : l'opérateur de dérivation $d/dt$ (analytique et complexe) est transformé en une simple opération algébrique de multiplication par la variable $s$. C'est exactement le comportement attendu d'un passage dans une base de vecteurs propres.
+\end{remarque}
+
+\end{document}

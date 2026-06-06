@@ -10,6 +10,14 @@ RUN apt-get update && apt-get install -y \
     bash \
     && rm -rf /var/lib/apt/lists/*
 
+# Install LaTeX for PDF compilation
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    texlive-latex-base \
+    texlive-latex-extra \
+    texlive-fonts-recommended \
+    texlive-lang-french \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install Amazon Kiro CLI for Oracle AI
 RUN curl -fsSL https://cli.kiro.dev/install | bash && \
     echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
@@ -32,7 +40,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Create necessary directories
-RUN mkdir -p storage/uploads ssl
+RUN mkdir -p storage/uploads storage/generated_pdfs ssl
 
 # Expose port
 EXPOSE 8000
