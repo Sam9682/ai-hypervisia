@@ -1,0 +1,1564 @@
+\documentclass[11pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+%-----GRAPHS DE CLAUDE-------------
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, calc, decorations.pathreplacing}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, calc, decorations.pathreplacing, patterns}
+% Styles communs pour les schémas blocs (Série, Parallèle, Boucle Fermée)
+\tikzset{
+  bloc/.style={
+    draw, rectangle, rounded corners=4pt,
+    minimum width=2.8cm, minimum height=1.1cm,
+    align=center, font=\small
+  },
+  somme/.style={
+    draw, circle, minimum size=0.85cm, font=\large
+  },
+  fleche/.style={
+    ->, >=Stealth, thick
+  },
+  lbl/.style={
+    font=\small\itshape
+  }
+}
+% --- PACKAGES DE MATHÉMATIQUES ---
+\usepackage{amsmath, amssymb, amsthm, mathrsfs}
+
+% --- CONFIGURATION DES LIENS CLIQUABLES (Sommaire) ---
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,      % Couleur des liens du sommaire
+    citecolor=green,
+    urlcolor=cyan
+}
+
+% --- ENCADRÉS ARRONDIS PERSONNALISÉS (tcolorbox) ---
+\usepackage[most]{tcolorbox}
+
+% Éléments communs pour les boîtes
+\tcbset{
+    commonbox/.style={
+        enhanced,
+        arc=4mm,             % Rayon de l'arrondi
+        boxrule=1.5pt,       % Épaisseur de la bordure
+        colback=white,       % Fond blanc pour une impression propre
+        fonttitle=\bfseries\sffamily,
+        attach boxed title to top left={yshift=-2mm, xshift=5mm},
+        boxed title style={sharp corners=downhill, arc=1.5mm},
+        top=4mm, bottom=3mm, left=3mm, right=3mm % Marges internes
+    }
+}
+
+% 1. Encadré bleu pour les relations importantes
+\newtcolorbox{importantbox}[1]{
+    commonbox,
+    colframe=blue!70!black,       % Couleur de la bordure
+    colbacktitle=blue!70!black,  % Couleur du fond du titre
+    coltitle=white,              % Couleur du texte du titre
+    title=#1
+}
+
+% 2. Encadré rouge pour les définitions
+\newtcolorbox{defbox}[1]{
+    commonbox,
+    colframe=red!75!black,        % Couleur de la bordure
+    colbacktitle=red!75!black,   % Couleur du fond du titre
+    coltitle=white,              % Couleur du texte du titre
+    title=#1
+}
+
+% --- MISE EN PAGE ---
+\usepackage{geometry}
+\geometry{hmargin=2.5cm,vmargin=3cm}
+
+% ==========================================
+% BEGIN DOCUMENT
+% ==========================================
+\begin{document}
+
+% --- PAGE DE TITRE ---
+\title{\Huge\bfseries Automatique}
+\author{\Large Nael LEPETRE \\ \small Centrale Lyon}
+\date{\the\year}
+\maketitle
+
+\tableofcontents
+\newpage
+
+% --- INTRODUCTION ---
+\chapter*{Introduction et Motivation}
+\addcontentsline{toc}{chapter}{Introduction et Motivation} % Ajout au sommaire bien que ce soit un chapitre étoilé
+
+Un être humain passe son temps à gérer des ajustements quand il accomplit des tâches, sans même y penser. Par exemple, un papa qui cuisine et découpe des légumes pour ses enfants doit faire attention au four qui chauffe, aux petits qui ne doivent pas s'en approcher, tout en gardant les couteaux loin des mioches et en gérant un tas de facteurs extérieurs qui viennent le perturber dans sa tâche principale. 
+
+Imaginons maintenant un missile qui doit anéantir Abu Bakr al-Baghdadi. L'objet va être construit de sorte à respecter une liste de consignes, à foncer sur Abu et à l'atomiser. 
+
+\begin{defbox}{Le Problème : La Boucle Ouverte}
+    Une fois la trajectoire théorique établie, le vent souffle plus fort que prévu. Il dévie le missile, qui change de cap et vient exploser Élisabeth (en deux mots) Mironescu en plein labo de maths à Centrale. 
+    
+    D'une certaine manière, le résultat a dépassé ce que l'on avait imaginé, mais dans les faits, le missile n'a pas fait ce qu'on lui a demandé.
+\end{defbox}
+
+\vspace{0.5cm}
+
+C'est là que l'automatique entre en scène. On va essayer, mathématiquement, d'établir des lois et des théorèmes visant à automatiser un certain nombre de tâches pour que notre roquette fasse \textit{exactement} ce qu'on lui demande, même si elle est saoulée par des facteurs externes.
+
+\vspace{0.5cm}
+
+\begin{importantbox}{Objectif du cours}
+    L'enjeu de ce cours sera de concevoir des systèmes en \textbf{Boucle Fermée} capables de s'autoréguler. Nous allons développer des outils pour modéliser la dynamique physique de notre système (la roquette), analyser sa sensibilité face aux perturbations (le vent), et synthétiser des lois de commande (l'autopilote) pour garantir la stabilité et la précision de la mission.
+\end{importantbox}
+
+\chapter{Modélisation des Systèmes Linéaires}
+
+\section{Notion de Système et Signaux}
+
+Pour concevoir notre autopilote, la première étape indispensable est de définir mathématiquement l'objet que l'on cherche à contrôler.
+
+\begin{defbox}{Définition : Système}
+    Un système est un objet transformateur $f$ qui reçoit des signaux de natures quelconques $u$ en entrée, les transforme selon ses lois physiques internes (mécaniques, aérodynamiques, électriques), et les délivre en sortie $y$.Finalement, on a $y(t)$=$f(u(t))$
+\end{defbox}
+
+Dans notre étude, la \textbf{roquette} constitue le système global. Pour ne pas s'y perdre, l'automaticien classe rigoureusement les différents signaux qui gravitent autour de cette boîte noire :
+
+\begin{defbox}{Eléments du système}
+    \begin{enumerate}
+    \item \textbf{La Consigne ($r(t)$ ou $y_c(t)$) :} C'est l'objectif idéal à atteindre, imposé depuis l'extérieur. Pour notre roquette, c'est l'angle d'attitude théorique qu'elle doit maintenir pour suivre sa trajectoire (par exemple, rester parfaitement verticale : $0^\circ$).
+    \item \textbf{L'Entrée de Commande ($u(t)$) :} C'est la variable physique sur laquelle le calculateur peut agir directement en temps réel. Ici, c'est l'angle d'orientation de la tuyère de poussée (moteurs sur cardans).
+    \item \textbf{L'Entrée de Perturbation ($d(t)$) :} Ce sont les grandeurs physiques extérieures que le système subit et que l'on ne maîtrise pas. Cela regroupe les rafales de vent latéral, les sautes de pression ou les gradients de température selon l'altitude.
+    \item \textbf{La Sortie Réelle ($y(t)$) :} C'est la grandeur physique mesurable résultante, celle que l'on souhaite ajuster. Dans notre cas, c'est l'inclinaison réelle (l'angle d'attitude) et la vitesse de la roquette.
+    \end{enumerate}
+\end{defbox}
+
+\subsection{Interconnexion de sous-systèmes}
+Une roquette est un objet trop complexe pour être mis en équation d'un seul bloc. On la décompose en un ensemble de sous-systèmes en interaction, modélisés par des blocs interconnectés selon trois configurations standards :
+
+\begin{enumerate}
+    \item \textbf{L'association en série (ou cascade) :} La sortie du premier bloc devient l'entrée du second. \\
+    \textit{Exemple :} L'ordinateur de bord envoie un signal électrique au \textbf{vérin hydraulique (Bloc A)}. Le vérin pivote (Sortie A), ce qui modifie mécaniquement l'angle de la \textbf{tuyère (Bloc B)}, changeant ainsi l'orientation de la roquette.
+    
+    \item \textbf{L'association en parallèle :} Plusieurs blocs reçoivent exactement le même signal d'entrée, et leurs sorties respectives s'additionnent. \\
+    \textit{Exemple :} Pour s'arracher du sol, le signal de poussée maximale est envoyé simultanément au \textbf{booster gauche (Bloc A)} et au \textbf{booster droit (Bloc B)}. Leurs forces de poussée s'additionnent pour propulser la structure.
+    
+    \item \textbf{La boucle de rétroaction (Feedback) :} La sortie réelle du système fait demi-tour via un capteur pour venir influencer la commande à l'entrée. C'est le principe fondamental de l'asservissement.
+\end{enumerate}
+
+\section{Boucle Ouverte vs Boucle Fermée}
+
+La distinction entre ces deux structures de commande est la raison d'être de l'automatique. Elle illustre la différence entre "tirer à l'aveugle" et "ajuster son tir".
+
+\subsection{La Boucle Ouverte (BO) : Le mode aveugle}
+En boucle ouverte, la loi de commande $u(t)$ est calculée à l'avance sur un bureau, programmée dans l'ordinateur, puis exécutée sans jamais vérifier ce que fait réellement la roquette en sortie. Le système ne dispose d'aucun retour d'information.
+
+\[ \text{Consigne } r(t) \longrightarrow \boxed{\text{Calculateur}} \longrightarrow u(t) \longrightarrow \boxed{\text{Roquette}} \longrightarrow \text{Sortie } y(t) \]
+
+Si les conditions sont parfaites (pas de vent, masse exacte), la roquette atteint sa cible. Mais si une perturbation $d(t)$ survient (une rafale de vent), la roquette dévie. Le calculateur, étant aveugle, continue d'appliquer la commande théorique. C'est le crash assuré sur le laboratoire de mathématiques de Centrale.
+
+\subsection{La Boucle Fermée (BF) : L'autorégulation}
+En boucle fermée, on refuse de subir les perturbations. On installe un capteur (un gyroscope) en sortie pour mesurer l'angle réel $y(t)$. Cette mesure est renvoyée au début de la chaîne pour être comparée à la consigne $r(t)$ via un \textbf{comparateur} (un soustracteur).
+
+\begin{defbox}{Le principe de l'Écart}
+    Le comparateur calcule en temps réel l'\textbf{Écart} (ou l'erreur), noté $\epsilon(t)$ :
+    \[ \epsilon(t) = r(t) - y(t) \]
+    L'autopilote (le correcteur) n'a alors qu'une seule obsession mathématique : \textbf{concevoir une commande $u(t)$ qui force cet écart $\epsilon(t)$ à tendre vers zéro.}
+\end{defbox}
+
+Désormais, si le vent ($d(t)$) pousse la roquette vers la droite, le gyroscope le détecte instantanément. La mesure $y(t)$ augmente, l'écart $\epsilon(t)$ devient négatif. Le correcteur réagit immédiatement à cette erreur et ordonne à la tuyère de braquer à gauche pour contrer le vent. Une fois la roquette redressée, l'écart retombe à zéro et la tuyère se recentre. La boucle fermée permet de rejeter les perturbations extérieures.
+\subsection{Les composants physiques de la chaîne d'asservissement}
+
+Pour comprendre comment les signaux circulent, il faut ouvrir la boîte noire du « Système » et identifier les quatre éléments physiques qui interagissent pour piloter notre roquette.
+
+\begin{enumerate}
+    \item \textbf{Le Procédé (ou le système à commander) :} 
+    C'est l'objet physique brut que l'on souhaite contrôler et qui obéit aux lois de la nature (gravité, mécanique des fluides). \\
+    \textit{Application Roquette :} C'est le \textbf{fuselage et la masse} du lanceur. Le procédé reçoit une force mécanique en entrée (l'orientation de la poussée des moteurs) et produit en sortie sa trajectoire et son inclinaison réelle dans l'espace.
+    
+    \item \textbf{L'Actionneur :} 
+    C'est le muscle du système. Cet organe physique reçoit un ordre logique de faible puissance provenant du calculateur et le traduit en une action physique lourde (force, couple, chaleur) capable de modifier l'état du procédé. \\
+    \textit{Application Roquette :} Ce sont les \textbf{vérins hydrauliques} fixés sur les moteurs. Ils reçoivent un faible signal électrique de commande (quelques volts ou milliampères) et développent une puissance monumentale pour faire pivoter la tuyère du moteur de quelques degrés.
+    
+    \item \textbf{Le Capteur :} 
+    Ce sont les yeux du système. Il mesure la grandeur physique réelle en sortie du procédé et la convertit en un signal exploitable (généralement électrique ou numérique) pour permettre sa comparaison avec la consigne. \\
+    \textit{Application Roquette :} C'est la \textbf{centrale inertielle} embarquée (composée de gyroscopes de haute précision et d'accéléromètres). Elle mesure l'angle d'attitude réel de la roquette en plein vol et transmet instantanément cette valeur à l'ordinateur de bord.
+    
+    \item \textbf{Le Correcteur (ou Régulateur / Autopilote) :} 
+    C'est le cerveau du système. Il s'agit de l'algorithme mathématique qui reçoit l'Écart ($\epsilon$), l'analyse, et calcule en temps réel la commande optimale à envoyer à l'actionneur pour annuler cet écart le plus vite possible sans déstabiliser la structure. \\
+    \textit{Application Roquette :} C'est le \textbf{code de l'autopilote} qui s'exécute dans l'ordinateur de bord. Si la centrale inertielle détecte une déviation de $2^\circ$ causée par le vent, le correcteur calcule instantanément qu'il doit ordonner aux vérins de braquer la tuyère de $4^\circ$ dans le sens opposé pour redresser l'engin.
+\end{enumerate}
+
+\begin{importantbox}{Architecture standard de la Boucle Fermée}
+    En combinant ces quatre éléments, on obtient l'organisation universelle d'un système asservi :
+    \begin{center}
+        \textbf{Consigne} $\longrightarrow$ [Comparateur] $\longrightarrow$ \textbf{Écart} ($\epsilon$) $\longrightarrow$ \boxed{\text{Correcteur}} $\longrightarrow$ \textbf{Commande} ($u$) $\longrightarrow$ \boxed{\text{Actionneur}} $\longrightarrow$ \boxed{\text{Procédé}} $\longrightarrow$ \textbf{Sortie} ($y$)
+    \end{center}
+    Le \textbf{Capteur} prélève la \textbf{Sortie} ($y$) et la renvoie sur l'entrée négative du [Comparateur] pour fermer la boucle. C'est ce bouclage permanent qui permet à la roquette de s'autoréguler face aux perturbations.
+\end{importantbox}
+
+\section{Concepts Fondamentaux}
+
+En automatique, un système a deux objectifs principaux selon la nature des signaux auxquels il est confronté : l'asservissement et la régulation.
+
+\begin{defbox}{L'Asservissement}
+Imposer à la sortie d'un système de se comporter comme un signal de \textbf{consigne variable}, en l'absence de perturbation, est une opération appelée \textbf{asservissement}.
+\end{defbox}
+
+\begin{defbox}{La Régulation}
+Imposer à la sortie d'un système de se maintenir à la valeur de \textbf{consigne constante}, malgré la présence d'une \textbf{perturbation variable}, est une opération appelée \textbf{régulation}.
+\end{defbox}
+
+\subsection{Illustration concrète : La poursuite de véhicule}
+
+Pour bien comprendre la différence de sens physique entre ces deux opérations, on peut analyser le comportement d'une roquette téléguidée lancée à la poursuite d'un véhicule en fuite :
+
+\begin{importantbox}{Sens physique : Roquette vs Véhicule}
+Lors du vol de la roquette, le système embarqué doit gérer deux aspects simultanément :
+\begin{itemize}
+    \item \textbf{La poursuite (Asservissement) :} Le véhicule cible virevolte et change de trajectoire à chaque instant. La consigne est donc \textit{variable dans le temps}. La roquette doit recalculer sa trajectoire en permanence pour coller à cette consigne mobile.
+    \item \textbf{Le rejet des perturbations (Régulation) :} Pendant sa course, une violente rafale de vent latéral vient dévier la roquette. Le système doit être capable de s'\textbf{autoréguler} instantanément pour contrer l'effet du vent et revenir sur la trajectoire idéale, maintenant ainsi l'erreur de déviation proche de zéro.
+\end{itemize}
+\end{importantbox}
+
+\section{Schéma Bloc Général}
+% C'est ici que tu mettras tes futurs schémas de cours !
+
+
+\chapter{Les Systèmes Linéaires Invariants dans le Temps (LTI)}
+
+\section{Propriétés Fondamentales et Cadre d'Étude}
+
+Par soucis de simplicité au départ, nous allons considérer une classe de systèmes particulière, beaucoup plus agréable à étudier. Certaines conditions sont naturelles par leur simplicité : ce sont les hypothèses de linéarité et d'invariance.
+
+\subsection{La Linéarité (Principe de Superposition)}
+Un système est dit linéaire s'il respecte le principe de superposition, qui se décompose en deux propriétés :
+\begin{itemize}
+    \item \textbf{L'additivité :} Si pour une entrée $u_1(t)$ le système répond $y_1(t)$ et pour une entrée $u_2(t)$ il répond $y_2(t)$, alors pour une entrée combinée $u_1(t) + u_2(t)$, la sortie sera la somme des deux réponses individuelles, soit $y_1(t) + y_2(t)$.
+    \item \textbf{L'homogénéité :} Si on amplifie l'entrée par un facteur $\mu$, on attend une amplification de la sortie similaire. Ainsi, pour une entrée $\mu \cdot u(t)$, la sortie est $\mu \cdot y(t)$.
+\end{itemize}
+
+\subsection{La Causalité et la Stabilité}
+\begin{itemize}
+    \begin{defbox}{Causalité :} Évidemment, notre sortie (si elle est en temps réel, comme dans le cas du missile) ne prédit pas le futur. Elle dépend donc seulement des temps passés. Mathématiquement, un système est causal si sa sortie à un instant $t$ ne dépend que des valeurs de son entrée pour des instants $\tau \le t$.
+    \end{defbox}
+    \begin{defbox}{Stabilité BIBO (Bounded-Input Bounded-Output) :} Un système est dit stable au sens des entrées bornées / sorties bornées si toute entrée bornée engendre une sortie qui reste elle aussi bornée. Pour notre roquette, cela garantit qu'un ordre de braquage fini de la tuyère ne provoquera pas des oscillations infinies qui détruiraient la structure.
+    \end{defbox}    
+    \end{itemize}
+
+
+\subsection{L'Invariance Temporelle et ses limites physiques}
+De surcroît, on pourrait s'attendre à ce que l'expérience retardée suive la même trajectoire, en étant simplement retardée de la même durée. Mathématiquement, si l'entrée devient $u(t - \tau)$, la sortie doit devenir $y(t - \tau)$.
+
+Ici, ce n'est pas très raisonnable pour notre exemple de roquette dans son environnement réel, car on ne subit pas les mêmes bourrasques de vent si on attend 10 secondes au même endroit, et la masse de carburant diminue en continu. Néanmoins, l'invariance s'applique aux lois physiques internes de l'objet (que l'on fige par morceaux sur de courtes fenêtres de temps) et non à sa météo extérieure.
+
+\section{L'Opérateur Système et l'Intégrale de Convolution}
+
+Un système, par définition, peut être vu comme une application mathématique $F$ qui lie l'entrée à la sortie : 
+\[ y(t) = F\big(u(t)\big) \]
+Tout le problème de l'automatique est concentré dans ce fameux opérateur $F$. Si on avait sa forme exacte systématiquement, la discipline serait bouclée ! Il se trouve qu'en général, on n'a pas accès directement à $F$, mais sous nos hypothèses LTI, $F$ prend une forme mathématique connue et remarquable.
+
+\subsection{L'analogie de l'écho dans l'église}
+Imaginons-nous crier dans une église. On émet un son $u(t)$ au temps $t$. L'église va générer des échos, et ce qui retourne dans nos oreilles ce n'est pas $u(t)$ pur, mais un signal mélangé à tous les échos propres à la géométrie du lieu. Nous sommes clairement dans le cas d'un système LTI.
+
+Le signal $y(t)$ que l'on perçoit au temps $t$ est la somme du son direct et des échos liés à tous les sons qui ont été émis dans le passé (entre $0$ et $t$), qui ont voyagé et qui reviennent retardés d'une durée $\tau$. 
+
+Si l'on envoyait un unique coup de pistolet à blanc à $t=0$ (une impulsion de Dirac $\delta(t)$), l'église résonnerait selon une courbe propre à son architecture, notée $h(t)$ et appelée \textbf{réponse impulsionnelle}. Par homogénéité (linéarité), un son passé émis à l'instant $(t-\tau)$ avec une amplitude $u(t-\tau)$ aura une contribution résiduelle dans notre oreille égale à la multiplication :
+\[ u(t-\tau) \cdot h(\tau) \]
+Cette multiplication agit comme un facteur d'échelle (un bouton de volume) : l'écho perçu est proportionnel à la force du cri d'origine atténuée par le temps de trajet $\tau$ dans l'église.
+
+En sommant les contributions de tous les sons passés de manière continue, la somme devient une intégrale. On obtient l'\textbf{intégrale de convolution} (valable pour tout système LTI causal) :
+\begin{importantbox}{Le produit de convolution}
+    Pour tout système LTI, la sortie $y(t)$ est le produit de convolution de l'entrée $u(t)$ par la réponse impulsionnelle $h(t)$ du système :
+    \[ y(t) = (u * h)(t) = \int_{0}^{t} u(t-\tau)h(\tau)d\tau \]
+\end{importantbox}
+
+\section{Le lien entre les systèmes LTI et les Équations Différentielles}
+
+Du point de vue analytique, la relation entrée-sortie d'un système linéaire peut être décrite par une équation différentielle d'ordre $n$. 
+
+Il est plus juste de préciser que la majorité des systèmes LTI \textit{simples} (c'est-à-dire à paramètres localisés, exclus de phénomènes de propagation thermique infinie ou de retards purs dans les câbles) se caractérisent par des \textbf{Équations Différentielles Ordinaires (EDO) linéaires à coefficients constants} de la forme :
+\[ a_n \frac{d^ny(t)}{dt^n} + \dots + a_1 \frac{dy(t)}{dt} + a_0 y(t) = b_m \frac{d^mu(t)}{dt^m} + \dots + b_0 u(t) \]
+Cette propriété provient des lois fondamentales de la physique (Loi de Newton pour la mécanique de notre roquette, lois de Kirchhoff en électricité). 
+
+Calculer un produit de convolution $(u * h)$ ou résoudre une EDO d'ordre $n$ s'avère être une tâche temporelle laborieuse. C'est pour s'affranchir de ces difficultés que nous allons introduire un traducteur mathématique radical : \textbf{la Transformée de Laplace}.
+
+\chapter{La Transformée de Laplace : L'Artillerie Lourde Frequentielle}
+
+\section{Motivation et principe d'action}
+
+Tout problème différentiel temporel se simplifie méchamment quand on lui fait subir l'artillerie lourde des transformations de Laplace (ou de Fourier quand c'est mathématiquement possible). Pour un ingénieur, ces outils ne sont pas une torture abstraite, mais un bouclier anti-calcul permettant de transformer des opérations analytiques lourdes (dérivées, intégrales) en de simples opérations algébriques (multiplications, divisions).
+
+\subsection{Action sur une équation différentielle}
+Le miracle de la transformée de Laplace (notée $\mathcal{L}$ et utilisant la variable complexe $s$) repose sur sa propriété de dérivation. En considérant des conditions initiales nulles (le système est initialement au repos à $t = 0^-$), la règle absolue stipule que dériver par rapport au temps revient à multiplier par $s$ dans le domaine complexe :
+\[ \mathcal{L}\left\{\frac{dy(t)}{dt}\right\} = s \cdot Y(s) \quad \text{et} \quad \mathcal{L}\left\{\frac{d^2y(t)}{dt^2}\right\} = s^2 \cdot Y(s) \]
+
+Reprenons l'équation différentielle ordinaire (EDO) de notre roquette d'ordre 2, liant l'inclinaison réelle $y(t)$ à l'orientation de la tuyère $u(t)$ :
+\[ a_2 \frac{d^2y(t)}{dt^2} + a_1 \frac{dy(t)}{dt} + a_0 y(t) = b_0 u(t) \]
+
+En appliquant la transformée de Laplace à chaque membre de l'égalité, les opérateurs différentiels s'effondrent immédiatement. L'équation devient purement polynomiale :
+\[ a_2 s^2 Y(s) + a_1 s Y(s) + a_0 Y(s) = b_0 U(s) \]
+
+Par une simple factorisation par $Y(s)$, on extrait la structure algébrique directe du système :
+\[ (a_2 s^2 + a_1 s + a_0) Y(s) = b_0 U(s) \]
+
+\section{Tables des Propriétés et des Transformées Usuelles}
+
+Pour manipuler sereinement ces outils à l'examen, il est indispensable de maîtriser les règles du jeu ainsi que le dictionnaire des signaux physiques classiques.
+
+\subsection{Table des propriétés majeures}
+\begin{center}
+\small
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Propriété} & \textbf{Domaine Temporel} ($t$) & \textbf{Laplace} ($s$) & \textbf{Fourier} ($\omega$) \\ \hline
+\textbf{Linéarité} & $\alpha f(t) + \beta g(t)$ & $\alpha F(s) + \beta G(s)$ & $\alpha F(\omega) + \beta G(\omega)$ \\ \hline
+\textbf{Dérivée première} & $\frac{df(t)}{dt}$ & $s F(s) - f(0^-)$ & $j\omega F(\omega)$ \\ \hline
+\textbf{Dérivée seconde} & $\frac{d^2f(t)}{dt^2}$ & $s^2 F(s) - s f(0^-) - f'(0^-)$ & $-\omega^2 F(\omega)$ \\ \hline
+\textbf{Intégration} & $\int_{0}^{t} f(\tau) d\tau$ & $\frac{1}{s} F(s)$ & $\frac{1}{j\omega} F(\omega) + \pi F(0)\delta(\omega)$ \\ \hline
+\textbf{Retard temporel} & $f(t - \tau)$ & $e^{-\tau s} F(s)$ & $e^{-j\omega \tau} F(\omega)$ \\ \hline
+\textbf{Convolution} & $(f * g)(t)$ & $F(s) \cdot G(s)$ & $F(\omega) \cdot G(\omega)$ \\ \hline
+\textbf{Valeur initiale} & $\lim_{t \to 0^+} f(t)$ & $\lim_{s \to \infty} s F(s)$ & -- \\ \hline
+\textbf{Valeur finale} & $\lim_{t \to \infty} f(t)$ & $\lim_{s \to 0} s F(s)$ \textit{(si stable)} & -- \\ \hline
+\end{tabular}
+\end{center}
+
+\subsection{Table des signaux usuels}
+\begin{center}
+\small
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Signal Physique} & \textbf{Forme Temporelle} $f(t)$ ($t \ge 0$) & \textbf{Laplace} $F(s)$ & \textbf{Modélisation Roquette} \\ \hline
+\textbf{Impulsion (Dirac)} & $\delta(t)$ & $1$ & Choc ultra-violent instantané (débris) \\ \hline
+\textbf{Échelon (Unité)} & $1(t)$ & $\frac{1}{s}$ & Rafale de vent soudaine et constante \\ \hline
+\textbf{Rampe} & $t$ & $\frac{1}{s^2}$ & Cible fuyant à vitesse constante \\ \hline
+\textbf{Exponentielle} & $e^{-at}$ & $\frac{1}{s + a}$ & Atténuation naturelle d'un frottement \\ \hline
+\textbf{Sinus} & $\sin(\omega_0 t)$ & $\frac{\omega_0}{s^2 + \omega_0^2}$ & Turbulences aérodynamiques périodiques \\ \hline
+\end{tabular}
+\end{center}
+
+\section{Unicité et Cohérence : Le Double Visage d'un Système LTI}
+
+Pour prouver la puissance de l'artillerie lourde, appliquons la transformation de Laplace à un même système LTI théorique modélisé d'une part sous sa forme intégrale (la mémoire de l'église) et d'autre part sous sa forme différentielle (la mécanique solide).
+
+\subsection{Approche A : Par l'intégrale de convolution}
+Dans le domaine temporel, nous avons établi que la sortie $y(t)$ est le mélange de toutes les contributions passées de l'entrée $u(t)$ via la réponse impulsionnelle $h(t)$ :
+\[ y(t) = \int_{0}^{t} u(t-\tau)h(\tau)d\tau = (u * h)(t) \]
+
+En jetant ce bloc dans le Shaker de Laplace et en utilisant la propriété remarquable de la convolution (qui transforme un produit intégral infâme en une simple multiplication), on obtient directement dans le plan complexe :
+\[ Y(s) = H(s) \cdot U(s) \]
+Où $H(s) = \mathcal{L}\{h(t)\}$ représente la signature fréquentielle intrinsèque du comportement de notre système.
+
+\subsection{Approche B : Par l'équation différentielle}
+Supposons maintenant que ce même système physique simple soit modélisé par une équation différentielle à coefficients constants reliant ses variables :
+\[ a_1 \frac{dy(t)}{dt} + a_0 y(t) = b_0 u(t) \]
+
+Passons cette équation au tamis de Laplace avec des conditions initiales nulles :
+\[ a_1 s Y(s) + a_0 Y(s) = b_0 U(s) \implies (a_1 s + a_0) Y(s) = b_0 U(s) \]
+
+En isolant l'expression de la sortie $Y(s)$, on aboutit à :
+\[ Y(s) = \left( \frac{b_0}{a_1 s + a_0} \right) \cdot U(s) \]
+
+\subsection{Conclusion de la confrontation}
+En comparant les résultats des deux approches, la cohérence est totale. On constate que :
+\[ H(s) = \frac{b_0}{a_1 s + a_0} \]
+
+Peu importe que le système soit décrit par son écho global historique ($h(t)$) ou par ses lois mécaniques locales (l'EDO), la transformée de Laplace unifie ces deux mondes. Elle ramène toujours la relation entrée-sortie à une simple équation multiplicative de la forme $Y(s) = H(s) \cdot U(s)$.
+\section{L'Émergence de la Fonction de Transfert : L'ADN du Système}
+
+En observant l'égalité obtenue par les deux approches (intégrale ou différentielle), on remarque qu'une fonction $H(s)$ a émergé de manière spectaculaire. Cette fonction est \textbf{totalement indépendante} de l'entrée $u(t)$ choisie et de la sortie $y(t)$ mesurée. 
+
+\begin{defbox}{Définition : Fonction de Transfert}
+    Pour un système LTI initialement au repos (conditions initiales nulles), on définit la \textbf{Fonction de Transfert} $H(s)$ comme le rapport de la transformée de Laplace de la sortie sur la transformée de Laplace de l'entrée :
+    \[ H(s) = \frac{Y(s)}{U(s)} \]
+\end{defbox}
+
+La fonction de transfert $H(s)$ représente l'ADN pur, la carte d'identité génétique du système LTI. Grâce à elle, toute l'étude d'un système physique complexe (mécanique, aérodynamique, électrique) se ramène à l'étude d'une simple fonction de la variable complexe $s$. 
+
+\section{Questions de Validité et Limites Mathématiques}
+
+Pour aborder sereinement les exercices d'examen, il est crucial de fixer rigoureusement les frontières mathématiques et physiques de ces outils.
+
+\subsection{1. Quand peut-on appliquer la transformée de Laplace ?}
+D'un point de vue mathématique, la transformée de Laplace unilatérale d'un signal temporel exige que l'intégrale de définition converge. Cela nécessite que le signal respecte la \textbf{condition d'ordre exponentiel} : le signal ne doit pas grandir plus vite qu'une fonction exponentielle pure ($M \cdot e^{ct}$) quand $t \to \infty$.
+
+En pratique, \textbf{tous les systèmes physiques réels respectent cette condition}, même s'ils sont instables. Si notre roquette sans autopilote diverge et s'emballe, sa trajectoire grandira comme une exponentielle. La variable complexe $s = \sigma + j\omega$ possède une partie réelle $\sigma$ qui va venir mathématiquement « écraser » cette divergence dans l'intégrale pour la faire converger. La seule vraie restriction en automatique est que le système soit \textbf{causal} et modélisable sous forme \textbf{LTI}.
+
+\subsection{2. Quand la fonction de transfert est-elle une fraction rationnelle ?}
+On est certain à 100\% que $H(s)$ sera une \textbf{fraction rationnelle} (un quotient de deux polynômes en $s$ de la forme $\frac{N(s)}{D(s)}$) si et seulement si le système est :
+\begin{itemize}
+    \item \textbf{LTI} (Linéaire et Invariant dans le temps),
+    \item \textbf{De dimension finie} (dit à paramètres localisés).
+\end{itemize}
+Cela correspond exactement aux systèmes décrits par une Équation Différentielle Ordinaire (EDO) classique possédant un nombre fini de dérivées. Comme chaque dérivée d'ordre $n$ devient une puissance $s^n$, le rapport $\frac{Y(s)}{U(s)}$ engendre obligatoirement un rapport de polynômes. 
+
+\textit{Contre-exemple :} Si la roquette présente un retard pur $\tau$ (le signal met du temps à voyager dans un câble), Laplace fait apparaître un terme en $e^{-\tau s}$. La fonction de transfert n'est alors plus une fraction rationnelle pure.
+
+\subsection{3. Quand peut-on appliquer la transformée de Fourier ?}
+La transformée de Fourier est beaucoup plus capricieuse. Pour qu'elle existe, le signal doit être \textbf{d'énergie finie} (son intégrale temporelle doit converger).
+\begin{itemize}
+    \item \textbf{Si le système est stable :} La réponse impulsionnelle s'éteint et tend vers 0. L'intégrale converge, \textbf{Fourier est applicable}.
+    \item \textbf{Si le système est instable (ex: la roquette brute) :} La sortie tend vers l'infini. L'intégrale de Fourier diverge totalement. \textbf{Fourier est inapplicable} en boucle ouverte sur un système instable car les maths explosent.
+\end{itemize}
+
+\subsection{4. Comment faire le lien entre Laplace et Fourier ?}
+La transformée de Fourier n'est rien d'autre qu'une restriction de la transformée de Laplace à l'axe imaginaire pur. Là où Laplace utilise une variable complexe complète $s = \sigma + j\omega$, Fourier ne conserve que la fréquence pure $j\omega$ (en posant $\sigma = 0$).
+
+Le lien se fait par une simple substitution directe :
+\begin{importantbox}{Passerelle Laplace $\rightarrow$ Fourier}
+    Si un système est \textbf{structurellement stable}, on obtient sa réponse fréquentielle de Fourier en remplaçant la variable de Laplace $s$ par $j\omega$ :
+    \[ H(j\omega) = H(s) \Big|_{s = j\omega} \]
+\end{importantbox}
+\textit{Attention majeure :} Si le système est instable, l'axe imaginaire ne fait pas partie de la zone de convergence de l'intégrale. Remplacer $s$ par $j\omega$ donne un résultat mathématique faux et sans aucune réalité physique, car le système réel s'autodétruit avant de pouvoir osciller gentiment.
+
+\section{Analyse Dynamique et Propriétés Anatomiques de $H(s)$}
+
+Ce qui est remarquable, c'est que nous avons transformé un problème d'analyse d'un système physique complexe en une étude d'une simple fonction complexe $H(s)$, ce qui est nettement plus abordable ! Mieux encore, dans nos systèmes LTI de dimension finie, nos fonctions de transfert seront des fractions rationnelles complexes, avec au plus une exponentielle en cas de retard pur. Nous pouvons alors déployer tous les outils d'analyse des fonctions complexes et de l'analyse dynamique directement sur $H(s)$.
+
+\subsection{Démonstration de la Stabilité sur un Système d'Ordre 2}
+
+Pour comprendre pourquoi la stabilité d'un système est intimement liée au signe de la partie réelle de ses singularités, étudions la réponse impulsionnelle d'un système du second ordre standard excité par un Dirac ($U(s) = 1$). Soit la fonction de transfert possédant deux singularités distinctes $p_1$ et $p_2$ :
+\[ Y(s) = H(s) \cdot 1 = \frac{N(s)}{(s - p_1)(s - p_2)} \]
+
+En effectuant une \textbf{décomposition en éléments simples} (DES), cette fraction se casse en une somme de structures élémentaires :
+\[ Y(s) = \frac{A_1}{s - p_1} + \frac{A_2}{s - p_2} \]
+
+En appliquant la transformée de Laplace inverse ($\mathcal{L}^{-1}$) pour retourner dans le domaine temporel, on obtient la solution générale de l'équation différentielle sous forme d'une somme d'exponentielles :
+\[ y(t) = A_1 e^{p_1 t} + A_2 e^{p_2 t} \]
+
+Chaque singularité $p_i$ (appelée \textbf{pôle}) est un nombre complexe s'écrivant sous la forme $p_i = \sigma_i + j\omega_i$. L'expression temporelle devient alors :
+\[ e^{p_i t} = e^{(\sigma_i + j\omega_i)t} = e^{\sigma_i t} \cdot e^{j\omega_i t} \]
+
+Le terme imaginaire $e^{j\omega_i t}$ correspond à une oscillation pure de module unitaire ($|e^{j\omega_i t}| = 1$). C'est donc exclusivement l'enveloppe exponentielle réelle $e^{\sigma_i t}$ qui régit le comportement mathématique en temps long ($t \to \infty$) :
+\begin{itemize}
+    \item \textbf{Si $\text{Re}(p_i) = \sigma_i < 0$ :} $\lim_{t \to \infty} e^{\sigma_i t} = 0$. Les solutions exponentielles \textbf{convergent} et s'éteignent. Le système dissipe l'énergie du choc initial : il est \textbf{asymptotiquement stable}.
+    \item \textbf{Si $\text{Re}(p_i) = \sigma_i > 0$ :} $\lim_{t \to \infty} e^{\sigma_i t} = \infty$. Les solutions exponentielles \textbf{divergent} et s'emballent. Le système accumule de l'énergie et explose : il est \textbf{instable}.
+\end{itemize}
+
+D'où le théorème fondamental : \textbf{Un système est stable si et seulement si toutes les parties réelles de ses singularités (pôles) sont strictement négatives.}
+
+\subsection{La Condition de Propreté d'une Fonction de Transfert}
+
+Une fonction de transfert $H(s) = \frac{N(s)}{D(s)}$ est dite \textbf{propre} si $\deg(N) \le \deg(D)$, et \textbf{strictement propre} si $\deg(N) < \deg(D)$. 
+
+Pourquoi exige-t-on physiquement qu'un système réel soit propre ? Quoi qu'il arrive, même si les exponentielles divergent, le numérateur doit être mathématiquement « écrasé » en haute fréquence par le dénominateur. 
+
+Si un système n'était pas propre ($\deg(N) > \deg(D)$), il se comporterait comme un dérivateur pur dominant ($H(s) = s$). Un tel système nécessiterait de connaître l'avenir pour calculer sa sortie à l'instant $t$ (violation stricte de la \textbf{causalité}). De plus, face à un bruit de mesure haute fréquence d'amplitude infime mais de pulsation infinie, un dérivateur générerait une sortie infinie, ce qui détruirait instantanément les actionneurs. Le dénominateur représente l'inertie physique naturelle qui filtre ces hautes fréquences.
+
+\subsection{Définition du Gain Statique}
+
+Le gain statique caractérise le comportement du système en régime permanent établi, c'est-à-dire lorsque toutes les oscillations transitoires se sont éteintes et que le temps tend vers l'infini face à une entrée constante.
+
+En vertu du théorème de la valeur finale, étudier le comportement en temps infini ($t \to \infty$) dans le domaine temporel équivaut à faire tendre la variable de Laplace $s$ vers $0$ dans le domaine fréquentiel.
+
+\begin{defbox}{Définition : Gain Statique}
+    Le \textbf{gain statique}, noté $K_s$, d'un système structurellement stable est la valeur de sa fonction de transfert évaluée en $s=0$ :
+    \[ K_s = \lim_{s \to 0} H(s) \]
+\end{defbox}
+
+\subsection{Tableau de Synthèse des Propriétés de la Fonction de Transfert}
+
+Le tableau suivant récapitule l'ensemble des définitions et outils d'analyse applicables à la fraction rationnelle $H(s) = \frac{N(s)}{D(s)}$ :
+
+
+    
+\subsection{Synthèse des Caractéristiques Anatomiques de $H(s)$}
+
+\begin{importantbox}{Propriété : Anatomie et Interprétation d'une Fonction de Transfert}
+    Pour une fraction rationnelle $H(s) = \frac{N(s)}{D(s)}$ représentant un système LTI de dimension finie, les caractéristiques structurelles et dynamiques sont régies par les définitions suivantes :
+    
+    \begin{center}
+    \small
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{|l|p{5.8cm}|p{4.2cm}|}
+    \hline
+    \textbf{Grandeur de $H(s)$} & \textbf{Définition Mathématique} & \textbf{Interprétation Physique} \\ \hline
+    \textbf{Ordre ($n$)} & Degré maximal du polynôme du dénominateur $D(s)$. & Nombre d'éléments stockeurs d'énergie (masses, bobines). \\ \hline
+    \textbf{Les Zéros ($z_j$)} & Racines du polynôme du numérateur : $N(z_j) = 0$. & Singularités qui façonnent la forme du régime transitoire. \\ \hline
+    \textbf{Les Pôles ($p_i$)} & Racines du polynôme du dénominateur : $D(p_i) = 0$. & Singularités critiques qui dictent la stabilité et la rapidité brute. \\ \hline
+    \textbf{Propreté} & $\deg(N) \le \deg(D)$ & Condition absolue de causalité physique (pas de lecture du futur). \\ \hline
+    \textbf{Stabilité} & $\forall i, \ \text{Re}(p_i) < 0$ (Tous les pôles sont dans le demi-plan gauche). & Garantit que la réponse propre converge vers $0$ en temps long ($t \to \infty$). \\ \hline
+    \textbf{Gain Statique ($K_s$)} & $K_s = \lim_{s \to 0} H(s) = H(0)$ & Rapport permanent Sortie/Entrée face à une commande constante. \\ \hline
+    \end{tabular}
+    \end{center}
+\end{importantbox}
+
+\subsection{Interconnexions de blocs dans le domaine de Laplace}
+
+Dans le monde de Laplace, les systèmes LTI (représentés par leurs fonctions de transfert) s'assemblent selon des règles algébriques simples qui se traduisent par de puissants schémas blocs.
+
+\subsubsection{1. L'association en série (Cascade)}
+
+Lorsque deux blocs $G_1(s)$ et $G_2(s)$ sont placés l'un derrière l'autre, la sortie du premier devenant l'entrée du second, la fonction de transfert globale est le produit des fonctions individuelles.
+
+\medskip
+\textbf{En convolution :} $y(t) = (g_1 * g_2 * u)(t) \quad \textbf{ou en Laplace :}\quad Y(s) = G_1(s)\,G_2(s)\,U(s)$
+
+\begin{center}
+\begin{tikzpicture}[node distance=1.6cm and 1.8cm]
+
+  % Blocs
+  \node[bloc] (G1) {$G_1(s)$\\{\footnotesize $h_1(t)$}};
+  \node[bloc, right=of G1] (G2) {$G_2(s)$\\{\footnotesize $h_2(t)$}};
+
+  % Entrée
+  \node[left=1.4cm of G1] (e) {};
+  \draw[fleche] (e.east) -- node[lbl, above]{$u(t)$} (G1.west);
+
+  % G1 → G2
+  \draw[fleche] (G1.east) -- node[lbl, above]{$x(t)$} (G2.west);
+
+  % Sortie
+  \node[right=1.4cm of G2] (s) {};
+  \draw[fleche] (G2.east) -- node[lbl, above]{$y(t)$} (s.west);
+
+  % Accolade équivalent dessous
+  \draw[decorate, decoration={brace, amplitude=8pt, mirror}, thick, gray]
+    ([yshift=-6pt]G1.south west) -- ([yshift=-6pt]G2.south east)
+    node[midway, below=10pt, font=\small, gray]
+      {$G_{\text{éq}}(s) = G_1(s)\cdot G_2(s)$};
+
+\end{tikzpicture}
+\end{center}
+
+\subsubsection{2. L'association en parallèle}
+
+Lorsque deux blocs reçoivent simultanément le même signal d'entrée et que leurs sorties respectives s'additionnent physiquement, la fonction de transfert globale est la somme des fonctions individuelles.
+
+\medskip
+\textbf{En convolution :} $y(t) = (g_1 + g_2) * u(t) \quad \textbf{ou en Laplace :}\quad Y(s) = \bigl[G_1(s) + G_2(s)\bigr]\,U(s)$
+
+\begin{center}
+\begin{tikzpicture}[node distance=2.0cm and 2.0cm]
+
+  % Point de séparation (nœud fictif)
+  \coordinate (split) at (0,0);
+  \draw[fill=black] (split) circle (2.5pt);
+
+  % Entrée vers le point de séparation
+  \node[left=1.4cm of split] (e) {};
+  \draw[fleche] (e.east) -- node[lbl, above]{$u(t)$} (split);
+
+  % Voie haute : G1
+  \node[bloc, right=2.4cm of split, yshift= 1.6cm] (G1) {$G_1(s)$\\{\footnotesize $h_1(t)$}};
+
+  % Voie basse : G2
+  \node[bloc, right=2.4cm of split, yshift=-1.6cm] (G2) {$G_2(s)$\\{\footnotesize $h_2(t)$}};
+
+  % Flèches depuis le point de séparation
+  \draw[fleche] (split) |- (G1.west);
+  \draw[fleche] (split) |- (G2.west);
+
+  % Sommateur
+  \node[somme, right=2.2cm of G1, yshift=-1.6cm] (som) {$\Sigma$};
+
+  % G1 → sommateur
+  \draw[fleche] (G1.east) -| node[pos=0.3, lbl, above]{$y_1(t)$} (som.north);
+
+  % G2 → sommateur
+  \draw[fleche] (G2.east) -| node[pos=0.3, lbl, below]{$y_2(t)$} (som.south);
+
+  % Signes sur le sommateur
+  \node[font=\small] at ([shift={( 0.05, 0.28)}]som.north) {$+$};
+  \node[font=\small] at ([shift={( 0.05,-0.28)}]som.south) {$+$};
+
+  % Sortie
+  \node[right=1.4cm of som] (s) {};
+  \draw[fleche] (som.east) -- node[lbl, above]{$y(t)$} (s.west);
+
+  % Accolade équivalent dessous
+  \draw[decorate, decoration={brace, amplitude=8pt, mirror}, thick, gray]
+    ([yshift=-6pt]G2.south west) -- ([yshift=-6pt, xshift=6pt]som.south east)
+    node[midway, below=10pt, font=\small, gray]
+      {$G_{\text{éq}}(s) = G_1(s) + G_2(s)$};
+
+\end{tikzpicture}
+\end{center}
+
+\subsubsection{Rappel — Propriétés de la convolution utilisées}
+
+Ce passage d'un formalisme à l'autre est rendu possible par l'isomorphisme entre les propriétés de l'algèbre des intégrales de convolution et l'algèbre polynomiale de Laplace :
+
+\begin{center}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{lll}
+  \hline
+  \textbf{Propriété} & \textbf{Domaine Temporel} & \textbf{Domaine de Laplace} \\
+  \hline
+  Commutativité   & $g_1 * g_2 = g_2 * g_1$                     & $G_1(s) G_2(s) = G_2(s) G_1(s)$ \\
+  Associativité   & $(g_1 * g_2) * g_3 = g_1 * (g_2 * g_3)$   & $G_1(s) G_2(s) G_3(s)$ \\
+  Distributivité  & $(g_1 + g_2) * u = g_1{*}u + g_2{*}u$       & $(G_1(s)+G_2(s))U(s)$ \\
+  Neutralité      & $g * \delta = g$                            & $G(s)\cdot 1 = G(s)$ \\
+  \hline
+\end{tabular}
+\end{center}
+
+\section{Cahier des Charges, Gabarit Temporel et Schémas Blocs}
+
+Maintenant que la méthodologie d'analyse de l'opérateur $H(s)$ est posée, il convient de rappeler que l'automatique reste avant tout un problème d'ingénierie appliquée. À ce titre, les exigences opérationnelles du monde réel sont dictées par un cahier des charges, qui va lui aussi avoir droit à sa traduction mathématique rigoureuse. 
+
+Pour évaluer la dynamique et la précision d'un système LTI, il existe un test ultime visant à vérifier que la sortie réelle $y(t)$ colle fidèlement à l'objectif visé. Ce signal de test standardisé n'est autre que le cousin de l'impulsion violente de Dirac : \textbf{l'échelon unité d'Heaviside}, noté $u(t) = \Upsilon(t)$. 
+
+
+
+Là où le Dirac explose à l'instant initial pour se rendormir aussitôt, l'échelon d'Heaviside fait passer instantanément le signal du néant à l'unité en $t=0$, puis maintient cette valeur constante à $1$ pour le reste de l'éternité :
+\[ u(t) = \begin{cases} 0 & \text{si } t < 0 \\ 1 & \text{si } t \ge 0 \end{cases} \quad \xrightarrow{\mathcal{L}} \quad U(s) = \frac{1}{s} \]
+
+C'est ce signal de « crash-test » universel qui sert de fondement à l'établissement du \textbf{gabarit temporel}. Puisque l'ordre appliqué reste rigoureusement fixe durant toute la durée de l'expérience, la consigne cible se matérialise graphiquement par une droite horizontale constante $y_c(t) = 1$. L'étude des performances du système se résume alors à analyser la trajectoire géométrique de $y(t)$ lorsqu'elle tente de rallier cette ligne de front sans franchir les zones interdites définies par le cahier des charges.
+
+\subsection{Objectifs fondamentaux : Le compromis Fidélité-Vélocité}
+
+Piloter un système physique revient à résoudre un compromis permanent entre deux exigences fondamentalement contradictoires :
+\begin{enumerate}
+    \item \textbf{La Fidélité (Précision) :} La sortie réelle $y(t)$ doit coller le plus fidèlement possible à la trajectoire demandée par la consigne $y_c(t)$.
+    \item \textbf{La Vélocité (Rapidité) :} Le système doit atteindre son objectif le plus vite possible, sans traîner en chemin, mais sans non plus tout détruire par un excès de brutalité.
+\end{enumerate}
+
+On distingue alors deux grands modes de fonctionnement du système bouclé selon la dynamique de la consigne :
+\begin{itemize}
+    \item \textbf{L'Asservissement (ou Poursuite) :} La consigne $y_c(t)$ est éminemment variable au cours du temps (la cible fuit ou change de direction). La sortie $y(t)$ a pour mission de suivre cette trajectoire mouvante au millimètre près.
+    \item \textbf{La Régulation :} La consigne $y_c(t)$ est fixe et constante (maintenir le vol à une altitude constante ou une inclinaison de $0^{\circ}$). Le but exclusif du système est de rejeter l'impact des perturbations extérieures (les rafales de vent) qui cherchent à faire dévier la sortie.
+\end{itemize}
+
+\subsection{Vocabulaire Officiel et Métriques du Gabarit Temporel}
+
+Pour quantifier les performances, on observe la courbe de la réponse à un échelon et on mesure des indicateurs précis :
+
+\subsubsection{1. Les critères de rapidité et de comportement transitoire}
+\begin{itemize}
+    \item \textbf{Le temps de montée ($t_m$) :} Le temps nécessaire pour que la sortie $y(t)$ passe de 10\% à 90\% (ou de 0\% à 100\%) de sa valeur finale pour la première fois. Il caractérise la \textit{nervosité} brute du système.
+    \item \textbf{Le temps de réponse à 5\% ($t_r^{5\%}$) :} Le critère souverain en automatique. C'est le chronomètre précis qui s'arrête lorsque la sortie $y(t)$ entre définitivement dans un couloir de tolérance de $\pm 5\%$ autour de la valeur visée et n'en sort plus. Il marque la fin du régime transitoire et l'établissement du système.
+    \item \textbf{Le premier dépassement ($D_1$ ou $D_1\%$) :} L'amplitude du tout premier pic oscillatoire au-dessus de la valeur finale, provoquée par l'inertie du système. Le cahier des charges le plafonne rigoureusement : un dépassement trop violent à haute vitesse engendrerait des forces aérodynamiques capables de briser la structure mécanique de notre roquette.
+\end{itemize}
+
+% ---------------------------------------------------------------
+%  GABARITS ILLUSTRATIFS — Temps de montée, Temps de réponse,
+%  Premier dépassement
+% ---------------------------------------------------------------
+
+% ---- Gabarit 1 : Temps de montée ----------------------------
+\paragraph{Gabarit 1 — Temps de montée $t_m$}
+Le temps de montée mesure la \emph{rapidité} avec laquelle la sortie quitte son état initial pour rejoindre la valeur cible. On retient la convention \textbf{10\,\%\,→\,90\,\%} de la valeur finale $y_\infty$.
+
+\begin{center}
+\begin{tikzpicture}[xscale=1.35, yscale=1.25]
+  % --- axes ---
+  \draw[->, >=Stealth, thick] (-0.3,0) -- (6.5,0) node[right] {$t$};
+  \draw[->, >=Stealth, thick] (0,-0.3) -- (0,3.8)  node[above] {$y(t)$};
+
+  % --- consigne y_infty = 3 ---
+  \draw[dashed, gray, thick] (0,3) -- (6.2,3)
+        node[right, black, font=\small] {$y_\infty = 1$};
+  \node[left, font=\small] at (0,3) {};
+
+  % --- seuils 10 % et 90 % ---
+  \draw[dotted, blue!60!black, thick] (0,0.3) -- (6.2,0.3)
+        node[right, font=\scriptsize, blue!60!black] {$10\,\%\;y_\infty$};
+  \draw[dotted, blue!60!black, thick] (0,2.7) -- (6.2,2.7)
+        node[right, font=\scriptsize, blue!60!black] {$90\,\%\;y_\infty$};
+
+  % --- courbe y(t) : réponse du 1er ordre (pas de dépassement) ---
+  % y(t) = 3*(1 - exp(-1.1*t))   →  seuil 10% à t~0.096, seuil 90% à t~2.1
+  \draw[blue, very thick]
+        plot[domain=0:6, samples=120]
+        (\x, {3*(1 - exp(-1.1*\x))});
+  \node[blue, font=\small] at (5.0, 2.6) {$y(t)$};
+
+  % --- instants t10 et t90 ---
+  % t10 = -ln(0.9)/1.1  ≈ 0.096  → arrondi à 0.10 pour lisibilité
+  % t90 = -ln(0.1)/1.1  ≈ 2.093  → arrondi à 2.09
+  \pgfmathsetmacro{\tA}{0.096}
+  \pgfmathsetmacro{\tB}{2.093}
+
+  % tirets verticaux aux deux instants
+  \draw[dashed, blue!40!black, thin] (\tA, 0) -- (\tA, 0.3);
+  \draw[dashed, blue!40!black, thin] (\tB, 0) -- (\tB, 2.7);
+
+  % repères sur l'axe du temps
+  \node[below, font=\scriptsize] at (\tA, 0) {$t_{10}$};
+  \node[below, font=\scriptsize] at (\tB, 0) {$t_{90}$};
+
+  % flèche double ↔ pour t_m
+  \draw[<->, >=Stealth, thick, red]
+        (\tA, -0.22) -- (\tB, -0.22)
+        node[midway, below, font=\small, red] {$t_m = t_{90} - t_{10}$};
+
+  % points de passage sur la courbe
+  \filldraw[blue!60!black] (\tA, 0.3) circle (2pt);
+  \filldraw[blue!60!black] (\tB, 2.7) circle (2pt);
+
+  % légende des seuils à gauche
+  \node[left, font=\scriptsize] at (0, 0.3) {$0{,}1$};
+  \node[left, font=\scriptsize] at (0, 2.7) {$0{,}9$};
+  \node[left, font=\scriptsize] at (0, 3.0) {$1$};
+\end{tikzpicture}
+\end{center}
+
+% ---- Gabarit 2 : Temps de réponse à 5 % --------------------
+\paragraph{Gabarit 2 — Temps de réponse $t_r^{5\,\%}$}
+Le temps de réponse est le premier instant à partir duquel $y(t)$ \emph{reste définitivement} dans le couloir $[\,0{,}95\,y_\infty\,;\;1{,}05\,y_\infty\,]$. Un système oscillant peut entrer dans le couloir, en sortir une ou plusieurs fois, puis s'y stabiliser : le chronomètre ne s'arrête qu'à la \emph{dernière} sortie.
+
+\begin{center}
+\begin{tikzpicture}[xscale=1.35, yscale=1.25]
+  % --- axes ---
+  \draw[->, >=Stealth, thick] (-0.3,0) -- (6.5,0) node[right] {$t$};
+  \draw[->, >=Stealth, thick] (0,-0.3) -- (0,4.1)  node[above] {$y(t)$};
+
+  % --- consigne ---
+  \draw[dashed, gray, thick] (0,3) -- (6.2,3)
+        node[right, black, font=\small] {$y_\infty = 1$};
+  \node[left, font=\scriptsize] at (0,3) {$1$};
+
+  % --- couloir ±5 % (bande verte) ---
+  \fill[green!15] (0,2.85) rectangle (6.2,3.15);
+  \draw[green!50!black, thick, dashed] (0,3.15) -- (6.2,3.15)
+        node[right, font=\scriptsize, green!50!black] {$+5\,\%$};
+  \draw[green!50!black, thick, dashed] (0,2.85) -- (6.2,2.85)
+        node[right, font=\scriptsize, green!50!black] {$-5\,\%$};
+
+  % --- courbe oscillante (2e ordre sous-amorti) ---
+  % y(t) = 3*(1 - exp(-0.7*t)*( cos(2.5*t) + 0.28*sin(2.5*t) ) )
+  \draw[blue, very thick]
+        plot[domain=0:6, samples=200]
+        (\x, {3*(1 - exp(-0.7*\x)*(cos(2.5*\x r) + 0.28*sin(2.5*\x r)))});
+  \node[blue, font=\small] at (0.95, 3.9) {$y(t)$};
+
+  % --- instant t_r (≈ 3.55 s pour cette courbe) ---
+  \pgfmathsetmacro{\tr}{3.55}
+  \draw[dashed, red, thick] (\tr, 0) -- (\tr, 4.0);
+  \node[below, font=\small, red] at (\tr, 0) {$t_r^{5\,\%}$};
+
+  % accolade "régime transitoire" / "régime permanent"
+  \draw[decorate, decoration={brace, amplitude=6pt}, thick, gray]
+        (0, 3.55) -- (\tr, 3.55)
+        node[midway, above=7pt, font=\scriptsize, gray] {régime transitoire};
+  \draw[decorate, decoration={brace, amplitude=6pt}, thick, gray]
+        (\tr, 3.55) -- (6.1, 3.55)
+        node[midway, above=7pt, font=\scriptsize, gray] {régime permanent};
+
+  % repères niveaux
+  \node[left, font=\scriptsize] at (0, 2.85) {$0{,}95$};
+  \node[left, font=\scriptsize] at (0, 3.15) {$1{,}05$};
+\end{tikzpicture}
+\end{center}
+
+% ---- Gabarit 3 : Premier dépassement D1 ---------------------
+\paragraph{Gabarit 3 — Premier dépassement $D_1$}
+Le premier dépassement est l'excursion maximale \emph{au-dessus} de la valeur finale lors du tout premier pic. Il se note en valeur absolue ou en pourcentage :
+\[
+  D_1 = y_{\max} - y_\infty \qquad \text{ou} \qquad D_1\,\% = \frac{y_{\max} - y_\infty}{y_\infty}\times 100
+\]
+Un fort dépassement traduit un système \emph{peu amorti} : réactif mais risqué pour les actionneurs. Un dépassement nul indique un régime \emph{sur-amorti} : sûr mais lent.
+
+\begin{center}
+\begin{tikzpicture}[xscale=1.35, yscale=1.25]
+  % --- axes ---
+  \draw[->, >=Stealth, thick] (-0.3,0) -- (6.5,0) node[right] {$t$};
+  \draw[->, >=Stealth, thick] (0,-0.3) -- (0,4.5)  node[above] {$y(t)$};
+
+  % --- consigne ---
+  \draw[dashed, gray, thick] (0,3) -- (6.2,3)
+        node[right, black, font=\small] {$y_\infty$};
+  \node[left, font=\scriptsize] at (0,3) {$1$};
+
+  % --- courbe oscillante (2e ordre, amortissement ξ=0.3) ---
+  % pic principal vers t ≈ 1.26 rad → y_max ≈ 3 + 3*exp(-pi*0.3/sqrt(1-0.09)) ≈ 3.93
+  \draw[blue, very thick]
+        plot[domain=0:6, samples=200]
+        (\x, {3*(1 - exp(-0.9*\x)*(cos(2.9*\x r) + 0.31*sin(2.9*\x r)))});
+  \node[blue, font=\small] at (1.7, 4.1) {$y(t)$};
+
+  % --- pic principal : t_pic ≈ 1.083 ---
+  \pgfmathsetmacro{\tpic}{1.083}
+  \pgfmathsetmacro{\ypic}{3.88}   % valeur numérique du pic
+
+  % tiret vertical au pic
+  \draw[dashed, purple, thin] (\tpic, 0) -- (\tpic, \ypic);
+  \node[below, font=\scriptsize, purple] at (\tpic, 0) {$t_{\text{pic}}$};
+
+  % point au sommet du pic
+  \filldraw[purple] (\tpic, \ypic) circle (2.5pt)
+        node[above right, font=\small, purple] {$y_{\max}$};
+
+  % ligne horizontale en pointillés au niveau du pic
+  \draw[dotted, purple, thick] (0, \ypic) -- (\tpic, \ypic);
+  \node[left, font=\scriptsize, purple] at (0, \ypic) {$y_{\max}$};
+
+  % flèche double ↕ pour D1
+  \draw[<->, >=Stealth, very thick, red]
+        (\tpic + 0.25, 3.0) -- (\tpic + 0.25, \ypic)
+        node[midway, right, font=\small, red] {$D_1$};
+
+  % annotation D1%
+  \node[right, font=\scriptsize, red!70!black] at (\tpic + 0.55, 3.44)
+        {$D_1\,\% = \dfrac{D_1}{y_\infty}\!\times\!100$};
+
+  % --- zone rouge interdite (plafond D1 max du cahier des charges) ---
+  \pgfmathsetmacro{\plafond}{4.15}
+  \fill[red!12] (0,\plafond) rectangle (6.2,4.45);
+  \draw[red, thick] (0,\plafond) -- (6.2,\plafond)
+        node[right, font=\scriptsize, red] {Plafond $D_{1,\max}$};
+
+  \node[left, font=\scriptsize] at (0,3) {$1$};
+\end{tikzpicture}
+\end{center}
+
+\subsubsection{2. Les critères de précision et d'écart permanent}
+L'erreur est définie à chaque instant par l'écart $\epsilon(t) = y_c(t) - y(t)$.
+\begin{itemize}
+    \item \textbf{La déviation maximale ($D_{\text{max}}$) :} La pire erreur commise par le système au cours de son mouvement (généralement au tout début, lorsque le système subit la brutalité de l'échelon ou d'un choc et n'a pas encore eu le temps de réagir).
+    \item \textbf{L'écart statique ($e_c$) :} L'erreur résiduelle en temps infini ($\lim_{t\to\infty} \epsilon(t)$) lorsque le système est immobilisé, en l'absence de perturbation. L'objectif de conception est presque toujours d'annuler cet écart ($e_c = 0$).
+    \item \textbf{L'écart de traînage (ou d'erreur de vitesse, $e_v$) :} L'erreur permanente qui s'installe lorsque la consigne fuit à vitesse constante (rampe temporelle $y_c(t) = v \cdot t$). Le système suit la cible, mais avec une distance de retard constante.
+\end{itemize}
+
+% ---------------------------------------------------------------
+%  GABARITS ILLUSTRATIFS — Déviation max, Écart statique,
+%  Écart de traînage (vitesse)
+% ---------------------------------------------------------------
+
+% ---- Gabarit 4 : Déviation maximale --------------------------
+\paragraph{Gabarit 4 — Déviation maximale $D_{\max}$}
+
+La déviation maximale est la \emph{pire} valeur de l'erreur $\epsilon(t) = y_c(t) - y(t)$ sur toute la durée du transitoire. Elle se produit typiquement à $t=0^+$, juste après l'application de l'échelon, quand le système n'a pas encore eu le temps de réagir : la consigne saute à $1$ pendant que la sortie est encore nulle, créant instantanément une erreur égale à $D_{\max} = 1$. L'erreur décroît ensuite à mesure que le système rattrape la consigne.
+
+\begin{center}
+\begin{tikzpicture}[xscale=1.35, yscale=1.25]
+  % --- axes ---
+  \draw[->, >=Stealth, thick] (-0.3,0) -- (6.5,0) node[right] {$t$};
+  \draw[->, >=Stealth, thick] (0,-0.4) -- (0,4.0) node[above] {$y(t),\; y_c(t)$};
+
+  % --- consigne échelon ---
+  \draw[dashed, gray, thick] (0,3) -- (6.2,3)
+        node[right, black, font=\small] {$y_c = 1$};
+  \node[left, font=\scriptsize] at (0,3) {$1$};
+
+  % --- courbe y(t) : 1er ordre, réponse sans dépassement ---
+  % y(t) = 3*(1 - exp(-0.8*t))
+  \draw[blue, very thick]
+        plot[domain=0:6, samples=120]
+        (\x, {3*(1 - exp(-0.8*\x))});
+  \node[blue, font=\small] at (4.8, 2.3) {$y(t)$};
+
+  % --- erreur epsilon(t) = 3 - y(t) = 3*exp(-0.8*t) ---
+  \draw[orange!80!black, thick, dashed]
+        plot[domain=0:6, samples=120]
+        (\x, {3*exp(-0.8*\x)});
+  \node[orange!80!black, font=\small] at (2.2, 1.5) {$\epsilon(t)$};
+
+  % --- D_max à t=0 ---
+  % A t=0 : y(0)=0, y_c=3 => Dmax = 3
+  \draw[<->, >=Stealth, very thick, red]
+        (0.15, 0) -- (0.15, 3.0)
+        node[midway, right, font=\small, red] {$D_{\max}$};
+
+  % point sur la courbe à t=0
+  \filldraw[red] (0,0) circle (2.5pt);
+  \filldraw[red] (0,3) circle (2.5pt);
+
+  % annotation
+  \node[right, font=\scriptsize, red!70!black] at (0.35, 1.5)
+        {$D_{\max} = y_c - y(0^+)$};
+
+  % repère t=0
+  \node[below, font=\scriptsize] at (0,0) {$0$};
+\end{tikzpicture}
+\end{center}
+
+% ---- Gabarit 5 : Écart statique e_c -------------------------
+\paragraph{Gabarit 5 — Écart statique $e_c$}
+
+L'écart statique est l'erreur \emph{résiduelle permanente} une fois que tous les transitoires se sont éteints. Face à un échelon unité, un système d'ordre $0$ (sans intégrateur) laisse systématiquement la sortie se stabiliser à une valeur $y_\infty < 1$ : il existe un «~décalage~» irréductible entre la consigne et la sortie. Un système possédant au moins un intégrateur annule cet écart ($e_c = 0$).
+
+\begin{center}
+\begin{tikzpicture}[xscale=1.35, yscale=1.25]
+  % --- axes ---
+  \draw[->, >=Stealth, thick] (-0.3,0) -- (6.5,0) node[right] {$t$};
+  \draw[->, >=Stealth, thick] (0,-0.4) -- (0,4.0) node[above] {$y(t),\; y_c(t)$};
+
+  % --- consigne échelon à 1 (représentée à hauteur 3) ---
+  \draw[dashed, gray, thick] (0,3) -- (6.2,3)
+        node[right, black, font=\small] {$y_c = 1$};
+  \node[left, font=\scriptsize] at (0,3) {$1$};
+
+  % --- valeur finale y_infty < y_c (à 0.75, soit hauteur 2.25) ---
+  \draw[dotted, blue!50!black, thick] (0,2.25) -- (6.2,2.25)
+        node[right, font=\scriptsize, blue!50!black] {$y_\infty = K_s < 1$};
+  \node[left, font=\scriptsize, blue!50!black] at (0,2.25) {$K_s$};
+
+  % --- courbe y(t) qui sature à y_infty = 2.25 ---
+  % y(t) = 2.25*(1 - exp(-1.1*t))
+  \draw[blue, very thick]
+        plot[domain=0:6, samples=120]
+        (\x, {2.25*(1 - exp(-1.1*\x))});
+  \node[blue, font=\small] at (3.5, 1.7) {$y(t)$};
+
+  % --- flèche double ↕ pour e_c en régime permanent ---
+  \draw[<->, >=Stealth, very thick, red]
+        (5.5, 2.25) -- (5.5, 3.0)
+        node[midway, right, font=\small, red] {$e_c$};
+
+  % tirets de délimitation
+  \draw[dashed, red!50, thin] (0,2.25) -- (5.5,2.25);
+  \draw[dashed, red!50, thin] (0,3.0)  -- (5.5,3.0);
+
+  % annotation formule
+  \node[left, font=\scriptsize, red!70!black] at (5.2, 2.62)
+        {$e_c = \lim_{t\to\infty}\epsilon(t)$};
+
+  % accolade "régime permanent" en bas
+  \draw[decorate, decoration={brace, amplitude=6pt, mirror}, thick, gray]
+        (3.5, -0.25) -- (6.1, -0.25)
+        node[midway, below=7pt, font=\scriptsize, gray] {régime permanent};
+
+  \node[below, font=\scriptsize] at (0,0) {$0$};
+\end{tikzpicture}
+\end{center}
+
+% ---- Gabarit 6 : Écart de traînage (erreur de vitesse) -------
+\paragraph{Gabarit 6 — Écart de traînage $e_v$ (erreur de vitesse)}
+
+Lorsque la consigne est une \textbf{rampe} $y_c(t) = v\cdot t$ (cible qui s'éloigne à vitesse constante), un système suffisamment précis finit par la \emph{suivre} — mais avec un retard constant irréductible appelé \textbf{écart de traînage} $e_v$. Géométriquement, la courbe $y(t)$ est asymptotiquement \emph{parallèle} à la rampe, décalée vers le bas d'une valeur constante $e_v$.
+
+\begin{center}
+\begin{tikzpicture}[xscale=1.15, yscale=0.95]
+  % --- axes ---
+  \draw[->, >=Stealth, thick] (-0.3,0) -- (7.0,0) node[right] {$t$};
+  \draw[->, >=Stealth, thick] (0,-0.4) -- (0,5.5) node[above] {$y(t),\; y_c(t)$};
+
+  % --- consigne rampe : y_c = 0.8*t ---
+  \draw[dashed, gray, thick] (0,0) -- (6.4, 5.12)
+        node[right, black, font=\small] {$y_c = v\cdot t$};
+
+  % --- courbe y(t) : réponse à la rampe avec écart de traînage constant ---
+  % On simule : y(t) = 0.8*t - 0.8/a*(1 - exp(-a*t))  avec a=1.4, e_v = 0.8/a
+  % e_v = 0.8/1.4 ≈ 0.571  → représenté à hauteur e_v*scale
+  % On l'aplatit pour lisibilité : y(t) = 0.8*(t - 0.714*(1 - exp(-1.4*t)))
+  \draw[blue, very thick]
+        plot[domain=0:6.3, samples=150]
+        (\x, {0.8*(\x - 0.714*(1 - exp(-1.4*\x)))});
+  \node[blue, font=\small] at (5.0, 3.3) {$y(t)$};
+
+  % --- asymptote de y(t) : y_asy = 0.8*t - 0.8/1.4 = 0.8*t - 0.571 ---
+  \draw[blue!30, thin, dashed]
+        plot[domain=0.9:6.5, samples=30]
+        (\x, {0.8*\x - 0.571});
+
+  % --- écart de traînage e_v à t=5.5 ---
+  % y_c(5.5) = 0.8*5.5 = 4.4   (valeur fixe)
+  % y_asy(5.5)= 0.8*5.5-0.571  = 3.829 (valeur fixe)
+  % midpoint  = (4.4+3.829)/2  = 4.115
+  \draw[dashed, red!50, thin] (0, 4.4)   -- (5.5, 4.4);
+  \draw[dashed, red!50, thin] (0, 3.829) -- (5.5, 3.829);
+
+  \draw[<->, >=Stealth, very thick, red]
+        (5.8, 3.829) -- (5.8, 4.4)
+        node[midway, right, font=\small, red] {$e_v$};
+
+  % annotation formule
+  \node[right, font=\scriptsize, red!70!black] at (6.1, 3.85)
+        {$e_v = \dfrac{v}{K_v}$};
+
+  % repère t=0
+  \node[below, font=\scriptsize] at (0,0) {$0$};
+
+  % légende courte
+  \node[gray, font=\scriptsize] at (2.5, 0.9)
+        {\textit{transitoire}};
+  \draw[decorate, decoration={brace, amplitude=5pt, mirror}, thick, gray]
+        (0.0, -0.3) -- (2.8, -0.3)
+        node[midway, below=6pt, font=\scriptsize, gray] {rattrapage};
+  \draw[decorate, decoration={brace, amplitude=5pt, mirror}, thick, gray]
+        (2.8, -0.3) -- (6.3, -0.3)
+        node[midway, below=6pt, font=\scriptsize, gray] {suivi à retard $e_v$ constant};
+\end{tikzpicture}
+\end{center}
+
+\subsection{Représentation Graphique du Gabarit Temporel}
+
+Le gabarit temporel se matérialise par le tracé de \textbf{zones interdites} directement sur le graphique de la réponse temporelle. Concevoir le correcteur $K(s)$ consiste à modifier analytiquement les propriétés du système pour forcer la courbe réelle $y(t)$ à se faufiler au milieu de ces barrières sans jamais en heurter une seule.
+
+\begin{center}
+\begin{tikzpicture}[scale=1.2]
+    % Axes
+    \draw[->, >=Stealth, thick] (-0.5,0) -- (7,0) node[right] {Temps $t$};
+    \draw[->, >=Stealth, thick] (0,-0.5) -- (0,4.5) node[above] {Sortie $y(t)$};
+    
+    % Consigne (Ligne pointillée)
+    \draw[dashed, gray, thick] (0,3) -- (6.5,3) node[right, black] {Consigne $y_c$};
+    \node[left] at (0,3) {$1$};
+    
+    % Couloir à 5%
+    \draw[dotted, red, thick] (0,3.15) -- (6.5,3.15);
+    \draw[dotted, red, thick] (0,2.85) -- (6.5,2.85) node[right, red] {$\pm 5\%$};
+    
+    % Zone interdite : Dépassement maximal (Hachures en haut)
+    \fill[pattern=north west lines, pattern color=gray!60] (0,3.4) rectangle (4,4.2);
+    \draw[thick, red] (0,3.4) -- (4,3.4) node[midway, above, font=\footnotesize, black] {Plafond $D_1$ max};
+    
+    % Zone interdite : Temps de réponse (Hachures à la fin en dehors du couloir)
+    \fill[pattern=north west lines, pattern color=gray!60] (4.5,3.15) rectangle (6.5,4.2);
+    \fill[pattern=north west lines, pattern color=gray!60] (4.5,0) rectangle (6.5,2.85);
+    \draw[thick, red] (4.5,0) -- (4.5,2.85);
+    \draw[thick, red] (4.5,3.15) -- (4.5,4.2);
+    \node[below, font=\small] at (4.5,0) {$t_r^{5\%}$ max};
+    
+    % Trajectoire y(t) conforme qui passe dans le gabarit
+    \draw[blue, xslant=0, yslant=0, thick] plot[domain=0:6, samples=100] 
+        (\x, {3 - 3*exp(-\x*1.1)*cos(\x*150)});
+    \node[blue, right] at (5, 3.4) {Courbe $y(t)$ conforme};
+    
+    % Flèches indicatrices des métriques
+    \draw[<->, >=Stealth, purple] (0.8, 3) -- (0.8, 3.38) node[midway, right, font=\footnotesize] {$D_1$};
+    \draw[<->, >=Stealth, darkgray] (0, -0.3) -- (1.1, -0.3) node[midway, below, font=\footnotesize] {$t_m$};
+    \draw[dashed, darkgray] (1.1,0) -- (1.1, 2.7);
+\end{tikzpicture}
+\end{center}
+
+\subsection{La Langue Universelle : Les Schémas Blocs}
+
+Pour concevoir cette trajectoire parfaite, l'automaticien modélise la circulation des signaux complexes par des \textbf{schémas blocs}. Ce formalisme abstrait remplace la complexité des câblages ou des fluides par quatre structures élémentaires rigoureuses :
+\begin{itemize}
+    \item \textbf{Les Flèches (Signaux) :} Représentent les grandeurs physiques (ou leurs transformées de Laplace, ex: $U(s)$). La flèche porte obligatoirement un nom et indique le sens de propagation de l'information.
+    \item \textbf{Les Blocs (Opérateurs) :} Boîtes rectangulaires contenant une fonction de transfert. La règle algébrique est absolue : la sortie du bloc est égale à son entrée multipliée par la fonction interne ($\text{Sortie} = \text{Entrée} \times \text{Bloc}$).
+    \item \textbf{Les Comparateurs / Sommateurs (Cercles) :} Effectuent la somme algébrique des flèches entrantes en respectant scrupuleusement les signes ($+$ ou $-$) positionnés sur les axes d'entrée.
+    \item \textbf{Les Bifurcations (Nœuds) : } Points noirs marquant la duplication d'une information. Le signal ne se divise pas ; il est recopié à l'identique sur toutes les branches dérivées.
+\end{itemize}
+
+Voici la modélisation graphique par schéma bloc d'un \textbf{système asservi complet en boucle fermée (avec retour capteur non unitaire)} :
+
+\begin{center}
+\begin{tikzpicture}[node distance=1.5cm and 2.2cm]
+
+    % --- 1. Placement des nœuds et des blocs ---
+    \node (consigne) {};
+    \node[somme, right=1.8cm of consigne] (comp) {$\Sigma$};
+    \node[bloc, right=2.0cm of comp] (K) {$K(s)$ \\ \footnotesize (Correcteur)};
+    \node[bloc, right=2.2cm of K] (G) {$G(s)$ \\ \footnotesize (Procédé / Roquette)};
+    \coordinate[right=1.2cm of G] (bifurcation);
+    \node[right=0.6cm of bifurcation] (sortie) {};
+    \node[bloc, below=1.8cm of G] (H) {$H(s)$ \\ \footnotesize (Capteur)};
+
+    % --- 2. Tracé des flèches et des étiquettes ---
+
+    % Consigne -> Comparateur
+    \draw[fleche] (consigne) -- node[lbl, above]{$R(s)$} node[lbl, below]{\footnotesize (Consigne)} (comp.west);
+    \node[font=\small] at ([shift={(0.22, 0.22)}]comp.west) {$+$};
+
+    % Comparateur -> Correcteur (Écart)
+    \draw[fleche] (comp.east) -- node[lbl, above]{$\epsilon(s)$} node[lbl, below]{\footnotesize (Écart)} (K.west);
+
+    % Correcteur -> Procédé (Commande)
+    \draw[fleche] (K.east) -- node[lbl, above]{$U(s)$} node[lbl, below]{\footnotesize (Commande)} (G.west);
+
+    % Procédé -> Bifurcation -> Sortie
+    \draw[thick] (G.east) -- (bifurcation);
+    \draw[fill=black] (bifurcation) circle (2pt); % Nœud de dérivation
+    \draw[fleche] (bifurcation) -- node[lbl, above]{$Y(s)$} node[lbl, below]{\footnotesize (Sortie Réelle)} (sortie.west);
+
+    % Chaîne de retour : bifurcation descend vers H, puis H remonte vers le comparateur
+    \draw[fleche] (bifurcation) |- (H.east);
+    % Label Ym(s) sur la branche horizontale de retour, en dessous
+    \node[lbl, below] at ($(bifurcation)!0.5!(H.east)+(0,-0.05)$) {$Y_m(s)$};
+
+    \draw[fleche] (H.west) -| (comp.south);
+    \node[font=\small] at ([shift={(-0.22,-0.28)}]comp.south) {$-$};
+
+\end{tikzpicture}
+\end{center}
+
+En appliquant les règles de lecture de ce schéma bloc, nous pouvons ré-isoler la formule fondamentale de la boucle fermée de Black. Si le capteur est idéal ($H(s)=1$, boucle à retour unitaire), la relation globale s'effondre en la célèbre formule de structure algébrique :
+\[ H_{\text{globale}}(s) = \frac{Y(s)}{R(s)} = \frac{K(s)G(s)}{1 + K(s)G(s)} \]
+
+C'est la démonstration ultime du travail de l'automaticien : l'inconnue dynamique est la fonction $K(s)$. Trouver les bons paramètres de cet algorithme permet de modifier l'ADN du système global afin de façonner une réponse temporelle $y(t)$ qui respectera en tout point le gabarit exigé.
+
+% ==========================================
+\chapter{Étude des Fonctions de Transfert Élémentaires}
+% ==========================================
+
+\section{Décomposition Canonique d'une Fonction de Transfert Quelconque}
+
+\subsection{La clôture algébrique de $\mathbb{C}$ et la forme factorisée}
+
+Toute fonction de transfert physiquement réalisable s'écrit comme une fraction rationnelle à coefficients \textbf{réels} :
+\[
+  F(s) = K \, \frac{N(s)}{D(s)} = K \, \frac{b_m s^m + \cdots + b_0}{a_n s^n + \cdots + a_0}
+\]
+La \textbf{clôture algébrique de $\mathbb{C}$} (théorème fondamental de l'algèbre) garantit que tout polynôme à coefficients complexes se factorise intégralement en monômes du premier degré. On peut donc toujours écrire :
+\[
+  N(s) = b_m \prod_{j=1}^{m}(s - z_j) \qquad D(s) = a_n \prod_{i=1}^{n}(s - p_i)
+\]
+où les $z_j$ sont les \textbf{zéros} et les $p_i$ les \textbf{pôles} de $F(s)$.
+
+\subsection{Tri des racines : réelles et complexes conjuguées}
+
+Les coefficients du polynôme $D(s)$ (issu des lois physiques) sont \textbf{réels}. Cette contrainte impose une structure précise aux racines.
+
+\begin{defbox}{Propriété : Racines d'un polynôme réel}
+  Si $p = \sigma + j\omega$ est une racine d'un polynôme à coefficients réels, alors son conjugué $\bar{p} = \sigma - j\omega$ est \textbf{nécessairement} aussi une racine. Les racines complexes viennent donc toujours par \textbf{paires conjuguées}.
+\end{defbox}
+
+On peut donc trier les pôles en deux familles et regrouper chaque paire conjuguée en un facteur du second degré à coefficients réels :
+\[
+  (s - p)(s - \bar{p}) = s^2 - 2\sigma s + (\sigma^2 + \omega^2) \in \mathbb{R}[s]
+\]
+La factorisation complète de $D(s)$ prend alors la forme canonique :
+
+\begin{importantbox}{Factorisation canonique réelle de $F(s)$}
+\[
+  F(s) = K \cdot
+  \underbrace{\frac{1}{s^r}}_{\text{intégrateurs purs}}
+  \cdot
+  \underbrace{\prod_{k} \frac{1}{\tau_k s + 1}}_{\text{pôles réels}}
+  \cdot
+  \underbrace{\prod_{\ell} \frac{1}{\frac{s^2}{\omega_{\ell}^2} + \frac{2\xi_\ell}{\omega_{\ell}}s + 1}}_{\text{paires de pôles complexes conjugués}}
+  \cdot
+  \underbrace{(\text{zéros en facteurs analogues au numérateur})}_{}
+\]
+Chaque facteur du dénominateur correspond à un \textbf{sous-système élémentaire en série} dont on va maintenant étudier la dynamique individuelle.
+\end{importantbox}
+
+\subsection{Dualité Série / Parallèle : produit vs décomposition en éléments simples}
+
+La factorisation ci-dessus a une interprétation physique directe dans le domaine de Laplace.
+
+\subsubsection{La forme produit = association en série}
+
+Écrire $F(s) = F_1(s) \cdot F_2(s) \cdots F_n(s)$ revient à chaîner les sous-systèmes :
+
+\begin{center}
+\begin{tikzpicture}[node distance=0.5cm and 1.4cm]
+  \node[bloc] (F1) {$F_1(s)$};
+  \node[bloc, right=of F1] (F2) {$F_2(s)$};
+  \node[right=0.7cm of F2, font=\large] (dots) {$\cdots$};
+  \node[bloc, right=0.7cm of dots] (Fn) {$F_n(s)$};
+
+  \node[left=1.0cm of F1] (e) {};
+  \draw[fleche] (e) -- node[lbl,above]{$U(s)$} (F1.west);
+  \draw[fleche] (F1.east) -- (F2.west);
+  \draw[fleche] (F2.east) -- (dots.west);
+  \draw[fleche] (dots.east) -- (Fn.west);
+  \node[right=1.0cm of Fn] (s) {};
+  \draw[fleche] (Fn.east) -- node[lbl,above]{$Y(s)$} (s.west);
+
+  \draw[decorate, decoration={brace,amplitude=8pt,mirror}, thick, gray]
+    ([yshift=-6pt]F1.south west) -- ([yshift=-6pt]Fn.south east)
+    node[midway,below=10pt,font=\small,gray]{$F(s)=F_1(s)\cdots F_n(s)$};
+\end{tikzpicture}
+\end{center}
+
+\subsubsection{La décomposition en éléments simples (DES) = association en parallèle}
+
+La \textbf{décomposition en éléments simples} brise la fraction rationnelle en une somme de fractions élémentaires. Chaque terme de la somme est un sous-système indépendant recevant le même signal d'entrée, et les sorties s'additionnent — c'est exactement la structure parallèle :
+\[
+  F(s) = \sum_{i=1}^{n} \frac{A_i}{s - p_i} \quad \Longleftrightarrow \quad
+  y(t) = \sum_{i=1}^{n} A_i\, e^{p_i t} * u(t)
+\]
+
+\begin{center}
+\begin{tikzpicture}[node distance=1.6cm and 2.0cm]
+  \coordinate (split) at (0,0);
+  \draw[fill=black] (split) circle (2.5pt);
+
+  \node[left=1.2cm of split] (e) {};
+  \draw[fleche] (e) -- node[lbl,above]{$U(s)$} (split);
+
+  \node[bloc, right=2.2cm of split, yshift= 2.0cm] (F1) {$\dfrac{A_1}{s-p_1}$};
+  \node[bloc, right=2.2cm of split, yshift= 0.0cm] (F2) {$\dfrac{A_2}{s-p_2}$};
+  \node[right=2.2cm of split, yshift=-1.4cm, font=\large] (vdots) {$\vdots$};
+  \node[bloc, right=2.2cm of split, yshift=-2.6cm] (Fn) {$\dfrac{A_n}{s-p_n}$};
+
+  \draw[fleche] (split) |- (F1.west);
+  \draw[fleche] (split) |- (F2.west);
+  \draw[fleche] (split) |- (Fn.west);
+
+  \node[somme, right=2.0cm of F2, yshift=-1.3cm] (som) {$\Sigma$};
+
+  \draw[fleche] (F1.east) -| (som.north);
+  \draw[fleche] (F2.east) -- (som.west);
+  \draw[fleche] (Fn.east) -| (som.south);
+
+  \node[right=1.2cm of som] (s) {};
+  \draw[fleche] (som.east) -- node[lbl,above]{$Y(s)$} (s.west);
+
+  \draw[decorate, decoration={brace,amplitude=6pt,mirror}, thick, gray]
+    ([yshift=-6pt]Fn.south west) -- ([yshift=-6pt,xshift=4pt]som.south east)
+    node[midway,below=9pt,font=\small,gray]{$F(s)=\sum A_i/(s-p_i)$};
+\end{tikzpicture}
+\end{center}
+
+\begin{importantbox}{Dualité fondamentale}
+  \begin{itemize}
+    \item \textbf{Forme produit (factorisée)} $\longrightarrow$ \textbf{association en série} : chaque pôle apporte sa dynamique propre de manière séquentielle.
+    \item \textbf{Décomposition en éléments simples} $\longrightarrow$ \textbf{association en parallèle} : la réponse globale est la superposition des modes propres $e^{p_i t}$, chacun pondéré par son résidu $A_i$.
+  \end{itemize}
+  Ces deux représentations sont mathématiquement équivalentes mais révèlent des aspects complémentaires du comportement dynamique.
+\end{importantbox}
+
+% ==========================================
+\section{Systèmes d'Ordre 0 : Le Gain Pur}
+% ==========================================
+
+\subsection{Modèle et fonction de transfert}
+
+Un système d'ordre 0 est le cas le plus simple : son dénominateur est un simple scalaire non nul, sans aucune dynamique.
+
+\begin{defbox}{Système d'Ordre 0}
+\[
+  F(s) = K \qquad (K \in \mathbb{R},\; K \neq 0)
+\]
+\end{defbox}
+
+Le degré du dénominateur est $0$ : aucun pôle fini, aucune énergie stockée, aucun transitoire. Dans le domaine de Laplace, la relation entrée-sortie est :
+\[ Y(s) = K \cdot U(s) \]
+Cette égalité est algébrique et vit dans $\mathbb{C}$. En appliquant l'entrée échelon $U(s) = 1/s$, on obtient $Y(s) = K/s$, puis par transformée inverse :
+\[ y(t) = K\,\Upsilon(t) \]
+La sortie est un échelon d'amplitude $K$ : elle prend instantanément la valeur $K$ à $t=0^+$ et y reste. La relation $y(t) = K\cdot u(t)$ n'est \emph{pas} correcte en général dans le domaine temporel — elle n'est vraie qu'après transformée inverse avec $u(t)=\Upsilon(t)$.
+
+\subsection{Réponse indicielle}
+
+\begin{center}
+\begin{tikzpicture}[xscale=1.3, yscale=1.2]
+  % axes (ordonnées partent de 0, pas en dessous)
+  \draw[->, >=Stealth, thick] (-0.5,0) -- (5.8,0) node[right] {$t$};
+  \draw[->, >=Stealth, thick] (0,0)    -- (0,3.8) node[above] {$y(t)$};
+
+  % niveau K
+  \draw[dashed, gray] (0.05,2.5) -- (5.5,2.5);
+  \node[left, font=\small] at (0,2.5) {$K$};
+
+  % réponse pour t<0 : nulle
+  \draw[blue, very thick] (-0.45,0) -- (0,0);
+  % saut vertical (tiret)
+  \draw[blue, thick, dashed] (0,0) -- (0,2.5);
+  % réponse pour t>0 : palier
+  \draw[blue, very thick] (0,2.5) -- (5.5,2.5);
+  \filldraw[blue] (0,2.5) circle (2.5pt);
+
+  % label de la courbe, décalé pour ne pas chevaucher le niveau K
+  \node[blue, font=\small, anchor=south] at (3.0, 2.6) {$y(t)=K\,\Upsilon(t)$};
+
+  % double flèche amplitude
+  \draw[<->, >=Stealth, red, thick] (0.35,0) -- (0.35,2.5)
+    node[midway, right, font=\scriptsize, red]{amplitude $= K$};
+
+  % repère origine : sur l'axe x, décalé pour ne pas écraser l'axe y
+  \node[below right, font=\scriptsize] at (0.05,0) {$0$};
+\end{tikzpicture}
+\end{center}
+
+\begin{importantbox}{Propriétés du système d'ordre 0}
+  \begin{itemize}
+    \item Gain statique : $K_s = K$
+    \item Temps de montée : $t_m = 0$ (réponse instantanée)
+    \item Dépassement : nul
+    \item Écart statique face à un échelon : $e_c = 1 - K$ (nul si et seulement si $K = 1$)
+  \end{itemize}
+\end{importantbox}
+
+% ==========================================
+\section{Systèmes d'Ordre 1 : L'Inertie Fondamentale}
+% ==========================================
+
+\subsection{Modèle canonique}
+
+Un système du premier ordre possède un unique pôle réel $p = -1/\tau$. Sa forme canonique normalisée est :
+
+\begin{defbox}{Système d'Ordre 1}
+\[
+  F(s) = \frac{K}{\tau s + 1} \qquad \tau > 0,\; K \in \mathbb{R}
+\]
+où $K$ est le \textbf{gain statique} et $\tau$ la \textbf{constante de temps}.
+\end{defbox}
+
+Le pôle est $p = -1/\tau$, strictement dans le demi-plan gauche : le système est \textbf{toujours stable}.
+
+\subsection{Réponse indicielle : $y(t)$ pour $u(t) = \Upsilon(t)$}
+
+Dans le domaine de Laplace : $Y(s) = \frac{K}{\tau s + 1} \cdot \frac{1}{s}$. Décomposition en éléments simples puis transformée inverse :
+\[
+  y(t) = K\left(1 - e^{-t/\tau}\right)\,\Upsilon(t)
+\]
+
+\begin{center}
+\begin{tikzpicture}[xscale=1.1, yscale=1.2]
+  \draw[->, >=Stealth, thick] (-0.5,0) -- (7.5,0) node[right] {$t$};
+  \draw[->, >=Stealth, thick] (0,0)    -- (0,3.9) node[above] {$y(t)$};
+
+  % asymptote K
+  \draw[dashed, gray, thick] (0.05,3) -- (7.2,3);
+  \node[left, font=\small] at (0,3) {$K$};
+
+  % courbe
+  \draw[blue, very thick]
+    plot[domain=0:6.5,samples=120] (\x, {3*(1-exp(-\x/1.5))});
+  \node[blue,font=\small, anchor=west] at (4.8,2.3) {$y(t)=K(1-e^{-t/\tau})$};
+
+  % tau : y(tau) = K*(1-1/e) ≈ 0.632*K = 1.896
+  \draw[dashed, orange!80!black] (1.5,0.05) -- (1.5,1.896);
+  \draw[dashed, orange!80!black] (0.05,1.896) -- (1.5,1.896);
+  \filldraw[orange!80!black] (1.5,1.896) circle (2.5pt);
+  \node[below,font=\scriptsize,orange!80!black] at (1.5,0) {$\tau$};
+  \node[left,font=\scriptsize,orange!80!black] at (0,1.896) {$63\%K$};
+
+  % 3tau : y(3tau) ≈ 0.95*K
+  \draw[dashed,green!50!black,thin] (4.5,0.05) -- (4.5,2.85);
+  \node[below,font=\scriptsize,green!50!black] at (4.5,0) {$3\tau$};
+  \node[right,font=\scriptsize,green!50!black] at (4.55,2.65) {$95\%$};
+
+  % tangente à l'origine : droite de pente K/tau, tracée jusqu'à t=2
+  \draw[red!70!black, thick, dashed] (0,0) -- (2.1,4.2);
+  \node[right,font=\scriptsize,red!70!black] at (1.85,3.3) {tangente en $t=0$};
+
+  % repère origine
+  \node[below right,font=\scriptsize] at (0.05,0) {$0$};
+\end{tikzpicture}
+\end{center}
+
+\subsection{Propriétés caractéristiques}
+
+\begin{importantbox}{Propriétés du système d'ordre 1}
+  \begin{itemize}
+    \item \textbf{Stabilité :} toujours stable ($\tau > 0 \Rightarrow \text{Re}(p) < 0$).
+    \item \textbf{Gain statique :} $K_s = K = F(0)$.
+    \item \textbf{Constante de temps $\tau$ :} à $t = \tau$, la sortie a atteint $63{,}2\%$ de sa valeur finale. La tangente à l'origine coupe l'asymptote exactement en $t = \tau$.
+    \item \textbf{Régime permanent :} atteint à $\approx 5\tau$ (à $0{,}7\%$ près). En pratique, on considère le transitoire éteint à $3\tau$ ($95\%$) ou $5\tau$ ($99{,}3\%$).
+    \item \textbf{Dépassement :} \textbf{nul}. Un premier ordre ne peut pas osciller autour de sa valeur finale.
+    \item \textbf{Temps de réponse à 5\% :} $t_r^{5\%} \approx 3\tau$.
+    \item \textbf{Temps de montée (0 à 100\%) :} $t_m^{0\%-100\%}$ théoriquement infini, mais en pratique on mesure de $10\%$ à $90\%$, soit $t_m \approx 2{,}2\,\tau$.
+  \end{itemize}
+\end{importantbox}
+
+% ==========================================
+\section{Systèmes d'Ordre 2 : La Dynamique Oscillante}
+% ==========================================
+
+\subsection{Modèle canonique et paramètres}
+
+Un système du second ordre est décrit par une EDO du type :
+\[
+  a_2\,\frac{d^2y}{dt^2} + a_1\,\frac{dy}{dt} + a_0\,y = b_0\,u
+\]
+dont la transformée de Laplace donne directement :
+\[
+  F(s) = \frac{b_0}{a_2 s^2 + a_1 s + a_0}
+\]
+Cette écriture brute est inutilisable pour un ingénieur : les coefficients $a_2$, $a_1$, $a_0$ dépendent des composants physiques (kilogrammes, Henrys, Farads...) et ne donnent aucune information immédiate sur le comportement dynamique. L'astuce est de diviser numérateur et dénominateur par le terme constant $a_0$ pour faire apparaître des grandeurs universelles :
+\[
+  F(s) = \frac{\dfrac{b_0}{a_0}}{\dfrac{a_2}{a_0}\,s^2 + \dfrac{a_1}{a_0}\,s + 1}
+\]
+On effectue alors un changement de variables en définissant trois \textbf{paramètres rois} :
+
+\begin{defbox}{Paramètre 1 — Le Gain Statique $K$}
+On pose $K = \dfrac{b_0}{a_0}$. En faisant $s = 0$, tous les termes en $s$ s'effondrent et il reste $F(0) = K$ : c'est l'amplification du système en régime permanent, face à une entrée constante.
+\end{defbox}
+
+\begin{defbox}{Paramètre 2 — La Pulsation Propre non amortie $\omega_n$}
+On identifie le coefficient devant $s^2$ à l'inverse d'une pulsation au carré :
+\[
+  \frac{a_2}{a_0} = \frac{1}{\omega_n^2} \qquad \Longrightarrow \qquad \omega_n = \sqrt{\frac{a_0}{a_2}}
+\]
+\textbf{Sens physique :} c'est la vitesse à laquelle le système oscillerait \emph{naturellement} si l'on supprimait totalement les frottements. Plus $\omega_n$ est grand, plus le système est rapide.
+\end{defbox}
+
+\begin{defbox}{Paramètre 3 — Le Coefficient d'Amortissement $\xi$ (zéta)}
+On identifie le coefficient devant le terme en $s$ à la structure $\dfrac{2\xi}{\omega_n}$ (choix de normalisation) :
+\[
+  \frac{a_1}{a_0} = \frac{2\xi}{\omega_n} \qquad \Longrightarrow \qquad \xi = \frac{a_1}{2\,a_0}\,\omega_n
+\]
+\textbf{Sens physique :} $\xi$ mesure la capacité du système à \emph{dissiper} l'énergie. C'est lui qui dicte entièrement le régime des oscillations.
+\begin{itemize}
+  \item $\xi > 1$ : le système est très freiné, aucune oscillation (\textit{régime sur-amorti}).
+  \item $\xi = 1$ : convergence monotone la plus rapide possible (\textit{régime critique}).
+  \item $0 < \xi < 1$ : oscillations amorties (\textit{régime sous-amorti}) — c'est là qu'apparaît le dépassement $D_1$ du gabarit !
+  \item $\xi = 0$ : oscillations permanentes sans dissipation.
+\end{itemize}
+\end{defbox}
+
+En substituant ces trois définitions dans la fraction rationnelle, on obtient la \textbf{forme normalisée} :
+\[
+  F(s) = \frac{K}{1 + \dfrac{2\xi}{\omega_n}\,s + \dfrac{s^2}{\omega_n^2}}
+\]
+Pour chasser les fractions du dénominateur, on multiplie haut et bas par $\omega_n^2$ :
+\[
+  F(s) = \frac{K\,\omega_n^2}{\omega_n^2\!\left(1 + \dfrac{2\xi}{\omega_n}s + \dfrac{s^2}{\omega_n^2}\right)}
+\]
+En développant, les $\omega_n$ se simplifient et on obtient la \textbf{forme canonique standard} :
+
+\begin{defbox}{Système d'Ordre 2 — Forme canonique}
+\[
+  \boxed{F(s) = \frac{K\,\omega_n^2}{s^2 + 2\xi\omega_n\, s + \omega_n^2}}
+\]
+\begin{itemize}
+  \item $K$ : \textbf{gain statique} — amplification en régime permanent ($F(0) = K$)
+  \item $\omega_n > 0$ : \textbf{pulsation propre non amortie} (rad/s) — rapidité intrinsèque
+  \item $\xi \geq 0$ : \textbf{coefficient d'amortissement} — régit les oscillations
+\end{itemize}
+\end{defbox}
+
+\begin{importantbox}{Pourquoi cette forme est une arme à l'examen}
+  Dès qu'une fonction de transfert du second ordre est mise sous cette forme canonique :
+  \begin{enumerate}
+    \item On lit le \textbf{terme constant} au dénominateur : sa racine carrée donne directement $\omega_n$ (la rapidité).
+    \item On lit le \textbf{coefficient devant $s$} : en le divisant par $2\omega_n$, on obtient $\xi$ (l'amortissement).
+    \item $\xi$ seul suffit à calculer le dépassement du gabarit :
+    \[
+      D_1\,\% = e^{-\pi\xi/\sqrt{1-\xi^2}} \times 100
+    \]
+  \end{enumerate}
+  Exemple : si le dénominateur est $s^2 + 6s + 25$, alors $\omega_n = \sqrt{25} = 5\,\text{rad/s}$ et $\xi = 6/(2\times 5) = 0{,}6$, soit $D_1\% \approx 9{,}5\%$.
+\end{importantbox}
+
+\subsection{Les pôles et les trois régimes}
+
+Les pôles sont les racines de $s^2 + 2\xi\omega_n s + \omega_n^2 = 0$ :
+\[
+  p_{1,2} = -\xi\omega_n \pm \omega_n\sqrt{\xi^2 - 1}
+\]
+La nature de ces pôles — et donc le comportement dynamique du système — dépend entièrement du signe du discriminant $\Delta = \xi^2 - 1$ :
+
+\renewcommand{\arraystretch}{1.5}
+\begin{center}
+\small
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Régime} & \textbf{Condition} & \textbf{Pôles} & \textbf{Comportement} \\ \hline
+Sur-amorti & $\xi > 1$ & Deux réels distincts $p_1, p_2 < 0$ & Convergence monotone lente \\ \hline
+Critique & $\xi = 1$ & Pôle double réel $p = -\omega_n$ & Convergence monotone la plus rapide \\ \hline
+Sous-amorti & $0 < \xi < 1$ & Paires complexes conjuguées $-\xi\omega_n \pm j\omega_d$ & Oscillations amorties \\ \hline
+Non amorti & $\xi = 0$ & Pures imaginaires $\pm j\omega_n$ & Oscillations permanentes \\ \hline
+\end{tabular}
+\end{center}
+\renewcommand{\arraystretch}{1}
+
+où $\omega_d = \omega_n\sqrt{1-\xi^2}$ est la \textbf{pulsation propre amortie} (fréquence effective des oscillations).
+
+\subsection{Réponse indicielle et effets de l'amortissement}
+
+Pour $u(t) = \Upsilon(t)$, la réponse en régime sous-amorti ($0 < \xi < 1$) est :
+\[
+  y(t) = K\left[1 - \frac{e^{-\xi\omega_n t}}{\sqrt{1-\xi^2}}\sin\!\left(\omega_d t + \varphi\right)\right], \quad \varphi = \arccos(\xi)
+\]
+
+\begin{center}
+\begin{tikzpicture}[xscale=1.1, yscale=1.15]
+  % axes : y démarre à 0, espace sous l'axe x supprimé
+  \draw[->, >=Stealth, thick] (-0.4,0) -- (8.0,0) node[right] {$\omega_n t$};
+  \draw[->, >=Stealth, thick] (0,0)    -- (0,4.6) node[above] {$y(t)/K$};
+
+  % consigne
+  \draw[dashed,gray,thick] (0.05,3) -- (7.8,3);
+  \node[left,font=\small] at (0,3) {$1$};
+
+  % ---- sur-amorti xi=1.5 (orange) : converge lentement sans dépasser ----
+  \draw[orange!80!black, thick]
+    plot[domain=0:7.5,samples=150]
+    (\x, {3*(1 - 1.125*exp(-0.9*\x) + 0.125*exp(-4.5*\x))});
+
+  % ---- critique xi=1 (vert) ----
+  \draw[green!60!black, thick]
+    plot[domain=0:7.5,samples=150]
+    (\x, {3*(1-(1+\x)*exp(-\x))});
+
+  % ---- sous-amorti xi=0.3 (bleu) ----
+  \draw[blue, very thick]
+    plot[domain=0:7.5,samples=200]
+    (\x, {3*(1 - exp(-0.3*\x)/0.954 * sin(0.954*\x r + 1.266 r))});
+
+  % ---- non amorti xi=0 (rouge, oscillation pure) ----
+  \draw[red!70!black, thick, dashed]
+    plot[domain=0:7.5,samples=200]
+    (\x, {3*(1 - cos(\x r))});
+
+  % repère origine
+  \node[below right,font=\scriptsize] at (0.05,0) {$0$};
+
+  % ------ légende dans le coin supérieur droit, bien espacée ------
+  % boîte de légende manuelle
+  \draw[orange!80!black, thick]    (4.8,4.4) -- (5.4,4.4);
+  \node[right,font=\scriptsize,orange!80!black]  at (5.5,4.4) {$\xi=1{,}5$ (sur-amorti)};
+
+  \draw[green!60!black, thick]     (4.8,4.05) -- (5.4,4.05);
+  \node[right,font=\scriptsize,green!60!black]   at (5.5,4.05) {$\xi=1$ (critique)};
+
+  \draw[blue, very thick]          (4.8,3.70) -- (5.4,3.70);
+  \node[right,font=\scriptsize,blue]             at (5.5,3.70) {$\xi=0{,}3$ (sous-amorti)};
+
+  \draw[red!70!black, thick,dashed](4.8,3.35) -- (5.4,3.35);
+  \node[right,font=\scriptsize,red!70!black]     at (5.5,3.35) {$\xi=0$ (non amorti)};
+\end{tikzpicture}
+\end{center}
+
+\subsection{Paramètres du gabarit en régime sous-amorti ($0 < \xi < 1$)}
+
+C'est le régime le plus riche et le plus fréquent en pratique. Les métriques du cahier des charges s'expriment analytiquement :
+
+\begin{importantbox}{Formules du second ordre sous-amorti}
+\renewcommand{\arraystretch}{1.6}
+\begin{center}
+\small
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Grandeur} & \textbf{Formule exacte} & \textbf{Sens physique} \\ \hline
+Pôles & $p_{1,2} = -\xi\omega_n \pm j\omega_n\sqrt{1-\xi^2}$ & Dans le demi-plan gauche si $\xi > 0$ \\ \hline
+Pulsation amortie & $\omega_d = \omega_n\sqrt{1-\xi^2}$ & Fréquence réelle des oscillations \\ \hline
+Temps du 1\ier{} pic & $t_{\text{pic}} = \dfrac{\pi}{\omega_d}$ & Instant du maximum de $y(t)$ \\ \hline
+1\ier{} dépassement & $D_1\,\% = 100\,e^{-\pi\xi/\sqrt{1-\xi^2}}$ & Décroît exponentiellement avec $\xi$ \\ \hline
+Temps de réponse & $t_r^{5\%} \approx \dfrac{3}{\xi\,\omega_n}$ & Approximation valable pour $0{,}3 \le \xi \le 0{,}8$ \\ \hline
+\end{tabular}
+\end{center}
+\renewcommand{\arraystretch}{1}
+\end{importantbox}
+
+\subsection{Le compromis Rapidité–Amortissement}
+
+Les formules ci-dessus révèlent une tension fondamentale du dimensionnement :
+
+\begin{itemize}
+  \item \textbf{Augmenter $\xi$} (amortir davantage) $\longrightarrow$ réduit le dépassement $D_1\%$ mais \textbf{ralentit} le système ($t_r$ augmente).
+  \item \textbf{Augmenter $\omega_n$} (rendre le système plus rapide) $\longrightarrow$ réduit $t_r$ \textbf{sans changer} $D_1\%$ (qui ne dépend que de $\xi$).
+  \item En pratique, un bon compromis se situe autour de $\xi \in [0{,}5\,;\,0{,}8]$, qui donne un dépassement modéré ($D_1\% < 16\%$) tout en conservant une bonne rapidité.
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[xscale=8.0, yscale=3.5]
+  % axes
+  \draw[->, >=Stealth, thick] (-0.02,0) -- (1.08,0) node[right] {$\xi$};
+  \draw[->, >=Stealth, thick] (0,0)     -- (0,1.20) node[above] {$D_1\,\%\;/\;100$};
+
+  % zone recommandée xi = 0.5 à 0.8 (fond vert pâle, DANS le graphe)
+  \fill[green!15] (0.5,0) rectangle (0.8,1.05);
+  \draw[green!60!black, dashed, thin] (0.5,0) -- (0.5,0.163);
+  \draw[green!60!black, dashed, thin] (0.8,0) -- (0.8,0.015);
+
+  % courbe D1% = exp(-pi*xi/sqrt(1-xi^2))
+  \draw[red!70!black, very thick]
+    plot[domain=0.02:0.98, samples=150]
+    (\x, {exp(-3.14159*\x/sqrt(1-\x*\x))});
+
+  % repères axe x (décalés sous l'axe, pas sur la courbe)
+  \foreach \xv/\lbl in {0.5/{$0{,}5$}, 0.707/{$0{,}71$}, 0.8/{$0{,}8$}, 1.0/{$1$}}{
+    \draw[thin] (\xv,0) -- (\xv,-0.02);
+    \node[below, font=\scriptsize] at (\xv,-0.02) {\lbl};
+  }
+  % repère axe y
+  \node[left, font=\scriptsize] at (0,1.0) {$1$};
+  \node[left, font=\scriptsize] at (0,0.5) {$0{,}5$};
+
+  % annotation xi=0.5 => D1%≈16.3%  (point à gauche, label à droite)
+  \filldraw[red!70!black] (0.5,0.163) circle (0.8pt);
+  \node[right, font=\scriptsize, red!70!black] at (0.52,0.19) {${\approx}16\%$};
+
+  % annotation xi=0.707 => D1%≈4.3%
+  \filldraw[red!70!black] (0.707,0.043) circle (0.8pt);
+  \node[right, font=\scriptsize, red!70!black] at (0.715,0.075)
+    {${\approx}4{,}3\%\;(\xi=1/\!\sqrt{2})$};
+
+  % label zone verte centré DANS la zone, au-dessus de la courbe
+  \node[green!60!black, font=\scriptsize, align=center] at (0.65,0.85)
+    {zone\\recommandée};
+\end{tikzpicture}
+\end{center}
+
+La valeur $\xi = 1/\sqrt{2} \approx 0{,}707$ est souvent appelée \textbf{amortissement optimal de Butterworth} : elle minimise l'erreur quadratique intégrée tout en garantissant un dépassement inférieur à $5\%$.
+
+\end{document}
