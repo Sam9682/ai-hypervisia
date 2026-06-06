@@ -387,13 +387,22 @@ export const CourseGeneratorPage = () => {
                 </pre>
               </div>
 
-              {/* PDF Download Button */}
-              <button
-                onClick={handleDownloadPdf}
-                className="w-full px-6 py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200"
-              >
-                📥 Télécharger le PDF
-              </button>
+              {/* PDF Download Link */}
+              {result.download_id && (
+                <a
+                  href={getDownloadUrl(result.download_id)}
+                  download={result.filename}
+                  onClick={(e) => {
+                    if (result.expires_at && new Date(result.expires_at) < new Date()) {
+                      e.preventDefault();
+                      setPdfExpired(true);
+                    }
+                  }}
+                  className="block w-full px-6 py-3 rounded-lg font-semibold text-white text-center bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  📥 Télécharger le PDF — {result.filename}
+                </a>
+              )}
             </div>
           )}
         </div>
