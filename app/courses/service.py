@@ -139,12 +139,30 @@ class CourseService:
         logger.info(f"Reading tex file: {tex_file}")
 
         tex_content = tex_file.read_text(encoding="utf-8")
+        logger.info(
+            f"Tex file read successfully: {tex_file} "
+            f"({len(tex_content)} chars, {len(tex_content.splitlines())} lines)"
+        )
 
         # Build the adaptation prompt
+        logger.info(
+            f"Building adaptation prompt for course='{course_name}', "
+            f"audience='{audience}', provider='{ai_provider}', user='{user_id}'"
+        )
         prompt = build_adaptation_prompt(tex_content, audience)
+        logger.info(
+            f"Prompt built successfully ({len(prompt)} chars total)"
+        )
 
         # Call the AI provider with timeout
+        logger.info(
+            f"Initializing AI provider '{ai_provider}' "
+            f"(timeout={AI_TIMEOUT_SECONDS}s, max_tokens=8000)"
+        )
         provider = get_ai_provider(ai_provider)
+        logger.info(
+            f"AI provider '{ai_provider}' initialized, sending query..."
+        )
 
         try:
             result = await asyncio.wait_for(
@@ -159,25 +177,49 @@ class CourseService:
         except asyncio.TimeoutError:
             logger.error(
                 f"AI provider '{ai_provider}' timeout after {AI_TIMEOUT_SECONDS}s "
-                f"for course '{course_name}'"
+                f"for course '{course_name}' (user: {user_id})"
             )
             raise TimeoutError(
                 f"Le fournisseur IA '{ai_provider}' n'a pas répondu dans le délai "
                 f"de {AI_TIMEOUT_SECONDS} secondes"
             )
+        except Exception as e:
+            logger.error(
+                f"AI provider '{ai_provider}' raised an exception for "
+                f"course '{course_name}' (user: {user_id}): "
+                f"{type(e).__name__}: {e}"
+            )
+            raise
+
+        logger.info(
+            f"AI provider '{ai_provider}' returned a result "
+            f"(processing_time={result.get('processing_time', 'N/A')}s, "
+            f"tokens_used={result.get('tokens_used', 'N/A')})"
+        )
 
         latex_content = result.get("answer", "")
         if not latex_content:
+            logger.error(
+                f"AI provider '{ai_provider}' returned empty content for "
+                f"course '{course_name}' (user: {user_id}). "
+                f"Full result keys: {list(result.keys())}"
+            )
             raise Exception(
                 f"Le fournisseur IA '{ai_provider}' n'a retourné aucun contenu"
             )
+
+        logger.info(
+            f"AI response received: {len(latex_content)} chars. "
+            f"Cleaning LaTeX response..."
+        )
 
         # Clean AI response: extract pure LaTeX content
         latex_content = self._clean_latex_response(latex_content)
 
         logger.info(
-            f"Course generated: {course_name} for {audience} via {ai_provider} "
-            f"(user: {user_id})"
+            f"Course generated successfully: {course_name} for {audience} "
+            f"via {ai_provider} (user: {user_id}, "
+            f"final_latex_length={len(latex_content)} chars)"
         )
         return latex_content
 
@@ -222,6 +264,7 @@ class CourseService:
                         [
                             "pdflatex",
                             "-interaction=nonstopmode",
+                            "-shell-escape",
                             "-output-directory",
                             tmpdir,
                             str(tex_path),
@@ -245,11 +288,24 @@ class CourseService:
             # Check for compilation failure
             pdf_output = Path(tmpdir) / "document.pdf"
             if not pdf_output.exists():
-                error_log = process.stdout or ""
+                # Read the .log file for detailed error info
+                log_file = Path(tmpdir) / "document.log"
+                if log_file.exists():
+                    log_content = log_file.read_text(encoding="utf-8", errors="replace")
+                    # Extract error lines from the log
+                    error_lines = [
+                        line for line in log_content.splitlines()
+                        if line.startswith("!") or "Error" in line or "Fatal" in line
+                    ]
+                    error_summary = "\n".join(error_lines[:20]) if error_lines else ""
+                    error_log = error_summary or log_content[-COMPILER_ERROR_MAX_CHARS:]
+                else:
+                    error_log = process.stdout or process.stderr or ""
+
                 error_log_truncated = error_log[:COMPILER_ERROR_MAX_CHARS]
                 logger.error(
                     f"pdflatex compilation failed for '{course_name}': "
-                    f"{error_log_truncated[:200]}"
+                    f"{error_log_truncated[:500]}"
                 )
                 raise RuntimeError(error_log_truncated)
 

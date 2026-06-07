@@ -86,27 +86,42 @@ async def generate_course(
     Requires valid JWT authentication.
     """
     user_id = str(current_user.id)
+    logger.info(
+        f"[generate_course] START - user={user_id}, "
+        f"course={body.course_name}, audience={body.audience}, "
+        f"provider={body.ai_provider}"
+    )
 
     # Step 1: Generate adapted LaTeX via AI
     try:
+        logger.info(f"[generate_course] Step 1: AI generation starting...")
         latex_content = await course_service.generate_course(
             course_name=body.course_name,
             audience=body.audience,
             ai_provider=body.ai_provider,
             user_id=user_id,
         )
+        logger.info(
+            f"[generate_course] Step 1 DONE: AI generation complete "
+            f"({len(latex_content)} chars)"
+        )
     except FileNotFoundError as e:
+        logger.warning(f"[generate_course] FileNotFoundError: {e}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
         )
     except TimeoutError as e:
+        logger.error(f"[generate_course] TimeoutError: {e}")
         raise HTTPException(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
             detail=str(e),
         )
     except Exception as e:
-        logger.error(f"AI generation error: {e}")
+        logger.error(
+            f"[generate_course] Unhandled exception in AI generation: "
+            f"{type(e).__name__}: {e}"
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erreur lors de la génération du cours : {e}",
@@ -114,23 +129,35 @@ async def generate_course(
 
     # Step 2: Compile LaTeX to PDF
     try:
+        logger.info(f"[generate_course] Step 2: PDF compilation starting...")
         download_id, filename, expires_at = await course_service.compile_pdf(
             latex_content=latex_content,
             course_name=body.course_name,
             audience=body.audience,
             user_id=user_id,
         )
+        logger.info(
+            f"[generate_course] Step 2 DONE: PDF compiled "
+            f"(download_id={download_id}, filename={filename})"
+        )
     except RuntimeError as e:
         # Compilation failure — return 422 with compiler error
+        logger.error(f"[generate_course] LaTeX compilation RuntimeError: {str(e)[:200]}")
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Erreur de compilation LaTeX : {e}",
         )
     except TimeoutError as e:
+        logger.error(f"[generate_course] LaTeX compilation TimeoutError: {e}")
         raise HTTPException(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
             detail=str(e),
         )
+
+    logger.info(
+        f"[generate_course] END - Success for user={user_id}, "
+        f"course={body.course_name}"
+    )
 
     return GenerateResponse(
         download_id=download_id,
