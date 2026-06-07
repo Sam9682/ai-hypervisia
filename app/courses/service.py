@@ -154,6 +154,20 @@ class CourseService:
             f"Prompt built successfully ({len(prompt)} chars total)"
         )
 
+        # Save the prompt context to a traceable log file
+        prompt_log_dir = Path("storage/prompt_logs")
+        prompt_log_dir.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        prompt_log_file = prompt_log_dir / f"{timestamp}_{course_name}_{audience}_{ai_provider}.txt"
+        try:
+            prompt_log_file.write_text(prompt, encoding="utf-8")
+            logger.info(
+                f"GenAI prompt context saved to: {prompt_log_file.resolve()} "
+                f"(course='{course_name}', audience='{audience}', provider='{ai_provider}')"
+            )
+        except OSError as e:
+            logger.warning(f"Could not save prompt log file: {e}")
+
         # Call the AI provider with timeout
         logger.info(
             f"Initializing AI provider '{ai_provider}' "
@@ -312,6 +326,10 @@ class CourseService:
             # Move PDF to storage
             dest_path = STORAGE_DIR / f"{download_id}.pdf"
             shutil.copy2(str(pdf_output), str(dest_path))
+            logger.info(
+                f"Generated PDF stored at: {dest_path.resolve()} "
+                f"(course='{course_name}', audience='{audience}', user='{user_id}')"
+            )
 
         # Create metadata entry
         now = datetime.now(timezone.utc)
