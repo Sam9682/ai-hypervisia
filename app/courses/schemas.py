@@ -27,6 +27,11 @@ class GenerateCourseRequest(BaseModel):
     ai_provider: Literal["shai", "kiro", "openai"] = Field(
         default="shai", description="Fournisseur IA"
     )
+    custom_context: Optional[str] = Field(
+        default=None,
+        max_length=5000,
+        description="Contexte personnel complémentaire ajouté au prompt",
+    )
 
 
 # --- Response Models ---

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   listCourses,
   generateCourse,
-  getDownloadUrl,
+  downloadPdf,
   AUDIENCE_LABELS,
   AI_PROVIDERS,
   type CourseItem,
@@ -24,6 +24,7 @@ export const CourseGeneratorPage = () => {
   const [result, setResult] = useState<GenerateResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [errorType, setErrorType] = useState<string | null>(null);
+  const [customContext, setCustomContext] = useState<string>('');
 
   const [successNotification, setSuccessNotification] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -76,6 +77,7 @@ export const CourseGeneratorPage = () => {
         course_name: selectedCourse,
         audience,
         ai_provider: provider,
+        custom_context: customContext.trim() || undefined,
       });
       setResult(response);
       setSuccessNotification(response.course_name);
@@ -103,7 +105,7 @@ export const CourseGeneratorPage = () => {
     } finally {
       setGenerating(false);
     }
-  }, [selectedCourse, audience, provider, generating]);
+  }, [selectedCourse, audience, provider, customContext, generating]);
 
   // --- Copy LaTeX content ---
   const handleCopyLatex = useCallback(async () => {
@@ -172,8 +174,8 @@ export const CourseGeneratorPage = () => {
         </div>
       )}
 
-      {/* 3-section layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* 4-section layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Section 1: Course Selection */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
@@ -283,11 +285,39 @@ export const CourseGeneratorPage = () => {
           </div>
         </div>
 
-        {/* Section 3: Generation & Download */}
-        <div className="bg-white rounded-lg shadow-md p-6 md:col-span-2 lg:col-span-1">
+        {/* Section 3: Custom Context */}
+        <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
             <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold mr-2">
               3
+            </span>
+            Contexte personnel complémentaire
+          </h2>
+
+          <p className="text-xs text-gray-500 mb-3">
+            Ajoutez des instructions supplémentaires pour personnaliser l'adaptation du cours
+            (max 5000 caractères). Ce texte sera ajouté au prompt envoyé à l'IA.
+          </p>
+
+          <textarea
+            value={customContext}
+            onChange={(e) => setCustomContext(e.target.value)}
+            disabled={generating}
+            maxLength={5000}
+            rows={8}
+            placeholder="Ex : Insister sur les applications en génie civil. Ajouter des exemples concrets liés à la mécanique des structures. Utiliser un ton plus informel..."
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed text-sm resize-y"
+          />
+          <p className="text-xs text-gray-400 mt-1 text-right">
+            {customContext.length} / 5000
+          </p>
+        </div>
+
+        {/* Section 4: Generation & Download */}
+        <div className="bg-white rounded-lg shadow-md p-6 md:col-span-2 lg:col-span-1">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold mr-2">
+              4
             </span>
             Génération & Téléchargement
           </h2>
@@ -393,19 +423,18 @@ export const CourseGeneratorPage = () => {
 
               {/* PDF Download Link */}
               {result.download_id && (
-                <a
-                  href={getDownloadUrl(result.download_id)}
-                  download={result.filename}
-                  onClick={(e) => {
+                <button
+                  onClick={() => {
                     if (result.expires_at && new Date(result.expires_at) < new Date()) {
-                      e.preventDefault();
                       setPdfExpired(true);
+                    } else {
+                      downloadPdf(result.download_id, result.filename);
                     }
                   }}
                   className="block w-full px-6 py-3 rounded-lg font-semibold text-white text-center bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200"
                 >
                   📥 Télécharger le PDF — {result.filename}
-                </a>
+                </button>
               )}
             </div>
           )}

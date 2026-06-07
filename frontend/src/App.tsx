@@ -12,6 +12,7 @@ import { NewTopicPage } from './pages/NewTopicPage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
 import { AdminEventsPage } from './pages/AdminEventsPage';
 import { CourseGeneratorPage } from './pages/CourseGeneratorPage';
+import { DocumentsPage } from './pages/DocumentsPage';
 
 function App() {
   return (
@@ -72,6 +73,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <CourseGeneratorPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/documents"
+                  element={
+                    <ProtectedRoute>
+                      <DocumentsPage />
                     </ProtectedRoute>
                   }
                 />

@@ -100,6 +100,7 @@ class CourseService:
         audience: str,
         ai_provider: str,
         user_id: str,
+        custom_context: Optional[str] = None,
     ) -> str:
         """
         Generate an adapted LaTeX course using AI.
@@ -112,6 +113,7 @@ class CourseService:
             audience: Target audience level.
             ai_provider: AI provider name (shai, kiro, openai).
             user_id: Authenticated user ID.
+            custom_context: Optional user-provided additional context appended to the prompt.
 
         Returns:
             The adapted LaTeX content as a string.
@@ -153,6 +155,15 @@ class CourseService:
         logger.info(
             f"Prompt built successfully ({len(prompt)} chars total)"
         )
+
+        # Append user's custom context if provided
+        if custom_context and custom_context.strip():
+            prompt += f"\n\n[CONTEXTE PERSONNEL COMPLÉMENTAIRE]\n{custom_context.strip()}"
+            logger.info(
+                f"Custom context appended to prompt "
+                f"({len(custom_context.strip())} chars, "
+                f"new total: {len(prompt)} chars)"
+            )
 
         # Save the prompt context to a traceable log file
         prompt_log_dir = Path("storage/prompt_logs")
@@ -404,6 +415,46 @@ class CourseService:
             raise FileNotFoundError("Le fichier PDF n'existe plus sur le serveur")
 
         return entry["file_path"], entry["filename"]
+
+    def list_user_pdfs(self, user_id: str) -> list:
+        """
+        List all non-expired generated PDFs for a given user.
+
+        Args:
+            user_id: Authenticated user ID.
+
+        Returns:
+            List of PDF metadata dicts (download_id, filename, course_name,
+            audience, created_at, expires_at), sorted newest first.
+        """
+        entries = self._read_index()
+        now = datetime.now(timezone.utc)
+        user_pdfs = []
+
+        for entry in entries:
+            if entry["user_id"] != user_id:
+                continue
+
+            expires_at = datetime.fromisoformat(entry["expires_at"])
+            if now > expires_at:
+                continue
+
+            # Verify file still exists
+            if not Path(entry["file_path"]).exists():
+                continue
+
+            user_pdfs.append({
+                "download_id": entry["download_id"],
+                "filename": entry["filename"],
+                "course_name": entry.get("course_name", ""),
+                "audience": entry.get("audience", ""),
+                "created_at": entry["created_at"],
+                "expires_at": entry["expires_at"],
+            })
+
+        # Sort by created_at descending (newest first)
+        user_pdfs.sort(key=lambda x: x["created_at"], reverse=True)
+        return user_pdfs
 
     def cleanup_expired_pdfs(self) -> int:
         """

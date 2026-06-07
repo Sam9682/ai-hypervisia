@@ -100,6 +100,7 @@ async def generate_course(
             audience=body.audience,
             ai_provider=body.ai_provider,
             user_id=user_id,
+            custom_context=body.custom_context,
         )
         logger.info(
             f"[generate_course] Step 1 DONE: AI generation complete "
@@ -205,3 +206,19 @@ async def download_pdf(
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@router.get("/generated")
+async def list_generated_pdfs(
+    current_user: User = Depends(get_current_user),
+):
+    """List all generated PDFs for the current user.
+
+    Returns non-expired PDFs owned by the authenticated user,
+    sorted by creation date (newest first).
+
+    Requires valid JWT authentication.
+    """
+    user_id = str(current_user.id)
+    pdfs = course_service.list_user_pdfs(user_id)
+    return {"pdfs": pdfs, "total": len(pdfs)}
