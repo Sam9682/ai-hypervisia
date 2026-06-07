@@ -7,7 +7,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 300000, // 5 minute timeout
+  timeout: 1860000, // 31 minutes (AI generation can take up to 30 min)
   withCredentials: false, // Set to true if using cookies
 });
 

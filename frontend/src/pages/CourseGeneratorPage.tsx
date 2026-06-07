@@ -42,8 +42,9 @@ export const CourseGeneratorPage = () => {
         );
         setCourses(sorted);
       } catch (err: any) {
+        const detail = err.response?.data?.detail;
         setCoursesError(
-          err.response?.data?.detail || 'Erreur lors du chargement des cours'
+          typeof detail === 'string' ? detail : 'Erreur lors du chargement des cours'
         );
       } finally {
         setCoursesLoading(false);
@@ -80,10 +81,25 @@ export const CourseGeneratorPage = () => {
       setSuccessNotification(response.course_name);
     } catch (err: any) {
       const data = err.response?.data;
-      const message =
-        data?.detail || data?.error || err.message || 'Erreur lors de la génération';
+      // Extract error message as a string — avoid passing objects to React state
+      let message: string;
+      if (typeof data?.detail === 'string') {
+        message = data.detail;
+      } else if (typeof data?.message === 'string') {
+        message = data.message;
+      } else if (typeof data?.error === 'string') {
+        message = data.error;
+      } else if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        message = "La requête a expiré. Le fournisseur d'IA met trop de temps à répondre.";
+      } else if (err.response?.status === 504) {
+        message = "Erreur 504 : le serveur n'a pas répondu à temps. Veuillez réessayer.";
+      } else if (typeof err.message === 'string') {
+        message = err.message;
+      } else {
+        message = 'Erreur lors de la génération';
+      }
       setError(message);
-      setErrorType(data?.error_type || null);
+      setErrorType(typeof data?.error_type === 'string' ? data.error_type : null);
     } finally {
       setGenerating(false);
     }
@@ -131,7 +147,7 @@ export const CourseGeneratorPage = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-lg shadow-xl p-8 mb-6">
-        <h1 className="text-4xl font-bold text-white mb-2">📚 Générateur de Cours</h1>
+        <h1 className="text-4xl font-bold text-white mb-2">📚 EduScalar: Générateur de Cours</h1>
         <p className="text-emerald-100">
           Adaptez vos cours de mathématiques à votre public cible grâce à l'intelligence artificielle
         </p>

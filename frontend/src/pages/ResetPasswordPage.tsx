@@ -59,9 +59,16 @@ export const ResetPasswordPage = () => {
       setTimeout(() => navigate('/login'), 3000);
     } catch (err: any) {
       console.error('Password reset error:', err);
-      const errorMessage = err.response?.data?.error?.message 
-        || err.response?.data?.detail 
-        || 'Échec de la réinitialisation. Le lien a peut-être expiré.';
+      const data = err.response?.data;
+      const detail = data?.detail;
+      let errorMessage: string;
+      if (typeof data?.error?.message === 'string') {
+        errorMessage = data.error.message;
+      } else if (typeof detail === 'string') {
+        errorMessage = detail;
+      } else {
+        errorMessage = 'Échec de la réinitialisation. Le lien a peut-être expiré.';
+      }
       setError(errorMessage);
     } finally {
       setLoading(false);

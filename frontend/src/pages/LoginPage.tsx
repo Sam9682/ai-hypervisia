@@ -26,11 +26,20 @@ export const LoginPage = () => {
     } catch (err: any) {
       console.error('Login error:', err);
       console.error('Error response:', err.response);
-      const errorMessage = err.response?.data?.detail?.message 
-        || err.response?.data?.detail 
-        || err.response?.data?.error?.message 
-        || err.message 
-        || 'Échec de la connexion';
+      const data = err.response?.data;
+      const detail = data?.detail;
+      let errorMessage: string;
+      if (typeof detail === 'object' && detail !== null && typeof detail?.message === 'string') {
+        errorMessage = detail.message;
+      } else if (typeof detail === 'string') {
+        errorMessage = detail;
+      } else if (typeof data?.error?.message === 'string') {
+        errorMessage = data.error.message;
+      } else if (typeof err.message === 'string') {
+        errorMessage = err.message;
+      } else {
+        errorMessage = 'Échec de la connexion';
+      }
       setError(errorMessage);
     } finally {
       setLoading(false);

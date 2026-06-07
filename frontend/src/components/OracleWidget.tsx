@@ -21,7 +21,8 @@ export const OracleWidget = ({ onAnalysisComplete }: OracleWidgetProps) => {
         onAnalysisComplete(result);
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Erreur lors de l\'analyse');
+      const detail = err.response?.data?.detail;
+      setError(typeof detail === 'string' ? detail : 'Erreur lors de l\'analyse');
     } finally {
       setLoading(false);
     }
