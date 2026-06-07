@@ -70,10 +70,23 @@ class KiroAIProvider(AIProvider):
             # Check if kiro-cli is authenticated, if not skip authentication for now
             # The CLI should work without authentication for basic queries
             
-            # Execute kiro-cli chat command with timeout
-            logger.info("[KiroAI] Launching kiro-cli subprocess...")
-            process = await asyncio.create_subprocess_exec(
-                'kiro-cli', 'chat', '--no-interactive', '--trust-all-tools', prompt,
+            # Write prompt to storage/prompt_logs/ to avoid "Argument list too long" errors
+            # (Linux has ~128KB max for command-line arguments)
+            from pathlib import Path
+            import uuid as _uuid
+            prompt_log_dir = Path("storage/prompt_logs")
+            prompt_log_dir.mkdir(parents=True, exist_ok=True)
+            prompt_file_path = str(prompt_log_dir / f"kiro_prompt_{_uuid.uuid4().hex[:8]}.txt")
+            Path(prompt_file_path).write_text(prompt, encoding='utf-8')
+            logger.info(
+                f"[KiroAI] Prompt written to file: {prompt_file_path} "
+                f"({len(prompt)} chars)"
+            )
+
+            # Execute kiro-cli chat command with prompt piped via stdin from file
+            logger.info("[KiroAI] Launching kiro-cli subprocess (prompt via file stdin)...")
+            process = await asyncio.create_subprocess_shell(
+                f'kiro-cli chat --no-interactive --trust-all-tools < "{prompt_file_path}"',
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 env=env
@@ -81,7 +94,9 @@ class KiroAIProvider(AIProvider):
             logger.info(f"[KiroAI] Subprocess started (pid={process.pid}), waiting for response...")
 
             try:
-                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=1800.0)
+                stdout, stderr = await asyncio.wait_for(
+                    process.communicate(), timeout=1800.0
+                )
             except asyncio.TimeoutError:
                 elapsed = time.time() - start_time
                 process.kill()
@@ -175,8 +190,20 @@ class ShaiAIProvider(AIProvider):
             env['PATH'] = ':'.join(shai_paths + [current_path])
 
             logger.info("[ShaiAI] Launching shai subprocess...")
-            process = await asyncio.create_subprocess_exec(
-                'shai', prompt,
+            # Write prompt to storage/prompt_logs/ to avoid "Argument list too long" errors
+            from pathlib import Path
+            import uuid as _uuid
+            prompt_log_dir = Path("storage/prompt_logs")
+            prompt_log_dir.mkdir(parents=True, exist_ok=True)
+            prompt_file_path = str(prompt_log_dir / f"shai_prompt_{_uuid.uuid4().hex[:8]}.txt")
+            Path(prompt_file_path).write_text(prompt, encoding='utf-8')
+            logger.info(
+                f"[ShaiAI] Prompt written to file: {prompt_file_path} "
+                f"({len(prompt)} chars)"
+            )
+
+            process = await asyncio.create_subprocess_shell(
+                f'shai < "{prompt_file_path}"',
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 env=env
@@ -184,7 +211,9 @@ class ShaiAIProvider(AIProvider):
             logger.info(f"[ShaiAI] Subprocess started (pid={process.pid}), waiting for response...")
 
             try:
-                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=1800.0)
+                stdout, stderr = await asyncio.wait_for(
+                    process.communicate(), timeout=1800.0
+                )
             except asyncio.TimeoutError:
                 elapsed = time.time() - start_time
                 process.kill()
