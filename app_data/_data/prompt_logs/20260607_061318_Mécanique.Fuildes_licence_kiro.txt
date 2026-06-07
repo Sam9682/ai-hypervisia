@@ -1,0 +1,1682 @@
+[SYSTEM]
+Tu es un expert en pédagogie des mathématiques, spécialisé dans l'adaptation de contenus académiques à différents niveaux d'audience. Tu maîtrises parfaitement le LaTeX et les conventions typographiques des publications mathématiques françaises.
+
+[DIRECTIVES DE NIVEAU]
+- Vocabulaire : adapter la terminologie au niveau universitaire correspondant, avec introduction progressive des termes techniques
+- Détail : conserver les démonstrations avec des explications intermédiaires détaillant chaque étape clé
+- Exemples : ajouter des exemples d'application pour illustrer les résultats théoriques
+- Maintenir la rigueur mathématique tout en explicitant les étapes de raisonnement
+- Inclure des remarques pédagogiques pour les passages difficiles
+- Relier les concepts aux applications concrètes du domaine
+
+[CONTRAINTES LATEX]
+- Produire du LaTeX valide et compilable
+- Répondre UNIQUEMENT avec le code LaTeX, sans balises markdown (pas de ```), sans texte explicatif avant ou après
+- Le document doit commencer par \documentclass et se terminer par \end{document}
+- Préserver les environnements mathématiques : theorem, definition, proof, equation, align
+- Préserver les packages : amsmath, amssymb, amsthm
+- Conserver la structure globale du document (sections, sous-sections)
+- Rédiger intégralement en français
+
+[CONTENU SOURCE]
+\documentclass[11pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{bm}
+
+% --- PACKAGES DE MATHÉMATIQUES ---
+\usepackage{amsmath, amssymb, amsthm, mathrsfs}
+\usepackage{cancel}
+
+% --- CONFIGURATION DES LIENS CLIQUABLES (Sommaire) ---
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,      % Couleur des liens du sommaire
+    citecolor=green,
+    urlcolor=cyan
+}
+
+% --- ENCADRÉS ARRONDIS PERSONNALISÉS (tcolorbox) ---
+\usepackage[most]{tcolorbox}
+
+% Éléments communs pour les boîtes
+\tcbset{
+    commonbox/.style={
+        enhanced,
+        arc=4mm,             % Rayon de l'arrondi
+        boxrule=1.5pt,       % Épaisseur de la bordure
+        colback=white,       % Fond blanc pour une impression propre
+        fonttitle=\bfseries\sffamily,
+        attach boxed title to top left={yshift=-2mm, xshift=5mm},
+        boxed title style={sharp corners=downhill, arc=1.5mm},
+        top=4mm, bottom=3mm, left=3mm, right=3mm % Marges internes
+    }
+}
+
+% 1. Encadré bleu pour les relations importantes
+\newtcolorbox{importantbox}[1]{
+    commonbox,
+    colframe=blue!70!black,      % Couleur de la bordure
+    colbacktitle=blue!70!black,  % Couleur du fond du titre
+    coltitle=white,              % Couleur du texte du titre
+    title=#1
+}
+
+% 2. Encadré rouge pour les définitions
+\newtcolorbox{defbox}[1]{
+    commonbox,
+    colframe=red!75!black,        % Couleur de la bordure
+    colbacktitle=red!75!black,   % Couleur du fond du titre
+    coltitle=white,              % Couleur du texte du titre
+    title=#1
+}
+
+% --- MISE EN PAGE ---
+\usepackage{geometry}
+\geometry{hmargin=2.5cm,vmargin=3cm}
+\newtheorem{remark}{Remarque}
+
+% ==========================================
+% BEGIN DOCUMENT
+% ==========================================
+\begin{document}
+
+% --- PAGE DE TITRE ---
+\title{\Huge\bfseries Mécanique des Fluides\\ \vspace{0.5cm}\Large Approche Pédagogique et Sens Physique}
+\author{\Large Centrale Lyon}
+\date{\the\year}
+\maketitle
+
+\tableofcontents
+\newpage
+
+\setcounter{chapter}{-1} % Pour forcer le chapitre suivant à être le Chapitre 0
+\chapter{Outils de Géométrie Différentielle et de Calcul Vectoriel}
+
+La mécanique des milieux continus nécessite de modéliser mathématiquement des grandeurs physiques qui traversent, déforment ou font tourner l'espace. Avant de plonger dans la physique des fluides, ce chapitre pose les trois piliers géométriques indispensables à la manipulation des bilans locaux et macroscopiques.
+
+\section{Le Théorème de la Divergence (Ostrogradsky / Gauss)}
+
+Ce théorème est la passerelle mathématique ultime entre ce qui se passe \textbf{à l'intérieur} d'un volume et ce qui traverse \textbf{sa frontière extérieure}.
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale : } \textit{Comment relier la quantité totale d'une grandeur créée au sein d'un domaine tridimensionnel au flux net qui s'en échappe à travers ses parois ?}
+
+\begin{importantbox}{Théorème de la Divergence}
+Soit $\mathcal{V}$ un volume régulier de $\mathbb{R}^3$ entouré par une surface frontière fermée $\mathcal{S}$. Si la surface est orientée par son vecteur normal unitaire sortant $\vec{n}$, alors pour tout champ de vecteurs $\vec{A}$ continûment différentiable, on a :
+\[
+\int_{\mathcal{V}} (\vec{\nabla} \cdot \vec{A}) \, d\nu = \int_{\mathcal{S}} \vec{A} \cdot \vec{n} \, dS
+\]
+\end{importantbox}
+
+\paragraph{Explication avec les mains (L'analogie de la passoire et de la mousse) : }
+Le terme $\vec{\nabla} \cdot \vec{A}$ (la divergence) mesure l'intensité d'une « source » ou d'un « puits » en un point de l'espace. Imaginez qu'à l'intérieur du fluide se trouvent des milliers de comprimés effervescents qui génèrent de la mousse. Le théorème énonce une évidence logique : la quantité totale de mousse générée à l'intérieur de la boîte (l'intégrale de volume de la divergence) est rigoureusement égale à la quantité de mousse qui traverse les mailles des parois pour s'évacuer (l'intégrale de surface du flux).
+
+\paragraph{Pourquoi la normale $\vec{n}$ apparaît-elle intuitivement ?}
+La normale agit comme un filtre géométrique de direction. Si le fluide se déplace parallèlement à une paroi, il glisse le long de celle-ci sans jamais la traverser : la vitesse et la normale sont orthogonales, le produit scalaire $\vec{A} \cdot \vec{n}$ vaut $0$, le flux est nul. Si le fluide frappe la paroi de plein fouet, la vitesse et la normale sont colinéaires : le produit scalaire est maximal, traduisant un transfert maximal à travers la frontière.
+
+\paragraph{Démonstration géométrique par pavage (Extrapolation par le cube) : }
+Considérons un cube infinitésimal de dimensions $dx \cdot dy \cdot dz$. Calculons le flux d'un vecteur $\vec{A} = (A_x, A_y, A_z)$ sortant par ses 6 faces :
+\begin{itemize}
+    \item Sur la face droite (en $x+dx$), le flux sortant vaut $A_x(x+dx) \cdot dy \, dz$.
+    \item Sur la face gauche (en $x$), le flux entrant vaut $A_x(x) \cdot dy \, dz$.
+    \item Le bilan net sur l'axe $x$ est $\big(A_x(x+dx) - A_x(x)\big) dy \, dz \approx \frac{\partial A_x}{\partial x} dx \, dy \, dz$.
+\end{itemize}
+En sommant le même bilan sur les trois axes, le flux total sortant de ce mini-cube vaut exactement $\big(\frac{\partial A_x}{\partial x} + \frac{\partial A_y}{\partial y} + \frac{\partial A_z}{\partial z}\big) dx \, dy \, dz = (\vec{\nabla} \cdot \vec{A}) d\nu$. Le théorème est prouvé à l'échelle microscopique.
+
+Pour passer à un volume macroscopique quelconque, on remplit ce volume d'une infinité de ces minuscules cubes (comme un pavage). Lors de la somme des flux de tous les cubes, chaque face interne commune à deux cubes est une face de \textit{sortie} pour l'un et une face d'\textit{entrée} pour l'autre. \textbf{Les flux internes s'annulent donc deux à deux.} Les seules contributions rescapées de cette somme sont les faces n'ayant pas de voisin, c'est-à-dire celles situées sur la frontière extérieure ultime $\mathcal{S}$.
+
+\section{Le Théorème de Stokes}
+
+Ce théorème relie la circulation d'un champ le long d'une courbe fermée (un lacet) au flux de sa rotationnelle à travers une surface ouverte s'appuyant sur cette courbe.
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale : } \textit{Comment relier la tendance globale d'un fluide à tourner le long d'une grande boucle fermée à la somme des micro-rotations locales situées à l'intérieur de cette boucle ?}
+
+\begin{importantbox}{Théorème de Stokes}
+Soit $\mathcal{S}$ une surface ouverte de $\mathbb{R}^3$ bordée par une courbe fermée $\mathcal{C}$. Si le contour $\mathcal{C}$ est orienté positivement selon la règle de la main droite par rapport à la normale $\vec{n}$ de la surface, alors pour tout champ de vecteurs $\vec{A}$ :
+\[
+\int_{\mathcal{C}} \vec{A} \cdot d\vec{x} = \int_{\mathcal{S}} (\vec{\nabla} \times \vec{A}) \cdot \vec{n} \, dS
+\]
+\end{importantbox}
+
+\paragraph{Explication avec les mains (L'analogie des toupies sur la table) : }
+Le terme $\vec{\nabla} \times \vec{A}$ (le rotationnel) mesure la propension locale du fluide à tourner sur lui-même, comme une multitude de micro-toupies positionnées sur une table. La circulation $\int_{\mathcal{C}} \vec{A} \cdot d\vec{x}$ mesure la force avec laquelle le fluide balaie le grand contour extérieur. Le théorème indique que si vous additionnez la rotation de toutes les micro-toupies réparties sur la table, leurs frottements internes s'annulent mutuellement au centre, et la seule manifestation macroscopique restante est le grand mouvement tourbillonnaire tout autour du bord de la table.
+
+\paragraph{Démonstration géométrique par pavage (Extrapolation par le carré) : }
+À l'échelle microscopique d'un petit carré plat $dx \cdot dy$ dans le plan $(x,y)$, le calcul direct de la circulation d'un vecteur le long de ses quatre arêtes donne $\big(\frac{\partial A_y}{\partial x} - \frac{\partial A_x}{\partial y}\big) dx \, dy$, ce qui correspond exactement à la composante normale du rotationnel multipliée par la surface élémentaire. 
+
+Pour une surface courbe gauche quelconque, on peut la mailler en milliers de ces petits carrés élémentaires. Lorsqu'on fait la somme des circulations de chaque maille, les segments internes sont systématiquement parcourus deux fois dans des sens opposés par les mailles adjacentes. \textbf{Toutes les circulations internes s'annulent deux à deux}, ne laissant que la circulation le long du contour extérieur non partagé $\mathcal{C}$.
+
+\section{Le Théorème de Transport de Reynolds (RTT)}
+
+Ce théorème est l'outil de géométrie différentielle le plus spécifique à la mécanique des milieux continus. Il permet de calculer la dérivée temporelle d'une intégrale dont le domaine de définition est en mouvement et se déforme au cours du temps.
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale : } \textit{Comment varie une quantité scalaire ou vectorielle globale contenue au sein d'un nuage de fluide qui se déplace et se déforme dans l'espace ?}
+
+\begin{importantbox}{Théorème de Transport de Reynolds}
+Soit un domaine matériel mobile $\mathcal{D}(t)$ se déplaçant à la vitesse du fluide $\vec{U}$, et entouré par sa surface frontière $\mathcal{S}(t)$. Pour toute grandeur physique volumique $f(\vec{x},t)$, on a :
+\[
+\frac{d}{dt} \int_{\mathcal{D}(t)} f \, d\nu = \int_{\mathcal{D}(t)} \frac{\partial f}{\partial t} \, d\nu + \int_{\mathcal{S}(t)} f (\vec{U} \cdot \vec{n}) \, dS
+\]
+\end{importantbox}
+
+\paragraph{Explication avec les mains (L'analogie du bus scolaire) : }
+Imaginez un bus scolaire (le domaine matériel $\mathcal{D}(t)$) qui roule les portes ouvertes, de sorte que des élèves (la grandeur $f$) peuvent y grimper ou en sauter en marche. La variation du nombre total d'élèves à bord du bus dépend de deux contributions :
+\begin{itemize}
+    \item $\int_{\mathcal{D}(t)} \frac{\partial f}{\partial t} \, d\nu$ : Ce qui se passe \textbf{à l'intérieur}. L'évolution temporelle locale de la grandeur au sein même du volume (l'agitation interne).
+    \item $\int_{\mathcal{S}(t)} f (\vec{U} \cdot \vec{n}) \, dS$ : Ce qui se passe \textbf{aux frontières}. Le fait que le bus se déplace et balaie de l'espace lui fait englober de nouvelles zones à l'avant (gain) et abandonner des zones à l'arrière (perte) à travers sa surface frontière.
+\end{itemize}
+
+\paragraph{Démonstration géométrique par le volume fixe : }
+À un instant $t$ donné, considérons un volume fixe et immobile dans l'espace $\mathcal{V}_0$ qui coïncide exactement avec notre domaine fluide mouvant : $\mathcal{D}(t) = \mathcal{V}_0$. Un instant infinitésimal $dt$ plus tard, le domaine matériel s'est déplacé. Par rapport au volume fixe $\mathcal{V}_0$, il a abandonné une région à l'arrière (perte de volume) et a envahi une nouvelle région à l'avant (gain de volume).
+
+L'épaisseur locale du volume gagné ou perdu le long de la frontière pendant $dt$ est donnée par la distance parcourue par le fluide perpendiculairement à la paroi, soit $(\vec{U} \cdot \vec{n}) dt$. Le volume élémentaire balayé vaut donc $d\nu = (\vec{U} \cdot \vec{n}) dt \, dS$.
+
+En calculant la variation de l'intégrale entre $t$ et $t+dt$, on sépare le domaine à $t+dt$ en trois morceaux : le volume fixe intersecté, la région gagnée et la région perdue. En passant à la limite $dt \rightarrow 0$, la contribution de l'intersection fixe donne la dérivée sous le signe somme $\int_{\mathcal{V}_0} \frac{\partial f}{\partial t} d\nu$, tandis que les volumes balayés aux frontières font apparaître naturellement l'intégrale de surface du flux $\int_{\mathcal{S}_0} f (\vec{U} \cdot \vec{n}) dS$.
+
+\newpage
+
+% --- LE CHAPITRE 1 DEMEURE ENCHAÎNÉ EN SUITE DIRECTE ---
+\chapter{Cinématique et Conservation : Le Mouvement du Fluide}
+
+\section{Le Problème Moteur : La Lance d'Incendie}
+Pour aborder la mécanique des fluides, nous refusons de parachuter des concepts abstraits. Imaginons une situation concrète : une lance d'incendie de pompier reliée à une grosse conduite. L'eau voyage à vitesse modérée dans le tuyau principal, puis traverse un embout dont la section rétrécit brutalement (un convergent) avant d'être éjectée à grande vitesse à l'air libre.
+
+En observant ce système simple, deux évidences physiques sautent aux yeux :
+\begin{enumerate}
+    \item L'eau accélère de manière spectaculaire au passage du rétrécissement.
+    \item Si on se place à un endroit fixe à l'intérieur du rétrécissement, la vitesse de l'eau ne change pas au cours du temps (l'écoulement est établi), et pourtant l'eau subit bien une accélération puisqu'elle en ressort plus rapide qu'elle n'y est entrée.
+\end{enumerate}
+
+Ces observations simples posent les deux grandes questions de ce chapitre : Comment décrire proprement l'accélération d'une entité mobile depuis un repère fixe ? Et pourquoi le fluide est-il mathématiquement contraint d'accélérer lorsque l'espace se restreint ?
+
+\section{La Description du Mouvement et la Dérivée Matérielle}
+
+Pour suivre l'eau dans notre lance, nous adoptons \textbf{l'hypothèse du milieu continu} : nous étudions une « particule fluide », une gouttelette virtuelle assez petite pour être vue comme un point mathématique, mais assez grande pour contenir des millions de molécules et posséder des propriétés moyennes stables (vitesse, pression).
+
+\begin{defbox}{Les Points de Vue Eulérien et Lagrangien}
+En mécanique des fluides, deux observateurs s'affrontent :
+\begin{itemize}
+    \item \textbf{L'observateur Eulérien (Fixe) :} Il s'assied à un endroit précis de la conduite et regarde défiler les particules. Les propriétés du fluide dépendent de sa position fixe $\vec{x}$ et du temps $t$.
+    \item \textbf{L'observateur Lagrangien (Mobile) :} Il monte à bord d'une particule fluide et se laisse porter par le courant. Il suit l'historique d'une même particule au cours du temps.
+\end{itemize}
+\end{defbox}
+
+Le grand dilemme est le suivant : les lois fondamentales de la physique s'appliquent en suivant la matière (Lagrangien), mais les ingénieurs décrivent les champs à des coordonnées fixes dans l'espace (Eulérien). Pour relier ces points de vue, posons la construction mathématique suivante.
+
+Considérons une propriété du fluide, par exemple une grandeur scalaire $F$ (comme la température). Dans le système eulérien fixe, elle dépend de l'espace et du temps : $F(x, y, z, t)$. 
+
+Si nous montons à bord d'une particule fluide spécifique (point de vue lagrangien), sa position n'est plus indépendante du temps : elle suit une trajectoire spatiale que l'on peut noter $\vec{h}(t) = \big(x(t), y(t), z(t)\big)$. La valeur de la grandeur $F$ mesurée par cette particule au cours de son voyage devient la fonction composée d'une seule variable, le temps $t$ :
+\[
+F_{\text{Lag}}(t) = F\big(x(t), y(t), z(t), t\big) = F\big(\vec{h}(t), t\big)
+\]
+
+Pour calculer la variation de cette grandeur par unité de temps apparente pour notre particule, il suffit de dériver cette fonction composée par rapport à $t$, en appliquant la règle de dérivation en chaîne (chain rule) :
+\[
+\frac{d F_{\text{Lag}}}{dt} = \frac{\partial F}{\partial x}\frac{dx}{dt} + \frac{\partial F}{\partial y}\frac{dy}{dt} + \frac{\partial F}{\partial z}\frac{dz}{dt} + \frac{\partial F}{\partial t}\frac{dt}{dt}
+\]
+
+Or, par définition, les variations de la trajectoire par rapport au temps $\big(\frac{dx}{dt}, \frac{dy}{dt}, \frac{dz}{dt}\big)$ ne sont rien d'autre que les composantes $(u, v, w)$ du vecteur vitesse $\vec{U}$ du fluide. Nous pouvons donc réordonner cette égalité pour faire apparaître l'opérateur de dérivation matérielle.
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale : } \textit{Si je connais la carte des températures d'une pièce à des positions fixes, comment calculer algébriquement la variation thermique exacte que ressent un moustique en plein vol à travers cette pièce ?}
+
+\begin{importantbox}{La Dérivée Matérielle}
+Pour une grandeur scalaire quelconque $F(\vec{x},t)$ décrite dans le système Eulérien, son taux de variation temporel mesuré en suivant la particule fluide (système Lagrangien) est donné par la dérivée matérielle, notée $\frac{D}{Dt}$ :
+\[
+\frac{DF}{Dt} = \frac{\partial F}{\partial t} + u\frac{\partial F}{\partial x} + v\frac{\partial F}{\partial y} + w\frac{\partial F}{\partial z} = \frac{\partial F}{\partial t} + \vec{U} \cdot \vec{\nabla}F
+\]
+\end{importantbox}
+
+\paragraph{Explication avec les mains : }
+La variation totale ressentie par la particule mobile est la somme de deux effets physiques distincts :
+\begin{itemize}
+    \item $\frac{\partial F}{\partial t}$ est la \textbf{variation locale}. Le thermomètre fixe change de valeur parce le temps passe (on allume le radiateur de la pièce).
+    \item $\vec{U} \cdot \vec{\nabla}F$ est la \textbf{variation convective}. Le thermomètre embarqué par la particule change de valeur simplement parce qu'elle se déplace d'une zone froide vers une zone chaude, même si la température de la pièce est parfaitement constante dans le temps.
+\end{itemize}
+
+\paragraph{Tableau des variables : }
+\begin{center}
+\begin{tabular}{cll}
+\hline
+\textbf{Symbole} & \textbf{Désignation} & \textbf{Unité (SI)} \\ \hline
+$\frac{D}{Dt}$ & Opérateur de dérivation matérielle (temporelle suivie) & $s^{-1}$ \\
+$\frac{\partial}{\partial t}$ & Dérivée partielle locale (par rapport au temps fixe) & $s^{-1}$ \\
+$\vec{U} = (u,v,w)$ & Vecteur vitesse locale du fluide & $m \cdot s^{-1}$ \\
+$\vec{\nabla}$ & Opérateur gradient spatial & $m^{-1}$ \\
+$F$ & Grandeur physique étudiée (ex: température $T$) & Variable \\ \hline
+\end{tabular}
+\end{center}
+
+Dans notre lance d'incendie, si l'écoulement est établi, la vitesse de l'eau ne varie pas au cours du temps à un endroit donné ($\frac{\partial \vec{U}}{\partial t} = \vec{0}$). Pourtant, une particule d'eau subit bien une accélération féroce en traversant le convergent, décrite par la dérivation matérielle de la vitesse elle-même : $\vec{a} = \frac{D\vec{U}}{Dt} = (\vec{U} \cdot \vec{\nabla})\vec{U}$. Elle accélère par pure convection en plongeant dans une zone de plus haute vitesse.
+
+\section{La Conservation de la Masse et l'Équation de Continuité}
+
+Revenons à notre problème moteur : pourquoi l'eau accélère-t-elle obligatoirement dans le rétrécissement ? La raison est purement démographique : la matière doit se conserver. Pour écrire cette loi sous forme locale, il nous faut définir comment la masse transite dans l'espace.
+
+\subsection{La Notion de Flux de Masse \texorpdfstring{$\rho\vec{U}$}{rho U}}
+
+Avant d'établir l'équation globale, arrêtons-nous sur la quantité mathématique qui décrit le transport de la matière.
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale : } \textit{Comment mesurer la quantité de masse de fluide qui traverse une surface imaginaire par unité de temps ?}
+
+\begin{defbox}{Le Vecteur Flux de Masse}
+Le produit de la masse volumique $\rho$ et du vecteur vitesse $\vec{U}$ définit le vecteur \textbf{flux de masse} (ou densité de courant de masse), noté $\vec{J}_m$ :
+\[
+\vec{J}_m = \rho \vec{U}
+\]
+Le débit de masse $d\dot{m}$ traversant une surface élémentaire $dS$ d'orientation normale $\vec{n}$ est donné par le produit scalaire : $d\dot{m} = \rho \vec{U} \cdot \vec{n} \, dS$.
+\end{defbox}
+
+\paragraph{Explication avec les mains : }
+La vitesse $\vec{U}$ donne la direction et le rythme de la marche. La masse volumique $\rho$ donne la quantité de matière présente par unité de volume. Le produit $\rho \vec{U}$ représente donc la quantité de kilogrammes de fluide qui traversent une fenêtre de $1\,\text{m}^2$ positionnée perpendiculairement à l'écoulement pendant une seconde. Si le fluide va vite, ou s'il est très dense, le flux de masse est grand.
+
+\subsection{Démonstration : Du Macro au Micro (Théorème de Reynolds)}
+
+Bâtissons rigoureusement l'équation de conservation de la masse en partant d'une vision macroscopique globale pour converger vers notre particule fluide.
+
+Imaginons un \textbf{domaine matériel} $\mathcal{D}(t)$, c'est-à-dire un volume virtuel fermé qui se déplace avec le fluide et qui contient rigoureusement \textbf{toujours les mêmes particules} au cours du temps. Puisque ce domaine n'échange pas de matière avec l'extérieur, sa masse totale $M$ est constante. Son taux de variation temporelle est nul :
+\[
+\frac{dM}{dt} = \frac{d}{dt} \int_{\mathcal{D}(t)} \rho \, d\nu = 0
+\]
+
+Le problème mathématique est que les bornes de cette intégrale bougent et se déforment puisque le domaine $\mathcal{D}(t)$ suit le courant. Pour faire rentrer la dérivée temporelle sous l'intégrale, nous utilisons le \textbf{théorème de transport de Reynolds} appliqué à la masse volumique $\rho$ :
+\[
+\frac{d}{dt} \int_{\mathcal{D}(t)} \rho \, d\nu = \int_{\mathcal{D}(t)} \frac{\partial \rho}{\partial t} \, d\nu + \int_{\mathcal{S}(t)} \rho \vec{U} \cdot \vec{n} \, ds = 0
+\]
+Où $\mathcal{S}(t)$ est la surface fermée entourant notre volume. Le terme de droite représente le flux de masse net sortant à travers la frontière. Pour regrouper ces deux termes sous une unique intégrale, nous transformons l'intégrale de surface en intégrale de volume grâce au \textbf{théorème de la divergence} (Ostrogradsky) :
+\[
+\int_{\mathcal{S}(t)} (\rho \vec{U}) \cdot \vec{n} \, ds = \int_{\mathcal{D}(t)} \vec{\nabla} \cdot (\rho \vec{U}) \, d\nu
+\]
+
+En rassemblant le tout dans l'équation de bilan, on obtient la formulation macroscopique :
+\[
+\int_{\mathcal{D}(t)} \left[ \frac{\partial \rho}{\partial t} + \vec{\nabla} \cdot (\rho \vec{U}) \right] d\nu = 0
+\]
+
+\paragraph{La réduction à la particule fluide : }
+Cette intégrale doit être rigoureusement nulle pour \textbf{n'importe quel} volume matériel choisi $\mathcal{D}(t)$, qu'il soit gigantesque ou infiniment petit. En réduisant notre domaine d'étude aux dimensions microscopiques d'une unique particule fluide ($\mathcal{D}(t) \rightarrow d\nu$), la fonction située sous l'intégrale doit être obligatoirement nulle en chaque point de l'espace. Nous obtenons l'équation différentielle locale recherchée.
+
+\begin{importantbox}{L'Équation de Continuité}
+La conservation locale de la masse se traduit en tout point du fluide par la relation :
+\[
+\frac{\partial \rho}{\partial t} + \vec{\nabla} \cdot (\rho \vec{U}) = 0
+\]
+\end{importantbox}
+
+\paragraph{Explication avec les mains : }
+Considérons une petite boîte fixe. Le terme $\vec{\nabla} \cdot (\rho \vec{U})$ mesure la divergence du flux de masse, c'est-à-dire le bilan net entre ce qui sort de la boîte et ce qui y entre. Si la divergence est positive, il sort plus de matière qu'il n'en entre. Pour compenser ce déficit de matière, la masse volumique locale $\frac{\partial \rho}{\partial t}$ doit obligatoirement chuter au cours du temps.
+
+\subsection{L'Hypothèse de l'Incompressibilité}
+
+Pour l'eau de notre lance d'incendie (et pour l'air tant que les vitesses restent modérées), les forces mises en jeu ne parviennent pas à rapprocher significativement les molécules les unes des autres. On qualifie l'écoulement d'\textbf{incompressible}. Cela signifie qu'en suivant une particule de fluide dans son voyage, sa masse volumique reste invariante : $\frac{D\rho}{Dt} = 0$.
+
+Grâce à l'identité vectorielle de dérivation d'un produit ($\vec{\nabla} \cdot (\rho \vec{U}) = \vec{U} \cdot \vec{\nabla}\rho + \rho \vec{\nabla} \cdot \vec{U}$), nous pouvons réécrire l'équation de continuité générale sous la forme :
+\[
+\underbrace{\frac{\partial \rho}{\partial t} + \vec{U} \cdot \vec{\nabla}\rho}_{\frac{D\rho}{Dt}} + \rho (\vec{\nabla} \cdot \vec{U}) = 0
+\]
+Par conséquent, comme $\frac{D\rho}{Dt} = 0$, la conservation de la masse pour un écoulement incompressible se simplifie considérablement.
+
+\begin{importantbox}{Condition d'Incompressibilité}
+Un écoulement est dit géométriquement incompressible si et seulement si son champ de vitesse est à divergence nulle :
+\[
+\vec{\nabla} \cdot \vec{U} = 0
+\]
+\end{importantbox}
+
+\paragraph{L'explication physique définitive pour notre lance : }
+En coordonnées cartésiennes, cette relation donne $\frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} + \frac{\partial w}{\partial z} = 0$. Si on resserre les parois de la conduite selon les directions transverses $y$ et $z$, le fluide subit un écrasement spatial ($\frac{\partial v}{\partial y} < 0$ et $\frac{\partial w}{\partial z} < 0$). La seule et unique manière mathématique de maintenir la somme égale à zéro est d'avoir une extension vigoureuse dans la direction de la marche : $\frac{\partial u}{\partial x} > 0$. 
+
+\textbf{Le fluide est forcé d'accélérer vers l'avant pour évacuer la matière accumulée par le resserrement des parois.} La cinématique et les bilans de masse de notre problème moteur sont posés. Dans le prochain chapitre, nous chercherons à comprendre quelles forces (pression, gravité, frottements) orchestrent physiquement cette accélération.
+
+\chapter{Dynamique des Fluides : Modèles Parfaits et Réels}
+
+\section{Le Modèle Idéal : L'Équation d'Euler}
+
+Dans le chapitre précédent, nous avons vu que l'eau de notre lance d'incendie accélère fortement dans le convergent pour respecter la conservation de la masse. Mais qu'est-ce qui provoque physiquement cette accélération ? Pour le comprendre, isolons une particule d'eau et appliquons-y le principe fondamental de la dynamique ($m\vec{a} = \sum \vec{F}$), en supposant dans un premier temps qu'il n'existe aucun frottement interne.
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale : } \textit{Comment se traduit la loi d'inertie de Newton pour une particule de fluide qui ne subit aucun frottement ?}
+
+\begin{importantbox}{L'Équation d'Euler}
+Pour un fluide parfait (sans viscosité) de masse volumique $\rho$, soumis à un champ de pression $p$ et à la gravité $\vec{g}$, le champ de vitesse $\vec{U}$ vérifie en tout point l'équation différentielle locale suivante :
+\[
+\rho \frac{D\vec{U}}{Dt} = -\vec{\nabla} p + \rho \vec{g}
+\]
+\end{importantbox}
+
+\paragraph{Explication avec les mains : }
+Le terme de gauche, $\rho \frac{D\vec{U}}{Dt}$, est simplement la masse par unité de volume multipliée par l'accélération de la particule mobile. Cette accélération possède deux moteurs physiques :
+\begin{itemize}
+    \item $\rho \vec{g}$ : La force de gravité par unité de volume qui attire le fluide vers le bas.
+    \item $-\vec{\nabla} p$ : La force de pression par unité de volume. Le signe \textbf{moins} est crucial : il indique que le fluide est accéléré des zones de haute pression vers les zones de basse pression. C'est exactement ce qui se passe lorsque vous appuyez sur un tube de dentifrice : vos doigts créent une haute pression au fond, ce qui pousse et accélère la matière vers la sortie à basse pression.
+\end{itemize}
+
+\paragraph{Tableau des variables : }
+\begin{center}
+\begin{tabular}{cll}
+\hline
+\textbf{Symbole} & \textbf{Désignation} & \textbf{Unité (SI)} \\ \hline
+$\rho$ & Masse volumique du fluide & $kg \cdot m^{-3}$ \\
+$\frac{D\vec{U}}{Dt}$ & Vecteur accélération matérielle du fluide & $m \cdot s^{-2}$ \\
+$\vec{\nabla} p$ & Gradient de la pression spatiale & $Pa \cdot m^{-1}$ \\
+$\vec{g}$ & Vecteur accélération de la pesanteur & $m \cdot s^{-2}$ \\ \hline
+\end{tabular}
+\end{center}
+
+\section{La Conservation de l'Énergie : Le Théorème de Bernoulli}
+
+L'équation d'Euler reste complexe à résoudre à cause de son terme d'advection non-linéaire. Cependant, dans notre lance d'incendie, l'écoulement est installé et permanent (stationnaire, $\frac{\partial}{\partial t} = 0$). Si on choisit d'avancer le long d'une \textbf{ligne de courant}, c'est-à-dire de suivre le chemin géométrique tracé par une particule, une magie mathématique opère par intégration.
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale : } \textit{Comment se traduit la loi de conservation de l'énergie mécanique pour une particule de fluide en mouvement permanent ?}
+
+\begin{importantbox}{Le Théorème de Bernoulli}
+Pour un écoulement stationnaire, incompressible et sans frottement, la quantité suivante est rigoureusement constante le long de chaque ligne de courant :
+\[
+p + \frac{1}{2}\rho U^2 + \rho g z = \text{Constante}
+\]
+\end{importantbox}
+
+\paragraph{Explication avec les mains (Le jeu des vases communicants) : }
+Le théorème de Bernoulli n'est rien d'autre que la conservation de l'énergie mécanique, divisée par le volume de la particule. C'est une balance énergétique à trois plateaux :
+\begin{itemize}
+    \item $p$ représente l'énergie liée au travail des forces de pression (énergie statique).
+    \item $\frac{1}{2}\rho U^2$ représente l'énergie cinétique par unité de volume (énergie dynamique).
+    \item $\rho g z$ représente l'énergie potentielle de pesanteur (liée à l'altitude $z$).
+\end{itemize}
+Appliquons ce théorème à notre lance d'incendie à altitude constante ($z = \text{cst}$). Au niveau du rétrécissement, la géométrie force l'eau à accélérer. Son plateau « énergie cinétique » gagne un poids énorme. Pour maintenir la balance en équilibre parfait, le plateau « pression statique » est \textbf{obligé de s'effondrer}. C'est l'effet Venturi : une accélération du fluide s'accompagne toujours d'une baisse de pression.
+
+\section{La Réalité : Introduction de la Viscosité}
+
+Le modèle de fluide parfait (Euler et Bernoulli) explique magnifiquement l'accélération dans la lance, mais il souffre d'un défaut majeur : il suppose que l'eau glisse sans aucune résistance sur les parois solides. Or, dans le monde réel, si vous touchez la paroi interne de la conduite, vous constatez que l'eau y est fortement ralentie. Les molécules « collent » aux aspérités de la paroi et les couches de fluide frottent les unes contre les autres. C'est la \textbf{viscosité}.
+
+Pour modéliser mathématiquement ces forces complexes de frottement, nous devons faire évoluer nos outils de description selon la nature des grandeurs physiques.
+
+\subsection{L'évolution du besoin mathématique (Scalaire \texorpdfstring{$\rightarrow$}{->} Vecteur \texorpdfstring{$\rightarrow$}{->} Tenseur)}
+
+\begin{enumerate}
+    \item \textbf{Le Scalaire (Ordre 0) -- Une valeur suffit :} Si l'on cherche à mesurer la température $T$ ou la masse volumique $\rho$ en un point de notre conduite, un seul nombre suffit (par exemple $20^\circ\text{C}$ ou $1000\,\text{kg/m}^3$). C'est une grandeur purement quantitative, sans direction.
+    \item \textbf{Le Vecteur (Ordre 1) -- Une valeur et UNE direction :} Si l'on veut décrire la vitesse $\vec{U}$ de l'eau, une simple valeur numérique ne suffit plus. Il faut savoir à quel rythme le fluide se déplace, mais aussi \textbf{vers où} il se dirige. En trois dimensions, il nous faut 3 informations (les composantes $u, v, w$). Le vecteur relie une quantité à une direction de l'espace.
+    \item \textbf{Le Tenseur d'ordre 2 -- Une valeur associée à DEUX directions :} C'est ici que le frottement visqueux devient exigeant. Imaginez que vous vouliez décrire la force de friction qui s'exerce sur la face d'une petite particule cubique d'eau :
+    \begin{itemize}
+        \item Il vous faut une première direction : \textbf{Quelle est l'orientation de la face du cube ?} (Regarde-t-on la face du dessus, de droite, ou de devant ?). Cette orientation est donnée par le vecteur normal à la surface, $\vec{n}$.
+        \item Il vous faut une deuxième direction : \textbf{Dans quel sens la force tire-t-elle sur cette face ?} (Est-ce qu'elle appuie perpendiculairement, ou est-ce qu'elle frotte tangentiellement selon l'axe $x$, $y$ ou $z$ ?).
+    \end{itemize}
+\end{enumerate}
+
+Pour lier intrinsèquement ces deux directions, le formalisme vectoriel classique échoue. Il nous faut un outil capable de stocker des informations croisées : le \textbf{tenseur d'ordre 2}, que nous représentons simplement sous la forme d'un tableau carré à 9 composantes (une matrice $3 \times 3$).
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale : } \textit{Comment cartographier l'intégralité des forces de pression et de frottement qui s'exercent sur toutes les faces d'une particule fluide cubique ?}
+
+\begin{importantbox}{Le Tenseur des Contraintes $\overline{\overline{\sigma}}$}
+La force surfacique totale $\vec{T}$ s'exerçant sur une face d'orientation normale $\vec{n}$ est calculée par le produit matriciel : $\vec{T} = \overline{\overline{\sigma}} \cdot \vec{n}$. Dans un repère cartésien, ce tenseur se décompose en un terme de pression et un terme de frottement visqueux :
+\[
+\overline{\overline{\sigma}} = 
+\begin{pmatrix} 
+\sigma_{xx} & \tau_{xy} & \tau_{xz} \\ 
+\tau_{yx} & \sigma_{yy} & \tau_{yz} \\ 
+\tau_{zx} & \tau_{zy} & \sigma_{zz} 
+\end{pmatrix} 
+= \underbrace{\begin{pmatrix} -p & 0 & 0 \\ 0 & -p & 0 \\ 0 & 0 & -p \end{pmatrix}}_{\text{Pression thermodynamique}} 
++ \underbrace{\begin{pmatrix} \tau_{xx} & \tau_{xy} & \tau_{xz} \\ \tau_{yx} & \tau_{yy} & \tau_{yz} \\ \tau_{zx} & \tau_{zy} & \tau_{zz} \end{pmatrix}}_{\text{Contraintes visqueuses } \overline{\overline{\tau}}}
+\]
+\end{importantbox}
+
+\paragraph{Explication avec les mains (Comment lire cette matrice ?) : }
+Chaque case de ce tableau possède deux indices $ij$ (par exemple $\tau_{xy}$) : le premier indice ($i$) désigne la face du cube étudiée (la face perpendiculaire à l'axe $i$), et le second indice ($j$) donne la direction de la force qui agit sur cette face.
+\begin{itemize}
+    \item \textbf{Les termes diagonaux ($\sigma_{xx}, \sigma_{yy}, \sigma_{zz}$) :} Les deux directions sont identiques. La force appuie perpendiculairement à la face. C'est le domaine de la \textbf{pression}, qui pousse de la même manière sur toutes les faces (d'où la matrice identité multipliée par $-p$).
+    \item \textbf{Les termes hors-diagonaux ($\tau_{xy}, \tau_{yz}$, etc.) :} Les deux directions sont différentes. La force agit parallèlement à la face. C'est le \textbf{cisaillement}, c'est-à-dire le frottement visqueux pur qui apparaît lorsqu'une couche de fluide glisse sur une autre couche à une vitesse différente.
+\end{itemize}
+
+\subsection{Le Chaînon Manquant : L'Équation Globale de Cauchy}
+
+Pour comprendre comment ce tableau de nombres intervient concrètement dans le mouvement du fluide, appliquons la seconde loi de Newton ($m\vec{a} = \sum \vec{F}$) à notre milieu continu. Avant même de choisir si notre fluide est parfait ou visqueux, le bilan de quantité de mouvement local s'écrit de manière universelle.
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale : } \textit{Comment insérer la matrice complète des forces de surface dans le principe fondamental de la dynamique ?}
+
+\begin{importantbox}{Équation du Mouvement de Cauchy}
+Pour un milieu continu quelconque de masse volumique $\rho$ soumis à un champ de forces de surface décrit par le tenseur $\overline{\overline{\sigma}}$, l'équation d'évolution de la vitesse s'écrit :
+\[
+\rho \frac{D\vec{U}}{Dt} = \vec{\nabla} \cdot \overline{\overline{\sigma}} + \rho \vec{g}
+\]
+L'opérateur divergence appliqué à une matrice ($\vec{\nabla} \cdot \overline{\overline{\sigma}}$) génère un vecteur de force volumique.
+\end{importantbox}
+
+\subsection{Preuve « à la main » du terme d'Euler : Le Gradient de Pression (\texorpdfstring{$-\vec{\nabla}p$}{- nabla p})}
+
+Si on suppose que notre fluide ne frotte pas ($\overline{\overline{\tau}} = \overline{\overline{0}}$), l'équation de Cauchy doit nous redonner l'équation d'Euler. Démontrons géométriquement pourquoi la divergence de la matrice de pression donne le terme $-\vec{\nabla}p$.
+
+Isolons une petite particule fluide cubique de dimensions $dx \cdot dy \cdot dz$. Regardons uniquement les forces de pression agissant selon l'axe $x$. La pression pousse toujours vers l'intérieur du volume :
+\begin{itemize}
+    \item Sur la face gauche (située en $x$), la force pousse vers la droite ($+x$) et vaut : $F_{\text{gauche}} = p(x) \cdot dy \, dz$.
+    \item Sur la face droite (située en $x+dx$), la force pousse vers la gauche ($-x$) et vaut : $F_{\text{droite}} = -p(x+dx) \cdot dy \, dz$.
+\end{itemize}
+
+Faisons la somme de ces deux forces de surface sur l'axe $x$ :
+\[
+dF_x = \big(p(x) - p(x+dx)\big) \cdot dy \, dz
+\]
+En effectuant un développement de Taylor au premier ordre, les variations spatiales de la pression s'écrivent $p(x+dx) \approx p(x) + \frac{\partial p}{\partial x}dx$. En réinjectant cela dans le bilan, on obtient :
+\[
+dF_x = \left( p(x) - \left[ p(x) + \frac{\partial p}{\partial x}dx \right] \right) \cdot dy \, dz = -\frac{\partial p}{\partial x} \cdot \underbrace{dx \, dy \, dz}_{d\nu \text{ (le volume)}}
+\]
+Pour obtenir la force par unité de volume, on divise cette force par le volume $d\nu$ du cube : $f_x = -\frac{\partial p}{\partial x}$. En répétant rigoureusement la même opération sur les axes $y$ et $z$, la force volumique totale issue de la pression est le vecteur $-\vec{\nabla}p$.
+
+\subsection{La Loi de Comportement du Fluide Newtonien}
+Pour un fluide visqueux réel, Newton a posé l'hypothèse que la contrainte de frottement $\tau_{ij}$ est directement proportionnelle à la vitesse à laquelle on déforme le fluide. Mathématiquement, pour un fluide newtonien et incompressible, le tenseur des frottements $\overline{\overline{\tau}}$ est lié au \textbf{tenseur des taux de déformation} $\overline{\overline{D}}$ par :
+\[
+\overline{\overline{\tau}} = 2 \mu \overline{\overline{D}} \quad \text{avec} \quad D_{ij} = \frac{1}{2}\left( \frac{\partial u_i}{\partial x_j} + \frac{\partial u_j}{\partial x_i} \right)
+\]
+
+\section{Le Monument : L'Équation de Navier-Stokes}
+
+En injectant cette loi de frottement newtonienne dans l'équation de Cauchy, la divergence du tenseur visqueux ($\vec{\nabla} \cdot \overline{\overline{\tau}}$) se condense sous la forme d'un opérateur célèbre : le Laplacien de la vitesse ($\mu \vec{\nabla}^2 \vec{U}$).
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale : } \textit{Quelle est l'équation différentielle universelle qui gouverne la dynamique macroscopique d'un fluide réel et visqueux ?}
+
+\begin{importantbox}{L'Équation de Navier-Stokes (Incompressible)}
+Le champ de vitesse d'un fluide visqueux newtonien et incompressible obéit en tout point de l'espace à la relation générale suivante :
+\[
+\rho \left( \frac{\partial \vec{U}}{\partial t} + (\vec{U} \cdot \vec{\nabla})\vec{U} \right) = -\vec{\nabla} p + \mu \vec{\nabla}^2 \vec{U} + \rho \vec{g}
+\]
+\end{importantbox}
+
+\subsection{Preuve « à la main » du terme visqueux (\texorpdfstring{$\mu\vec{\nabla}^2\vec{U}$}{mu nabla2 U})}
+
+Pourquoi le frottement fait-il apparaître une dérivée spatiale seconde (le Laplacien) ? Démontrons-le de manière purement mécanique.
+
+Imaginons un écoulement simple où le fluide se déplace uniquement horizontalement selon l'axe $x$ avec une vitesse $u$, mais où cette vitesse change selon l'altitude $y$ : on a un profil de cisaillement $u(y)$. Isolons une petite tranche de fluide d'épaisseur $dy$ et de surface d'échange $dS$.
+
+\begin{enumerate}
+    \item La couche de fluide située juste \textbf{au-dessus} (en $y+dy$) se déplace plus vite. Par friction, elle \textbf{tire} notre tranche vers l'avant. Cette force de frottement est proportionnelle au gradient local de vitesse : $F_{\text{haut}} = +\mu \frac{\partial u}{\partial y}(y+dy) \cdot dS$.
+    \item La couche de fluide située juste \textbf{en-dessous} (en $y$) se déplace moins vite. Par friction, elle \textbf{retient} et freine notre tranche vers l'arrière. La force s'écrit : $F_{\text{bas}} = -\mu \frac{\partial u}{\partial y}(y) \cdot dS$.
+\end{enumerate}
+
+Faisons le bilan net de ces deux forces tangentielles sur notre tranche de fluide :
+\[
+dF_{\text{visqueuse}} = \mu \left[ \frac{\partial u}{\partial y}(y+dy) - \frac{\partial u}{\partial y}(y) \right] \cdot dS
+\]
+L'expression entre crochets représente la variation de la dérivée première de la vitesse sur une distance $dy$. Par définition fondamentale du calcul différentiel, la différence d'une dérivée première est égale à la dérivée seconde multipliée par l'intervalle : $\frac{\partial u}{\partial y}(y+dy) - \frac{\partial u}{\partial y}(y) \approx \frac{\partial^2 u}{\partial y^2} \cdot dy$. 
+
+En réinjectant cette identité dans notre bilan, on trouve :
+\[
+dF_{\text{visqueuse}} = \mu \frac{\partial^2 u}{\partial y^2} \cdot \underbrace{dy \cdot dS}_{d\nu \text{ (le volume)}}
+\]
+En divisant par le volume $d\nu$ pour obtenir la force par unité de volume, il reste : $f_{\text{visqueuse}} = \mu \frac{\partial^2 u}{\partial y^2}$. En généralisant cette démonstration aux trois dimensions de l'espace, la somme de ces dérivées secondes spatiales donne naissance au \textbf{Laplacien du champ de vitesse} ($\mu \vec{\nabla}^2 \vec{U}$).
+
+\paragraph{Explication avec les mains (Le bilan des forces) : }
+L'équation de Navier-Stokes est une magnifique balance équilibrée où le Laplacien joue le rôle d'un \textbf{lisseur de vitesse}. Si une particule d'eau va plus vite que ses voisines (courbure de vitesse négative, dérivée seconde négative), le terme visqueux va agir comme un frein. Si elle est en retard, ses voisines la tirent vers l'avant. Ce terme dissipe l'énergie mécanique sous forme de chaleur par pure friction.
+
+\paragraph{La conséquence majeure aux frontières (L'adhérence) : }
+L'introduction de ce terme visqueux modifie radicalement les conditions aux limites par rapport au modèle d'Euler. À cause des frottements microscopiques, le fluide ne peut plus glisser le long d'un solide. Il s'accroche aux parois : c'est la \textbf{condition de non-glissement}. Pile sur la paroi interne de notre lance d'incendie, la vitesse de l'eau est rigoureusement nulle : $U_{\text{paroi}} = 0$. La vitesse passe ensuite de $0$ à sa valeur maximale au centre du tuyau sur une fine zone de transition appelée \textbf{couche limite}.
+
+\section{Les Conditions aux Limites : Le Cadrage du Problème}
+
+Les équations de Navier-Stokes ou d'Euler décrivent comment le fluide se comporte \textbf{à l'intérieur} du domaine. Cependant, ces équations différentielles possèdent une infinité de solutions mathématiques. Pour résoudre un problème physique concret, comme notre lance d'incendie, ce sont \textbf{les conditions aux limites (CAL)} imposées aux frontières qui sélectionnent l'unique solution réelle.
+
+\subsection{La philosophie générale : L'analogie du moule}
+Les équations de Navier-Stokes sont rigoureusement les mêmes pour de l'eau qui coule dans une lance de pompier, autour d'une aile d'avion ou dans une conduite industrielle. Ce qui donne sa forme et sa structure unique à un écoulement, c'est la frontière. Les conditions aux limites constituent le « moule » géométrique et mécanique dans lequel le fluide est contraint de s'adapter. 
+
+Dans notre problème moteur, le fluide rencontre deux types de frontières : les parois solides (le tube) et les frontières ouvertes (l'entrée et la sortie). Pour les traduire mathématiquement, on décompose le vecteur vitesse du fluide à la frontière en deux composantes : une vitesse normale $U_n = \vec{U} \cdot \vec{n}$ (perpendiculaire à la limite) et une vitesse tangentielle $U_t = \vec{U} \cdot \vec{t}$ (le long de la limite).
+
+\subsection{1. Sur les Parois Solides Immobiles}
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale : } \textit{Comment traduire mathématiquement le fait qu'un fluide ne peut ni traverser un mur solide, ni glisser dessus s'il est visqueux ?}
+
+\begin{importantbox}{Conditions aux Parois Solides}
+Sur une paroi solide rigide, imperméable et immobile, le champ de vitesse doit vérifier :
+\begin{enumerate}
+    \item \textbf{La condition d'imperméabilité} (Modèles d'Euler et de Navier-Stokes) :
+    \[
+    \vec{U} \cdot \vec{n} = 0
+    \]
+    \item \textbf{La condition d'adhérence / non-glissement} (Uniquement pour Navier-Stokes) :
+    \[
+    \vec{U} \cdot \vec{t} = 0 \quad \Longrightarrow \quad \vec{U}_{\text{paroi}} = \vec{0}
+    \]
+\end{enumerate}
+\end{importantbox}
+
+\paragraph{Explication avec les mains : }
+\begin{itemize}
+    \item \textbf{L'imperméabilité ($\vec{U} \cdot \vec{n} = 0$) :} La composante perpendiculaire à la paroi doit être nulle. Si elle était positive, le fluide s'injecterait à l'intérieur du matériau solide. Si elle était négative, le fluide se décollerait instantanément en créant du vide. L'eau est donc géométriquement contrainte de s'écouler parallèlement au mur.
+    \item \textbf{L'adhérence ($\vec{U}_{\text{paroi}} = \vec{0}$) :} C'est le point de rupture entre le fluide parfait (Euler) et le fluide réel (Navier-Stokes). À cause des forces d'attraction intermoléculaires (Van der Waals) et de la rugosité microscopique, les premières lignes de molécules de fluide se font littéralement piéger et encastrer dans les cavités atomiques de la paroi solide. Le fluide parfait d'Euler a le droit de glisser le long de la paroi, mais le fluide réel de Navier-Stokes y est \textbf{totalement immobilisé}.
+\end{itemize}
+
+\subsection{2. La conséquence physique : Le Profil de Vitesse}
+
+L'existence de cette condition d'adhérence donne immédiatement naissance à la notion de \textbf{profil de vitesse}. Puisque la vitesse de l'eau est obligatoirement nulle sur la paroi interne de la lance d'incendie ($U=0$), mais qu'elle est maximale au centre de la conduite pour assurer le débit, la vitesse doit varier continûment en fonction du rayon $r$ du tube. 
+
+Le profil de vitesse est la cartographie graphique de cette transition. En régime laminaire permanent, la résolution des termes visqueux de Navier-Stokes avec cette condition de non-glissement montre que la vitesse adopte un profil parabolique (écoulement de Poiseuille) : le fluide forme une « pointe » de vitesse au centre, tandis qu'il est freiné par des forces de cisaillement intenses à l'approche des bords.
+
+\subsection{3. Sur les Frontières Ouvertes (Entrée et Sortie)}
+
+Pour fermer notre problème mathématique, il faut spécifier comment le fluide interagit avec le reste du monde aux extrémités de notre lance d'incendie.
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale : } \textit{Comment modéliser l'injection forcée du fluide par une pompe et sa libération à l'air libre ?}
+
+\begin{importantbox}{Conditions d'Entrée et de Sortie}
+Pour un écoulement confiné, les conditions aux limites ouvertes les plus classiques sont :
+\begin{enumerate}
+    \item \textbf{À l'Entrée (Condition de Dirichlet) :} On impose le profil de vitesse de l'eau arrivant de la pompe (vitesse uniforme $U_0$ ou débit-masse imposé $\dot{m}$) :
+    \[
+    \vec{U}_{\text{entrée}} = \vec{U}_0
+    \]
+    \item \textbf{À la Sortie (Condition de Pression Libre) :} Le jet d'eau quitte la lance et débouche à l'air libre. L'atmosphère impose sa pression mécanique sur la section de sortie :
+    \[
+    p_{\text{sortie}} = p_{\text{atm}}
+    \]
+\end{enumerate}
+\end{importantbox}
+
+\paragraph{Explication avec les mains : }
+À l'entrée, la pompe impose l'énergie cinétique initiale du système. À la sortie, le fluide n'est plus guidé par des parois, il est immergé dans l'air ambiant. Comme l'air est très peu dense par rapport à l'eau, il est incapable de retenir le jet, mais il impose sa signature thermodynamique : la pression statique à la section de sortie s'égalise immédiatement avec la pression atmosphérique ambiante.
+
+\textbf{Bilan : } En associant l'équation de Navier-Stokes aux conditions d'imperméabilité et d'adhérence sur les parois solides, de vitesse imposée en entrée, et de pression libre en sortie, le piège mathématique est refermé. L'écoulement de notre lance d'incendie est entièrement et uniquement déterminé.
+
+% ============================================================
+%  SECTION : Le tenseur gradient de vitesse et sa décomposition
+% ============================================================
+%  À inclure dans un document LaTeX avec au minimum :
+%  \usepackage{amsmath}, \usepackage{amssymb}, \usepackage{bm}
+% ============================================================
+
+\section{Tenseur gradient de vitesse et décomposition}
+
+\subsection{Pourquoi un tenseur ?}
+
+Le champ de vitesse $\bm{U}$ est un vecteur de composantes $U_i$
+($i = 1, 2, 3$). Son gradient est obtenu en dérivant \emph{chaque
+composante} par rapport à \emph{chaque direction de l'espace} :
+
+\begin{equation}
+    \frac{\partial U_i}{\partial x_j}
+    \qquad i,j \in \{1,2,3\}
+\end{equation}
+
+On obtient un tableau $3\times 3 = 9$ termes, soit un
+\textbf{tenseur d'ordre~2} :
+
+\begin{equation}
+    \frac{\partial U_i}{\partial x_j}
+    =
+    \begin{pmatrix}
+        \dfrac{\partial U_1}{\partial x_1} &
+        \dfrac{\partial U_1}{\partial x_2} &
+        \dfrac{\partial U_1}{\partial x_3} \\[10pt]
+        \dfrac{\partial U_2}{\partial x_1} &
+        \dfrac{\partial U_2}{\partial x_2} &
+        \dfrac{\partial U_2}{\partial x_3} \\[10pt]
+        \dfrac{\partial U_3}{\partial x_1} &
+        \dfrac{\partial U_3}{\partial x_2} &
+        \dfrac{\partial U_3}{\partial x_3}
+    \end{pmatrix}
+\end{equation}
+
+Chaque terme $(i,j)$ répond à la question : \og{}la composante~$i$
+de la vitesse varie-t-elle dans la direction~$j$~?\fg{}
+
+% ------------------------------------------------------------
+\subsection{Décomposition symétrique / antisymétrique}
+
+Tout tenseur $A_{ij}$ se décompose de façon unique en une partie
+\textbf{symétrique} et une partie \textbf{antisymétrique} :
+
+\begin{equation}
+    A_{ij}
+    = \underbrace{\frac{A_{ij}+A_{ji}}{2}}_{\text{symétrique}}
+    + \underbrace{\frac{A_{ij}-A_{ji}}{2}}_{\text{antisymétrique}}
+\end{equation}
+
+Appliqué au tenseur gradient de vitesse, on obtient :
+
+\begin{equation}
+\boxed{
+    \frac{\partial U_i}{\partial x_j}
+    = D_{ij} + \Omega_{ij}
+}
+\end{equation}
+
+avec
+
+\begin{align}
+    D_{ij}
+    &= \frac{1}{2}\!\left(
+        \frac{\partial U_i}{\partial x_j}
+        +\frac{\partial U_j}{\partial x_i}
+       \right)
+    \label{eq:Dij}
+    \\[6pt]
+    \Omega_{ij}
+    &= \frac{1}{2}\!\left(
+        \frac{\partial U_i}{\partial x_j}
+        -\frac{\partial U_j}{\partial x_i}
+       \right)
+    \label{eq:Omegaij}
+\end{align}
+
+% ------------------------------------------------------------
+\subsection{Tenseur des taux de déformation \texorpdfstring{$D_{ij}$}{Dij}}
+
+$D_{ij}$ est \textbf{symétrique} ($D_{ij} = D_{ji}$). Il contient
+deux types d'information :
+
+\begin{itemize}
+    \item \textbf{Termes diagonaux} $D_{ii}$ (pas de sommation) :
+          taux d'\emph{élongation} (ou compression) dans la
+          direction~$x_i$.
+    \item \textbf{Termes hors-diagonale} $D_{ij}$, $i\neq j$ :
+          taux de \emph{cisaillement pur}.
+          Par exemple :
+          \begin{equation}
+              D_{12}
+              = \frac{1}{2}\!\left(
+                  \frac{\partial U_1}{\partial x_2}
+                  +\frac{\partial U_2}{\partial x_1}
+                \right)
+          \end{equation}
+\end{itemize}
+
+$D_{ij}$ décrit comment une particule fluide se \textbf{déforme}
+(change de forme) indépendamment de toute rotation. C'est ce
+tenseur qui apparaît dans la loi de comportement du fluide
+newtonien :
+
+\begin{equation}
+    \tau_{ij} = 2\mu D_{ij}
+\end{equation}
+
+où $\mu$ est la viscosité dynamique moléculaire.
+
+% ------------------------------------------------------------
+\subsection{Tenseur de rotation \texorpdfstring{$\Omega_{ij}$}{Omegaij} et vorticité}
+
+$\Omega_{ij}$ est \textbf{antisymétrique} ($\Omega_{ij} =
+-\Omega_{ji}$), donc ses termes diagonaux sont nuls
+($\Omega_{ii} = 0$). Il ne possède que \textbf{3 composantes
+indépendantes}, qui correspondent exactement aux composantes du
+vecteur vorticité $\bm{\omega} = \nabla\times\bm{U}$ :
+
+\begin{equation}
+    \omega_k = \varepsilon_{kij}\,\frac{\partial U_j}{\partial x_i}
+    \qquad \Longleftrightarrow \qquad
+    \bm{\omega} = \nabla\times\bm{U}
+\end{equation}
+
+Explicitement :
+
+\begin{align}
+    \omega_1 &= 2\Omega_{23}
+               = \frac{\partial U_3}{\partial x_2}
+               - \frac{\partial U_2}{\partial x_3}
+    \\[4pt]
+    \omega_2 &= 2\Omega_{31}
+               = \frac{\partial U_1}{\partial x_3}
+               - \frac{\partial U_3}{\partial x_1}
+    \\[4pt]
+    \omega_3 &= 2\Omega_{12}
+               = \frac{\partial U_2}{\partial x_1}
+               - \frac{\partial U_1}{\partial x_2}
+\end{align}
+
+$\Omega_{ij}$ décrit la \textbf{rotation locale} d'une particule
+fluide sur elle-même (comme une toupie), sans déformation.
+
+% ------------------------------------------------------------
+\subsection{Lien entre cisaillement et vorticité}
+
+Le cisaillement et la vorticité sont deux notions \emph{distinctes}
+mais \emph{liées}. Considérons l'exemple d'un cisaillement simple :
+
+\begin{equation}
+    U_1 = \alpha\, x_2, \qquad U_2 = U_3 = 0
+\end{equation}
+
+Le tenseur gradient de vitesse vaut :
+
+\begin{equation}
+    \frac{\partial U_i}{\partial x_j}
+    =
+    \begin{pmatrix}
+        0 & \alpha & 0 \\
+        0 & 0      & 0 \\
+        0 & 0      & 0
+    \end{pmatrix}
+\end{equation}
+
+Sa décomposition donne :
+
+\begin{equation}
+    D_{ij}
+    =
+    \begin{pmatrix}
+        0          & \alpha/2 & 0 \\
+        \alpha/2   & 0        & 0 \\
+        0          & 0        & 0
+    \end{pmatrix}
+    \qquad
+    \Omega_{ij}
+    =
+    \begin{pmatrix}
+        0           & \alpha/2 & 0 \\
+        -\alpha/2   & 0        & 0 \\
+        0           & 0        & 0
+    \end{pmatrix}
+\end{equation}
+
+La vorticité vaut $\omega_3 = -\alpha \neq 0$ : un écoulement
+purement cisaillé possède bien de la vorticité. Une particule
+fluide y subit simultanément une \emph{déformation} (via $D_{ij}$)
+et une \emph{rotation} (via $\Omega_{ij}$), à parts égales.
+
+\begin{table}[h]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{lll}
+\hline
+                    & \textbf{Cisaillement / $D_{ij}$}
+                    & \textbf{Vorticité / $\Omega_{ij}$} \\
+\hline
+Définition          & Partie symétrique de $\partial U_i/\partial x_j$
+                    & Partie antisymétrique de $\partial U_i/\partial x_j$ \\
+Mesure              & Déformation de la particule fluide
+                    & Rotation locale de la particule fluide \\
+Lien avec $\bm{\omega}$ & ---
+                    & $\omega_k = 2\,\Omega_{(k)}$ \\
+Rôle en turbulence  & Produit l'énergie turbulente (terme $\mathcal{P}$)
+                    & Gouverne la dynamique des tourbillons \\
+\hline
+\end{tabular}
+\caption{Comparaison entre cisaillement et vorticité.}
+\label{tab:cisaillement_vorticite}
+\end{table}
+
+\begin{remark}
+    Un écoulement peut être fortement cisaillé sans être turbulent
+    (écoulement laminaire de Couette). En revanche, dans la couche
+    de cisaillement d'un jet, le gradient de vitesse devient
+    suffisamment intense pour déclencher des instabilités, former
+    des tourbillons (vorticité), et conduire à la turbulence.
+\end{remark}
+
+\chapter{Analyse Dimensionnelle, Similitude et Écoulements Modèles}
+
+L'équation de Navier-Stokes établie au chapitre précédent est un chef-d'œuvre de la physique, mais elle est presque impossible à résoudre de manière exacte pour des écoulements réels complexes. Pour l'ingénieur centralien, un défi se pose : comment comprendre la physique d'un écoulement et concevoir des systèmes sans pouvoir résoudre directement ses équations maîtresse ? C'est le rôle de l'analyse dimensionnelle et de la similitude.
+
+\section{Le Problème Moteur : La Maquette en Similitude}
+
+Pour concevoir la lance d'incendie optimale, un ingénieur veut étudier la structure des tourbillons et mesurer les pertes de charge dans le convergent. Fabriquer des dizaines de prototypes réels en acier de grande taille coûte extrêmement cher. L'ingénieur décide donc de construire une maquette en plastique \textbf{5 fois plus petite} (Échelle $1/5$).
+
+La grande question est la suivante : \textit{Si l'on fait couler de l'eau dans cette petite maquette, quelle vitesse faut-il imposer en entrée pour que l'écoulement miniature soit rigoureusement identique (les mêmes formes de tourbillons, la même structure de couche limite) à celui de la vraie lance ?} Si l'on garde la même vitesse, l'écoulement sera-t-il une simple réduction proportionnelle ? La réponse est non, et la physique va nous expliquer pourquoi.
+
+\section{L'Adimensionnement : Du Réel au Relatif}
+
+Pour comprendre ce que signifie mathématiquement « adimensionner », oublions un instant la mécanique des fluides et prenons une image concrète.
+
+\paragraph{L'analogie du géant et du nain : }
+Imaginez que vous deviez comparer la vitesse de déplacement d'un géant de 5 mètres et d'un nain de 50 centimètres. Le géant marche à $U_g = 5\,\text{m/s}$ et le nain court à $U_n = 1\,\text{m/s}$. Si vous gardez les unités du système international (les mètres et les secondes), vous direz simplement : « Le géant est 5 fois plus rapide ». C'est une vérité brute, mais elle est pauvre. Elle ne dit pas si le nain est agile ou si le géant est lourd.
+
+Pour faire de la vraie physique, changeons de regard. Décidons de mesurer les distances non pas en mètres, mais \textbf{en nombre de fois la taille de l'individu} (notre échelle de référence $L$) :
+\begin{itemize}
+    \item Pour le géant ($L_g = 5\,\text{m}$), sa vitesse adimensionnelle (notée $U^*$, sans unité) vaut : $5\,\text{m/s} / 5\,\text{m} = \mathbf{1\,\text{taille/seconde}}$.
+    \item Pour le nain ($L_n = 0{,}5\,\text{m}$), sa vitesse adimensionnelle $U^*$ vaut : $1\,\text{m/s} / 0{,}5\,\text{m} = \mathbf{2\,\text{tailles/seconde}}$.
+\end{itemize}
+En effaçant l'effet d'échelle pure (les mètres) pour ne regarder que la dynamique relative à la géométrie, on découvre que le nain court deux fois plus vite que le géant par rapport à sa propre taille. 
+
+C'est exactement ce que nous allons faire avec l'équation de Navier-Stokes. Nous allons remplacer les variables réelles ($x, \vec{U}, p$) par des variables « étoiles » ($^*$) qui mesurent des pourcentages ou des proportions par rapport à deux étalons choisis pour notre système : une \textbf{taille de référence $L$} (le diamètre du tube) et une \textbf{vitesse de référence $U_0$} (la vitesse d'entrée).
+
+Définissons nos variables adimensionnelles :
+\begin{itemize}
+    \item \textbf{L'espace adimensionnel :} $\vec{x}^* = \frac{\vec{x}}{L} \implies \vec{x} = L \cdot \vec{x}^*$. Si $x^*$ vaut $0{,}5$, cela signifie « je me situe pile à la moitié du diamètre du tube », que le tube fasse 10 mètres ou 2 millimètres. L'opérateur gradient se transforme en : $\vec{\nabla}^* = L \vec{\nabla} \implies \vec{\nabla} = \frac{1}{L}\vec{\nabla}^*$.
+    \item \textbf{La vitesse adimensionnelle :} $\vec{U}^* = \frac{\vec{U}}{U_0} \implies \vec{U} = U_0 \cdot \vec{U}^*$.
+    \item \textbf{La pression adimensionnelle :} On la normalise par la pression dynamique de référence : $p^* = \frac{p}{\rho U_0^2} \implies p = \rho U_0^2 \cdot p^*$.
+\end{itemize}
+
+\subsection{Preuve « à la main » : La naissance du Nombre de Reynolds}
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale : } \textit{Que devient l'équation locale de Navier-Stokes lorsqu'on efface l'ensemble de ses unités physiques ?}
+
+Prenons l'équation de Navier-Stokes stationnaire et incompressible établie au chapitre précédent, en omettant temporairement la gravité pour isoler le duel entre l'inertie et la viscosité :
+\[
+\rho (\vec{U} \cdot \vec{\nabla})\vec{U} = -\vec{\nabla} p + \mu \vec{\nabla}^2 \vec{U}
+\]
+Remplaçons chaque variable réelle par son expression « étoile » adimensionnelle :
+\[
+\rho \left( U_0 \vec{U}^* \cdot \frac{1}{L}\vec{\nabla}^* \right) (U_0 \vec{U}^*) = -\left( \frac{1}{L}\vec{\nabla}^* \right) (\rho U_0^2 p^*) + \mu \left( \frac{1}{L^2}\vec{\nabla}^{*2} \right) (U_0 \vec{U}^*)
+\]
+En extrayant les constantes scalaires hors des opérateurs différentiels, nous obtenons :
+\[
+\left( \frac{\rho U_0^2}{L} \right) (\vec{U}^* \cdot \vec{\nabla}^*)\vec{U}^* = -\left( \frac{\rho U_0^2}{L} \right) \vec{\nabla}^* p^* + \left( \frac{\mu U_0}{L^2} \right) \vec{\nabla}^{*2} \vec{U}^*
+\]
+Pour nettoyer le membre de gauche et isoler le terme d'inertie pure, divisons l'intégralité de l'équation par le bloc scalaire de gauche $\left( \frac{\rho U_0^2}{L} \right)$ :
+\[
+\vec{U}^* \cdot \vec{\nabla}^*\vec{U}^* = -\vec{\nabla}^* p^* + \left[ \frac{\frac{\mu U_0}{L^2}}{\frac{\rho U_0^2}{L}} \right] \vec{\nabla}^{*2} \vec{U}^*
+\]
+En simplifiant la fraction entre crochets, les grandeurs physiques se condensent en un unique groupe adimensionnel inversé placé devant le terme visqueux.
+
+\begin{importantbox}{L'Équation de Navier-Stokes Adimensionnelle}
+Le champ de vitesse adimensionnel d'un écoulement incompressible est gouverné par la relation purement mathématique suivante :
+\[
+(\vec{U}^* \cdot \vec{\nabla}^*)\vec{U}^* = -\vec{\nabla}^* p^* + \frac{1}{Re} \vec{\nabla}^{*2} \vec{U}^*
+\]
+Où le nombre sans dimension $Re$ est le \textbf{Nombre de Reynolds} : $Re = \frac{\rho U_0 L}{\mu}$.
+\end{importantbox}
+
+\section{Le Sens Physique Absolu de \texorpdfstring{$Re$}{Re} et la Similitude}
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale : } \textit{Pourquoi le nombre de Reynolds est-il le curseur universel qui dicte la forme et le régime d'un écoulement ?}
+
+Le nombre de Reynolds représente le rapport de force exact entre deux effets physiques qui se disputent le contrôle du fluide :
+\[
+Re = \frac{\text{Forces d'Inertie}}{\text{Forces Visqueuses}}
+\]
+\begin{itemize}
+    \item \textbf{L'Inertie (le numérateur $\rho U_0 L$) :} C'est la force cinétique de la matière en mouvement. Elle représente l'envie qu'a le fluide de continuer tout droit, de percuter les obstacles, d'apporter du chaos, de l'agitation et du désordre.
+    \item \textbf{La Viscosité (le dénominateur $\mu$) :} C'est la friction interne, le frein du fluide. Elle agit comme un médiateur stabilisateur : elle amortit les perturbations, diffuse les écarts de vitesse et force le fluide à rester ordonné en dissipant l'agitation sous forme de chaleur.
+\end{itemize}
+
+\paragraph{La règle de la similitude pour notre maquette : }
+Regardez bien l'équation adimensionnelle : elle ne contient plus de mètres, plus de kilogrammes, plus de taille $L$ isolée ni de viscosité $\mu$ isolée. Il n'y a plus qu'un seul curseur : $Re$. 
+
+Cela signifie que si la vraie lance d'incendie et la petite maquette possèdent \textbf{le même nombre de Reynolds}, elles obéissent rigoureusement à la même équation mathématique. Leurs écoulements seront des photocopies conformes, simplement zoomées. Pour notre maquette 5 fois plus petite ($L$ divisé par 5), si l'on utilise le même fluide, on est \textbf{obligé d'injecter l'eau 5 fois plus vite} ($U_0$ multiplié par 5) pour maintenir $Re$ constant et assurer la similitude dynamique.
+
+\section{Un Écoulement Modèle Résolu : L'Écoulement de Poiseuille 1D}
+
+Pour comprendre comment Navier-Stokes et les conditions aux limites se traduisent concrètement par le calcul, étudions l'écoulement modèle le plus célèbre de la mécanique des fluides : **l'écoulement de Poiseuille**. Il s'agit de l'écoulement de l'eau dans une section droite de notre conduite, très loin du convergent.
+
+\subsection{Les hypothèses de modélisation 1D}
+Considérons l'eau s'écoulant de manière stationnaire entre deux plaques planes infinies et fixes, espacées d'une distance $2h$ selon l'axe $y$. L'écoulement se fait selon l'axe horizontal $x$.
+\begin{itemize}
+    \item \textbf{Écoulement unidirectionnel : } Le fluide va uniquement vers l'avant : $\vec{U} = (u, 0, 0)$.
+    \item \textbf{Écoulement développé : } La conduite est très longue, le fluide a oublié l'entrée, le profil ne varie plus selon $x$ : $\frac{\partial u}{\partial x} = 0$. (L'équation de continuité $\vec{\nabla} \cdot \vec{U} = \frac{\partial u}{\partial x} = 0$ valide rigoureusement cela). La vitesse ne dépend donc que de l'altitude : $u = u(y)$.
+\end{itemize}
+
+\subsection{La résolution « à la main » de Navier-Stokes}
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale : } \textit{Comment se simplifie l'équation de Navier-Stokes sous ces hypothèses géométriques strictes ?}
+
+Projetons l'équation de Navier-Stokes sur l'axe de la marche $x$ :
+\[
+\rho \left( \cancel{\frac{\partial u}{\partial t}} + u \cancel{\frac{\partial u}{\partial x}} + \cancel{v \frac{\partial u}{\partial y}} + \cancel{w \frac{\partial u}{\partial z}} \right) = -\frac{\partial p}{\partial x} + \mu \left( \cancel{\frac{\partial^2 u}{\partial x^2}} + \frac{\partial^2 u}{\partial y^2} + \cancel{\frac{\partial^2 u}{\partial z^2}} \right)
+\]
+
+Le terme d'accélération convective s'annule complètement. \textbf{L'inertie est nulle.} L'équation se résume à un équilibre parfait entre la force de poussée du gradient de pression et la force de freinage visqueux :
+\[
+\mu \frac{d^2 u}{dy^2} = \frac{\partial p}{\partial x}
+\]
+Comme la vitesse ne dépend que de $y$ et que la pression ne dépend que de $x$ (pour pousser le fluide), le terme $\frac{\partial p}{\partial x}$ est obligatoirement une constante négative, notée $G = \frac{\partial p}{\partial x}$ (le gradient de pression constant appliqué par la pompe). Intégrons deux fois cette équation différentielle simple par rapport à $y$ :
+\begin{enumerate}
+    \item Première intégration (le gradient de vitesse) : $\mu \frac{du}{dy} = G \cdot y + C_1$
+    \item Deuxième intégration (la vitesse) : $u(y) = \frac{G}{2\mu} y^2 + C_1 y + C_2$
+\end{enumerate}
+
+\subsection{L'application des conditions aux limites}
+Pour déterminer les constantes $C_1$ et $C_2$, nous utilisons la condition d'adhérence aux parois codée à la fin du Chapitre 2. Les parois fixes sont situées en $y = +h$ (le haut) et $y = -h$ (le bas) :
+\begin{itemize}
+    \item $u(+h) = 0 \implies \frac{G}{2\mu} h^2 + C_1 h + C_2 = 0$
+    \item $u(-h) = 0 \implies \frac{G}{2\mu} h^2 - C_1 h + C_2 = 0$
+\end{itemize}
+En soustrayant ces deux équations, on trouve immédiatement $C_1 = 0$ (l'écoulement est parfaitement symétrique). En les sommant, on extrait $C_2 = -\frac{G}{2\mu}h^2$.
+
+\begin{importantbox}{Profil de Poiseuille Plane 1D}
+La distribution exacte de la vitesse entre les deux parois fixes est donnée par un profil parabolique :
+\[
+u(y) = -\frac{G}{2\mu} h^2 \left( 1 - \frac{y^2}{h^2} \right) = U_{\max} \left( 1 - \frac{y^2}{h^2} \right)
+\]
+Où $U_{\max} = -\frac{G h^2}{2\mu}$ est la vitesse maximale atteinte pile au centre du tube ($y=0$). Le signe moins rappelle que le fluide avance ($u>0$) car la pression chute ($G < 0$).
+\end{importantbox}
+
+\paragraph{Explication avec les mains (Pourquoi une parabole ?) : }
+Ce profil résume toute la physique du cours. Pile sur les parois ($y = \pm h$), le fluide est scotché par adhérence ($u=0$). Les parois exercent un freinage maximal. Plus on se rapproche du centre ($y=0$), plus on s'éloigne du solide destructeur de vitesse, et moins le fluide ressent le frottement de la paroi : la vitesse augmente donc pour culminer en une pointe parabolique au centre. C'est l'écoulement modèle laminaire par excellence.
+
+\chapter{Régimes d'Écoulement : Des Fluides Rampants à la Couche Limite}
+
+L'équation de Navier-Stokes adimensionnelle nous a révélé que la dynamique d'un fluide ne dépend que d'un unique curseur : le nombre de Reynolds ($Re = \rho U_0 L / \mu$). Ce chapitre explore les deux mondes extrêmes qui s'affrontent en mécanique des fluides : le monde microscopique où la viscosité écrase tout ($Re \ll 1$), et le monde macroscopique de l'ingénieur où l'inertie domine mais se heurte violemment aux parois solides ($Re \gg 1$).
+
+\section{Écoulements à Bas Nombre de Reynolds (\texorpdfstring{$Re \ll 1$}{Re << 1})}
+
+\subsection{L'Écoulement de Stokes : Un monde sans mémoire}
+Lorsque le nombre de Reynolds tend vers zéro, les forces d'inertie (la masse en mouvement) deviennent totalement négligeables devant les forces de frottement visqueux.
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale : } \textit{Que devient l'équation de Navier-Stokes locale lorsque l'on supprime purement et simplement le terme d'inertie ?}
+
+Prenons l'équation de Navier-Stokes stationnaire classique :
+\[
+\rho (\vec{U} \cdot \vec{\nabla})\vec{U} = -\vec{\nabla} p + \mu \vec{\nabla}^2 \vec{U} + \rho \vec{g}
+\]
+Puisque le terme d'inertie (à gauche) est pondéré par l'unité tandis que le terme visqueux est pondéré par $1/Re$, faire tendre $Re$ vers $0$ revient mathématiquement à annuler le membre de gauche.
+
+\begin{importantbox}{L'Équation de Stokes}
+Pour un écoulement à très bas nombre de Reynolds ($Re \rightarrow 0$), l'équation de Navier-Stokes se simplifie en un équilibre linéaire parfait entre le gradient de pression, la diffusion visqueuse et la gravité :
+\[
+\vec{\nabla} p = \mu \vec{\nabla}^2 \vec{U} + \rho \vec{g}
+\]
+\end{importantbox}
+
+\paragraph{Explication avec les mains : }
+C'est le domaine des \textbf{écoulements rampants}. La suppression du terme non linéaire $(\vec{U} \cdot \vec{\nabla})\vec{U}$ rend cette équation purement linéaire, ce qui permet d'utiliser le principe de superposition des solutions. Le fluide est tellement freiné qu'il n'a plus aucune cinétique propre : si vous arrêtez de pousser, l'écoulement s'arrête instantanément, sans aucun élan. Cet écoulement est réversible dans le temps et parfaitement symétrique. Ce monde régit le déplacement des bactéries (pour lesquelles l'eau est aussi gluante que du goudron), les micro-gouttelettes de brouillard dans l'air, ou les huiles industrielles lourdes.
+
+\subsection{La Force de Stokes et la Traînée d'une Sphère}
+Imaginons une petite sphère rigide de rayon $R$ plongée dans un écoulement de Stokes uniforme de vitesse $U_0$. En résolvant l'équation linéaire de Stokes avec les conditions d'imperméabilité et d'adhérence à la paroi ($r=R$), on obtient le champ de vitesse exact. En intégrant le tenseur des contraintes $\overline{\overline{\sigma}}$ sur toute la surface de la sphère $S$, on calcule la force de résistance globale (la traînée) :
+\[
+\vec{F} = \iint_{S} \overline{\overline{\sigma}} \cdot \vec{n} \, dS
+\]
+
+\begin{importantbox}{Formule de Stokes pour une Sphère}
+La force de traînée visqueuse $F_x$ subie par une sphère de rayon $R$ se déplaçant à la vitesse $U_0$ dans un fluide de viscosité dynamique $\mu$ vaut exactement :
+\[
+F_x = 6 \pi \mu R U_0
+\]
+\end{importantbox}
+Cette force se décompose rigoureusement en deux contributions physiques : $4 \pi \mu R U_0$ venant du frottement visqueux pur (cisaillement tangentiel) et $2 \pi \mu R U_0$ venant du différentiel de pression entre l'avant et l'arrière de la bille.
+
+\subsection{Le Coefficient de Traînée \texorpdfstring{$C_d$}{Cd} d'une sphère}
+Pour généraliser l'expression de la traînée à n'importe quelle échelle, l'ingénieur définit un indicateur adimensionnel : le coefficient de traînée $C_d$, qui compare la force réelle à la force d'impact cinétique du fluide sur la surface projetée de l'objet ($S = \pi R^2$) :
+\[
+C_d = \frac{F_x}{\frac{1}{2}\rho U_0^2 S} = \frac{6 \pi \mu R U_0}{\frac{1}{2}\rho U_0^2 (\pi R^2)} = \frac{24}{\frac{\rho U_0 (2R)}{\mu}} \implies C_d = \frac{24}{Re}
+\]
+À bas nombre de Reynolds, le coefficient de traînée est inversement proportionnel à $Re$ (en prenant le diamètre $D=2R$ comme taille de référence). Plus le fluide va vite, plus le $C_d$ s'effondre, même si la force brute $F_x$ augmente linéairement.
+
+\section{Écoulements à Haut Nombre de Reynolds (\texorpdfstring{$Re \gg 1$}{Re >> 1})}
+
+\subsection{Introduction et Paradoxe d'Euler}
+Dans notre lance d'incendie ou autour d'un véhicule, le nombre de Reynolds est géant ($Re > 10^5$). Si l'on fait une analyse de limite brute et que l'on fait tendre $Re$ vers l'infini dans Navier-Stokes, le terme visqueux $\frac{1}{Re}\vec{\nabla}^2\vec{U}$ s'annule, et l'on retombe sur l'équation d'Euler pour un fluide parfait :
+\[
+(\vec{U} \cdot \vec{\nabla})\vec{U} = -\frac{1}{\rho}\vec{\nabla} p + \vec{g}
+\]
+
+\paragraph{Le paradoxe mathématique aux limites : } 
+L'équation de Navier-Stokes est une équation différentielle du \textbf{second ordre} en espace (à cause du Laplacien). Elle exige donc deux conditions aux limites à la paroi : l'imperméabilité ($\vec{U} \cdot \vec{n} = 0$) et l'adhérence ($\vec{U} \cdot \vec{t} = 0$). En supprimant le terme visqueux, l'équation d'Euler descend au \textbf{premier ordre}. Mathématiquement, il est désormais impossible de satisfaire les deux conditions. La physique impose de garder l'imperméabilité. On abandonne donc l'adhérence : dans le modèle d'Euler, le fluide \textit{glisse} le long de la paroi ($U_t \neq 0$).
+
+Le calcul de la traînée avec ce modèle de glissement parfait autour d'un obstacle mène au \textbf{paradoxe de D'Alembert} : la force de résistance est rigoureusement nulle, ce qui contredit immédiatement l'expérience.
+
+\subsection{Le Concept de Couche Limite de Prandtl (1904)}
+Ludwig Prandtl résout ce paradoxe en comprenant que la limite $Re \rightarrow \infty$ n'est pas uniforme dans l'espace.
+\begin{itemize}
+    \item \textbf{Cœur de l'écoulement (Zone externe) : } Très loin de la paroi, les vitesses varient doucement, les gradients sont faibles. Le terme visqueux est effectivement négligeable. L'approximation d'Euler y est parfaite.
+    \item \textbf{La Couche Limite : } Pile le long de la paroi solide, le fluide doit passer d'une vitesse macroscopique élevée à une vitesse rigoureusement nulle ($U=0$) pour respecter la condition d'adhérence. Si le Reynolds est immense, cette transition se fait sur une distance verticale minuscule, notée $\delta$. Les dérivées spatiales perpendiculaires à la paroi deviennent alors gigantesques, le Laplacien explose et compense le facteur $1/Re$. La viscosité se réveille et redevient du même ordre de grandeur que l'inertie.
+\end{itemize}
+
+\subsection{Corps Profilés, Corps Non Profilés et Crise de Traînée}
+Le comportement de cette fine couche limite détermine la structure du sillage derrière un obstacle :
+\begin{itemize}
+    \item \textbf{Corps non profilé (Bluff Body - ex: une sphère, un cylindre) : } La couche limite avance le long de l'objet, mais à l'arrière, elle n'a plus assez d'énergie pour lutter contre la remontée de pression. Elle s'arrête et \textbf{se décolle brutalement de la paroi}. Ce décollement engendre un immense sillage chaotique à basse pression à l'arrière, qui aspire l'objet vers l'arrière : c'est la \textbf{traînée de forme}.
+    \item \textbf{Corps profilé (Streamlined Body - ex: une aile d'avion) : } La géométrie s'amincit très doucement vers l'arrière. La couche limite reste collée à la paroi sans se décoller. Le sillage est infime, la traînée de forme est supprimée, il ne reste que la friction microscopique.
+\end{itemize}
+
+\paragraph{La Crise de Traînée : }
+Si l'on augmente la vitesse autour d'une sphère, on constate une chute brutale et spectaculaire du coefficient de traînée $C_d$ à une valeur critique ($Re \approx 2 \cdot 10^5$). 
+\begin{itemize}
+    \item \textbf{Avant la crise : } La couche limite est \textbf{laminaire}. Elle est fragile et se décolle très tôt (dès l'équateur de la sphère), créant un sillage géant.
+    \item \textbf{Après la crise : } La couche limite devient \textbf{turbulente} juste avant l'équateur. Ultra-agitée, la turbulence apporte de l'énergie cinétique du cœur de l'écoulement vers la paroi. Mieux alimentée en énergie, la couche limite résiste bien plus longtemps au décollement et contourne la sphère vers l'arrière. Le sillage rétrécit de moitié, et la traînée s'effondre. C'est pour provoquer cette crise de traînée que les balles de golf sont couvertes d'alvéoles.
+\end{itemize}
+
+\section{Modélisation Mathématique : Les Équations de Prandtl}
+
+\subsection{La Preuve Rigoureuse : L'Approximation des Écoulements Minces}
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale : } \textit{Comment simplifier formellement l'équation de Navier-Stokes à l'intérieur d'une couche limite en évaluant l'ordre de grandeur de chaque terme ?}
+
+Considérons un écoulement stationnaire 2D le long d'une plaque plane horizontale. L'axe $x$ est longitudinal (longueur de référence $L$) et l'axe $y$ est vertical (épaisseur de référence $\delta$). L'hypothèse des écoulements minces se traduit par le paramètre géométrique : $\epsilon = \delta / L \ll 1$.
+
+Estimons le poids de chaque variable en puissances de $\epsilon$ par rapport à la vitesse extérieure $U_0$ :
+\[
+x \sim L = \mathcal{O}(1), \quad y \sim \delta = \mathcal{O}(\epsilon), \quad u \sim U_0 = \mathcal{O}(1)
+\]
+Les opérateurs de dérivation pèsent : $\frac{\partial}{\partial x} \sim \mathcal{O}(1)$ et $\frac{\partial}{\partial y} \sim \mathcal{O}\left(\frac{1}{\epsilon}\right)$.
+
+\paragraph{Étape 1 : Ordre de grandeur de la vitesse verticale \texorpdfstring{$v$}{v} :}
+Utilisons l'équation de continuité qui est absolue : $\frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} = 0$.
+Le premier terme pèse : $\frac{\partial u}{\partial x} \sim \frac{U_0}{L} = \mathcal{O}(1)$. Pour que la somme s'annule, le deuxième terme doit avoir le même poids : $\frac{\partial v}{\partial y} \sim \mathcal{O}(1)$. Comme $\frac{\partial}{\partial y} \sim \mathcal{O}\left(\frac{1}{\epsilon}\right)$, cela impose mathématiquement :
+\[
+\frac{v}{\epsilon L} \sim \frac{U_0}{L} \implies v \sim \epsilon U_0 = \mathcal{O}(\epsilon)
+\]
+La vitesse verticale $v$ est minuscule, elle est d'ordre $\epsilon$.
+
+\paragraph{Étape 2 : Estimation de l'épaisseur \texorpdfstring{$\delta$}{delta} :}
+Pour que la viscosité joue son rôle stabilisateur à la paroi, le terme visqueux doit peser autant que le terme d'inertie dans l'équation selon $x$ :
+\[
+u\frac{\partial u}{\partial x} \sim \nu \frac{\partial^2 u}{\partial y^2} \implies U_0 \cdot \frac{U_0}{L} \sim \nu \cdot \frac{U_0}{\delta^2} \implies \left(\frac{\delta}{L}\right)^2 \sim \frac{\nu}{U_0 L} = \frac{1}{Re_L}
+\]
+Nous démontrons ainsi la première loi de Prandtl : $\epsilon = \frac{\delta}{L} \sim \frac{1}{\sqrt{Re_L}}$. Le coefficient de viscosité cinématique pèse donc $\nu \sim \mathcal{O}(\epsilon^2)$.
+
+\paragraph{Étape 3 : Nettoyage de l'équation selon \texorpdfstring{$y$}{y} :}
+L'équation complète de quantité de mouvement selon $y$ s'écrit :
+\[
+\underbrace{u\frac{\partial v}{\partial x}}_{\mathcal{O}(\epsilon)} + \underbrace{v\frac{\partial v}{\partial y}}_{\mathcal{O}(\epsilon)} = -\frac{1}{\rho}\frac{\partial p}{\partial y} + \underbrace{\nu \frac{\partial^2 v}{\partial x^2}}_{\mathcal{O}(\epsilon^3)} + \underbrace{\nu \frac{\partial^2 v}{\partial y^2}}_{\mathcal{O}(\epsilon)}
+\]
+À l'ordre le plus bas, lorsque $\epsilon \rightarrow 0$, tous les termes cinématiques et visqueux s'annulent devant le terme de pression. L'équation s'effondre et devient :
+\[
+\frac{\partial p}{\partial y} = 0
+\]
+La pression ne varie pas du tout selon l'épaisseur de la couche limite. La pression à la paroi est strictement égale à la pression $p(x)$ du fluide parfait qui coule juste au-dessus.
+
+\paragraph{Étape 4 : Nettoyage de l'équation selon \texorpdfstring{$x$}{x} :}
+L'équation complète selon $x$ s'écrit :
+\[
+\underbrace{u\frac{\partial u}{\partial x}}_{\mathcal{O}(1)} + \underbrace{v\frac{\partial u}{\partial y}}_{\mathcal{O}(1)} = -\frac{1}{\rho}\frac{\partial p}{\partial x} + \underbrace{\nu \frac{\partial^2 u}{\partial x^2}}_{\mathcal{O}(\epsilon^2)} + \underbrace{\nu \frac{\partial^2 u}{\partial y^2}}_{\mathcal{O}(1)}
+\]
+Le terme de diffusion visqueuse le long de la plaque ($\partial^2 u / \partial x^2$) est d'ordre $\epsilon^2$, il est balayé par la diffusion verticale.
+
+\begin{importantbox}{Les Équations de Prandtl (2D Incompressible)}
+À haut nombre de Reynolds, à l'intérieur de la couche limite, le champ de vitesse $(u,v)$ obéit au système d'équations couplées suivant :
+\[
+\begin{cases}
+\displaystyle \frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} = 0 & \text{(Continuité)} \\
+\displaystyle u\frac{\partial u}{\partial x} + v\frac{\partial u}{\partial y} = -\frac{1}{\rho}\frac{dp}{dx} + \nu \frac{\partial^2 u}{\partial y^2} & \text{(Quantité de mouvement selon } x\text{)} \\
+\displaystyle \frac{\partial p}{\partial y} = 0 & \text{(Pression uniforme)}
+\end{cases}
+\]
+\end{importantbox}
+Le terme $-\frac{1}{\rho}\frac{dp}{dx}$ est une donnée extérieure imposée, calculée via Bernoulli à la frontière extérieure de la couche limite : $-\frac{1}{\rho}\frac{dp}{dx} = U_{\text{ext}}(x)\frac{dU_{\text{ext}}}{dx}$.
+
+\subsection{Le Rôle du Gradient de Pression dans le Décollement}
+\begin{itemize}
+    \item \textbf{Gradient favorable ($\frac{dp}{dx} < 0$) : } La pression diminue vers l'aval. Le fluide est aspiré vers l'avant, la couche limite s'amincit et reste stable sans jamais se décoller (cas du convergent de notre lance).
+    \item \textbf{Gradient adverse ($\frac{dp}{dx} > 0$) : } La pression remonte vers l'aval. Le fluide doit remonter la pente. Les molécules au cœur ont de l'élan et passent, mais les molécules collées à la paroi, déjà freinées par l'adhérence, s'arrêtent, font demi-tour et \textbf{la couche limite décolle}.
+\end{itemize}
+
+\section{La Solution de Blasius pour la Couche Limite Laminaire}
+
+Dans le cas d'une plaque plane sans gradient de pression ($\frac{dp}{dx} = 0$), la vitesse extérieure est constante ($U_{\text{ext}} = U_0$). Le système de Prandtl se réduit à :
+\[
+u\frac{\partial u}{\partial x} + v\frac{\partial u}{\partial y} = \nu \frac{\partial^2 u}{\partial y^2}
+\]
+
+\subsection{Preuve « à la main » : La réduction de Blasius (1908)}
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale : } \textit{Comment transformer ce système d'équations aux dérivées partielles en une équation différentielle ordinaire à une seule variable ?}
+
+Pour éliminer l'équation de continuité, introduisons la fonction de courant $\psi(x,y)$ telle que $u = \frac{\partial \psi}{\partial y}$ et $v = -\frac{\partial \psi}{\partial x}$. Blasius postule que les profils de vitesse sont similaires à un facteur d'échelle près et introduit la variable de similitude $\eta$ ainsi que la forme séparable de $\psi$ :
+\[
+\eta = y \sqrt{\frac{U_0}{\nu x}}, \quad \psi(x,y) = \sqrt{\nu x U_0} \cdot f(\eta)
+\]
+Calculons les dérivées partielles de notre variable intermédiaire $\eta$ : $\frac{\partial \eta}{\partial y} = \sqrt{\frac{U_0}{\nu x}}$ et $\frac{\partial \eta}{\partial x} = -\frac{\eta}{2x}$.
+
+Déterminons maintenant les composantes du champ de vitesse $(u,v)$ par dérivation de fonction composée :
+\begin{itemize}
+    \item \textbf{Vitesse $u$ :}
+    \[
+    u = \frac{\partial \psi}{\partial y} = \sqrt{\nu x U_0} \cdot \frac{df}{d\eta} \cdot \frac{\partial \eta}{\partial y} = \sqrt{\nu x U_0} \cdot f'(\eta) \cdot \sqrt{\frac{U_0}{\nu x}} \implies \mathbf{u = U_0 f'(\eta)}
+    \]
+    \item \textbf{Vitesse $v$ :}
+    \[
+    v = -\frac{\partial \psi}{\partial x} = -\left[ \frac{1}{2}\sqrt{\frac{\nu U_0}{x}} f(\eta) + \sqrt{\nu x U_0} f'(\eta) \left(-\frac{\eta}{2x}\right) \right] \implies \mathbf{v = \frac{1}{2}\sqrt{\frac{\nu U_0}{x}} \big(\eta f'(\eta) - f(\eta)\big)}
+    \]
+\end{itemize}
+
+Calculons les dérivées de la vitesse $u$ nécessaires pour l'équation de quantité de mouvement :
+\[
+\frac{\partial u}{\partial x} = -\frac{U_0 \eta}{2x} f''(\eta), \quad \frac{\partial u}{\partial y} = U_0 f''(\eta) \sqrt{\frac{U_0}{\nu x}}, \quad \frac{\partial^2 u}{\partial y^2} = \frac{U_0^2}{\nu x} f'''(\eta)
+\]
+
+Injectons ces expressions dans le terme d'inertie ($u\frac{\partial u}{\partial x} + v\frac{\partial u}{\partial y}$) :
+\[
+\text{Inertie} = \left(U_0 f'\right) \cdot \left(-\frac{U_0 \eta}{2x} f''\right) + \left(\frac{1}{2}\sqrt{\frac{\nu U_0}{x}} (\eta f' - f)\right) \cdot \left(U_0 f'' \sqrt{\frac{U_0}{\nu x}}\right)
+\]
+\[
+\text{Inertie} = -\frac{U_0^2 \eta}{2x} f' f'' + \frac{U_0^2 \eta}{2x} f' f'' - \frac{U_0^2}{2x} f f'' = -\frac{U_0^2}{2x} f f''
+\]
+Égalisons maintenant ce terme d'inertie avec le terme visqueux ($\nu \frac{\partial^2 u}{\partial y^2}$) :
+\[
+-\frac{U_0^2}{2x} f f'' = \nu \left( \frac{U_0^2}{\nu x} f''' \right) \implies -\frac{U_0^2}{2x} f f'' = \frac{U_0^2}{x} f'''
+\]
+En divisant par le facteur commun $\frac{U_0^2}{x}$, toutes les variables d'espace $x$ et $y$ s'annulent mutuellement.
+
+\begin{importantbox}{L'Équation de Blasius}
+La fonction de profil de la couche limite laminaire est régie par l'équation différentielle ordinaire non linéaire d'ordre 3 :
+\[
+2f''' + f f'' = 0 \quad \left(\text{ou } f''' + \frac{1}{2}f f'' = 0\right)
+\]
+\end{importantbox}
+Les conditions aux limites associées sont : $f(0)=0, f'(0)=0$ (paroi fixe) et $f'(\infty)=1$ (raccordement extérieur).
+
+\subsection{Extraction des lois physiques pour l'ingénieur}
+Cette équation se résout numériquement par un algorithme de tir. De la courbe universelle de $f'(\eta) = u/U_0$, on extrait deux résultats capitaux :
+\begin{enumerate}
+    \item \textbf{L'épaisseur de la couche limite \texorpdfstring{$\delta(x)$}{delta(x)} :} On sort de la couche limite quand $u/U_0 = 0{,}99$, ce qui correspond numériquement à $\eta \approx 5{,}0$. En inversant la définition de $\eta$, on obtient :
+    \[
+    \delta(x) = \frac{5{,}0}{\sqrt{Re_x}} \cdot x \quad \text{avec} \quad Re_x = \frac{U_0 x}{\nu}
+    \]
+    La couche limite laminaire s'épaissit comme la racine carrée de la distance parcourue ($\sqrt{x}$).
+    \item \textbf{Le coefficient de frottement local \texorpdfstring{$C_f(x)$}{Cf(x)} :} La pente de la vitesse à la paroi dépend de $f''(0) \approx 0{,}332$. La contrainte de cisaillement vaut $\tau_w(x) = 0{,}332 \, \rho U_0^2 \sqrt{\frac{\nu}{U_0 x}}$, d'où le coefficient de friction adimensionnel local :
+    \[
+    C_f(x) = \frac{\tau_w(x)}{\frac{1}{2}\rho U_0^2} = \frac{0{,}664}{\sqrt{Re_x}}
+    \]
+\end{enumerate}
+
+
+% ============================================================
+% CHAPITRE 5 — VORTICITÉ ET DYNAMIQUE DES TOURBILLONS
+% ============================================================
+
+\chapter{Vorticité et Dynamique des Tourbillons}
+
+Les chapitres précédents ont construit les outils fondamentaux de la mécanique des fluides : la conservation de la masse, l'équation de Navier-Stokes, l'analyse dimensionnelle et la couche limite. Nous avons appris à décrire \textit{comment} un fluide se déplace et \textit{quelles forces} orchestrent ce mouvement. Il reste cependant un phénomène omniprésent que nous n'avons pas encore analysé en profondeur : les \textbf{tourbillons}.
+
+Un tourbillon dans l'évier, un cyclone vu du satellite, le sillage d'un avion, la portance d'une aile — tous ces phénomènes sont gouvernés par un seul concept cinématique : la \textbf{vorticité}. Ce chapitre en construit le sens physique de zéro, montre comment elle naît, comment elle évolue, et comment elle génère la portance.
+
+\section{Le Problème Moteur : Le Tourbillon du Réservoir}
+
+Pour alimenter notre lance d'incendie, l'eau est stockée dans un grand réservoir. Lorsqu'on ouvre la vanne de vidange au fond, un phénomène spectaculaire se produit : un tourbillon se forme, créant un entonnoir qui plonge vers le trou de sortie. Les particules de fluide décrivent des trajectoires circulaires parfaites autour d'un axe central.
+
+Une intuition classique consiste à croire que parce que le fluide \textit{tourne en rond dans l'espace}, chaque petite particule de fluide \textit{tourne obligatoirement sur elle-même}. \textbf{C'est faux}. Pour débusquer ce piège conceptuel et séparer le mouvement de trajectoire courbe globale du mouvement de rotation propre, nous devons étudier la cinématique microscopique du fluide.
+
+\section{Définition de la Vorticité}
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale :} \textit{Comment quantifier mathématiquement la tendance locale d'une particule fluide à tourner sur elle-même ?}
+
+\subsection{Construction géométrique : la boule vue dans l'axe}
+
+Pour comprendre ce qu'est la vorticité, adoptons une vision géométrique. Imaginons une particule fluide représentée par un petit carré dans le plan $(x_1, x_2)$. Qu'est-ce qui force ce carré à pivoter sur lui-même ?
+
+\begin{itemize}
+    \item \textbf{La poussée horizontale :} Si la vitesse horizontale $U_1$ augmente lorsqu'on monte selon $x_2$ (gradient $\partial U_1/\partial x_2 > 0$), le bord supérieur du carré est entraîné vers la droite plus vite que son bord inférieur. Ce déséquilibre tend à faire pivoter le carré dans le sens horaire (négatif).
+    \item \textbf{La poussée verticale :} Si la vitesse verticale $U_2$ augmente lorsqu'on se déplace vers la droite selon $x_1$ (gradient $\partial U_2/\partial x_1 > 0$), le côté droit est poussé vers le haut plus vite que le côté gauche. Ce déséquilibre tend à faire pivoter le carré dans le sens trigonométrique (positif).
+\end{itemize}
+
+Le taux de rotation nette de la particule autour de l'axe $x_3$, noté $\Omega_3$, est la moyenne algébrique de ces deux effets contradictoires :
+\[
+\Omega_3 = \frac{1}{2}\left(\frac{\partial U_2}{\partial x_1} - \frac{\partial U_1}{\partial x_2}\right)
+\]
+En répétant ce raisonnement sur les trois axes de l'espace, on fait naître le vecteur vorticité.
+
+\begin{defbox}{Le Vecteur Vorticité \texorpdfstring{$\vec{\omega}$}{omega}}
+Le vecteur vorticité est défini comme le rotationnel du champ de vitesse :
+\[
+\vec{\omega} = \vec{\nabla} \times \vec{U} =
+\begin{pmatrix}
+\dfrac{\partial U_3}{\partial x_2} - \dfrac{\partial U_2}{\partial x_3} \\[8pt]
+\dfrac{\partial U_1}{\partial x_3} - \dfrac{\partial U_3}{\partial x_1} \\[8pt]
+\dfrac{\partial U_2}{\partial x_1} - \dfrac{\partial U_1}{\partial x_2}
+\end{pmatrix}
+\]
+Il vaut exactement \textbf{le double du vecteur vitesse de rotation propre} de la particule fluide : $\vec{\omega} = 2\vec{\Omega}$.
+\end{defbox}
+
+\paragraph{Preuve « à la main » :}
+Si un élément de fluide tourne temporairement comme un solide rigide avec une vitesse angulaire $\vec{\Omega}_R$, la vitesse de tout point à position $\vec{r}$ vaut $\vec{U} = \vec{\Omega}_R \times \vec{r}$. En appliquant l'identité vectorielle $\vec{\nabla} \times (\vec{\Omega}_R \times \vec{r}) = 2\vec{\Omega}_R$, on obtient directement $\vec{\omega} = 2\vec{\Omega}_R$.
+
+\paragraph{Le cas bidimensionnel :}
+Pour un écoulement 2D, $\vec{U} = (U_1(x_1, x_2, t),\, U_2(x_1, x_2, t),\, 0)$, la vorticité se réduit à une unique composante scalaire :
+\[
+\omega_3 = \frac{\partial U_2}{\partial x_1} - \frac{\partial U_1}{\partial x_2}
+\]
+Le signe donne le sens de rotation : $\omega_3 > 0$ correspond au sens trigonométrique (antihoraire), $\omega_3 < 0$ au sens horaire.
+
+\paragraph{Explication avec les mains — L'analogie de la croix en bois :}
+Pour visualiser si un écoulement possède de la vorticité, jetons virtuellement une petite croix en bois rigide dans l'eau :
+\begin{itemize}
+    \item \textbf{Si la croix tourne sur elle-même} en voyageant : l'écoulement a de la vorticité ($\vec{\omega} \neq \vec{0}$). C'est le cas au cœur d'un tourbillon ou dans la couche limite.
+    \item \textbf{Si la croix garde toujours la même orientation} (le Nord reste au Nord) tout en décrivant une trajectoire circulaire : l'écoulement est irrotationnel ($\vec{\omega} = \vec{0}$), même si le fluide tourne en rond. C'est le piège du tourbillon libre.
+\end{itemize}
+
+\section{La Circulation \texorpdfstring{$\Gamma$}{Gamma} et le Théorème de Stokes}
+
+La vorticité $\vec{\omega}$ est un champ \textit{local} — elle décrit la rotation propre d'une particule en un point donné. Pour caractériser un tourbillon à grande échelle (l'intensité d'un cyclone, la portance d'une aile), nous avons besoin d'une mesure \textit{globale}.
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale :} \textit{Comment résumer en un seul nombre l'intensité globale d'un tourbillon, indépendamment de la forme précise de son cœur ?}
+
+\begin{defbox}{La Circulation \texorpdfstring{$\Gamma$}{Gamma}}
+La circulation d'un champ de vitesse $\vec{U}$ le long d'une courbe fermée orientée $\mathcal{C}$ (parcourue dans le sens trigonométrique) est :
+\[
+\Gamma_\mathcal{C} = \oint_\mathcal{C} \vec{U} \cdot d\vec{l} \qquad [\text{m}^2\,\text{s}^{-1}]
+\]
+\end{defbox}
+
+\paragraph{Explication avec les mains :}
+La circulation mesure l'intensité du ``grand coup de balai'' cinématique que donne le fluide le long de cette boucle fermée. Si le fluide accompagne le sens de parcours en tout point de $\mathcal{C}$, les contributions s'additionnent et $\Gamma > 0$. Si les contributions se compensent (pas de rotation organisée), $\Gamma = 0$.
+
+\subsection{Preuve : la circulation est le flux de vorticité}
+
+En appliquant le théorème de Stokes (Chapitre 0) au vecteur vitesse $\vec{U}$ sur la surface $\mathcal{S}$ délimitée par $\mathcal{C}$ :
+
+\begin{importantbox}{Lien Circulation — Vorticité}
+\[
+\Gamma_\mathcal{C} = \oint_\mathcal{C} \vec{U} \cdot d\vec{l}
+= \iint_\mathcal{S} (\vec{\nabla} \times \vec{U}) \cdot \vec{n}\, dS
+= \iint_\mathcal{S} \vec{\omega} \cdot \vec{n}\, dS
+\]
+La circulation autour d'un contour est égale au flux de vorticité à travers toute surface s'appuyant sur ce contour.
+\end{importantbox}
+
+\paragraph{Preuve « à la main » — l'annulation des contributions internes :}
+Décomposons la surface $\mathcal{S}$ en une infinité de petits carrés élémentaires. Sur chaque carré, la circulation sur ses quatre arêtes vaut $\omega_z\, dS$ (la micro-toupie locale multipliée par sa surface). Lorsqu'on additionne toutes ces circulations :
+\begin{itemize}
+    \item Chaque arête \textbf{intérieure} est partagée par deux carrés voisins et parcourue dans des \textbf{sens opposés} : les contributions s'annulent exactement deux à deux.
+    \item Seules les arêtes sur le \textbf{bord extérieur} $\mathcal{C}$ n'ont pas de voisin : leurs contributions survivent.
+\end{itemize}
+La somme totale ne retient que la circulation sur $\mathcal{C}$, égale à la somme de toute la vorticité intérieure.
+
+\subsection{Conséquence essentielle : l'invariance du contour}
+
+Tant que le contour $\mathcal{C}$ encercle exactement la même quantité de vorticité, la valeur de $\Gamma$ ne change pas, même si on déforme $\mathcal{C}$. La circulation est une \textbf{caractéristique intrinsèque} du tourbillon, indépendante des détails géométriques du contour choisi. C'est pourquoi $\Gamma$ est le paramètre universel qui caractérise un vortex.
+
+\section{Le Tourbillon Circulaire et le Modèle de Rankine}
+
+Nous avons maintenant les outils pour analyser un vortex réel. Commençons par le cas le plus simple : un tourbillon à symétrie axiale.
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale :} \textit{Comment concilier l'existence d'un tourbillon visible — de l'eau qui tourne en rond — avec la notion d'écoulement irrotationnel ?}
+
+\subsection{Le tourbillon circulaire}
+
+En coordonnées cylindriques, un tourbillon à symétrie axiale a une vitesse purement azimutale : $\vec{U} = u(r)\,\vec{e}_\theta$, avec $U_r = U_z = 0$. La vorticité se réduit à :
+\[
+\omega_z(r) = \frac{1}{r}\frac{\partial}{\partial r}(r\,u) \qquad \Longrightarrow \qquad u(r) = \frac{1}{r}\int_0^r r'\,\omega_z(r')\,dr'
+\]
+
+\paragraph{Un résultat fondamental — la relation non locale :}
+Cette formule révèle que la vorticité et la vitesse entretiennent une \textbf{relation non locale} : la vorticité concentrée dans une région génère un champ de vitesse dans \textit{tout l'espace}, pas seulement à sa proximité immédiate. On retrouve ici une analogie directe avec la loi de Biot-Savart en électromagnétisme.
+
+\subsection{Construction du modèle de Rankine}
+
+L'idée de Rankine est de recoller deux régions dont on connaît la physique exacte, séparées par un rayon critique $r_0$.
+
+\paragraph{Zone intérieure ($r \leq r_0$) — Rotation solide :}
+Au cœur du tourbillon, le fluide tourne en bloc comme un diside rigide. Chaque particule décrit un cercle \textit{et} pivote sur elle-même au même rythme (vorticité uniforme $\omega_0 = 2\Omega_0$). Le profil de vitesse est linéaire :
+\[
+u(r) = \Omega_0\,r, \qquad \omega_z = 2\Omega_0 = \text{cst}
+\]
+
+\paragraph{Zone extérieure ($r > r_0$) — Irrotationnel :}
+Au-delà du cœur, la vorticité est strictement nulle. L'intégration de $\omega_z = 0$ donne le seul profil azimutal irrotationnel possible :
+\[
+\frac{1}{r}\frac{\partial}{\partial r}(ru) = 0 \implies ru = \text{cst} \implies u(r) = \frac{C}{r}
+\]
+La constante $C$ est fixée par la \textbf{condition de raccord} (continuité de $u$ en $r_0$) :
+\[
+u(r_0^-) = u(r_0^+) \implies \Omega_0 r_0 = \frac{C}{r_0} \implies C = \Omega_0 r_0^2
+\]
+
+\begin{importantbox}{Tourbillon de Rankine}
+Le tourbillon de Rankine de rayon de cœur $r_0$ et de vitesse angulaire $\Omega_0$ est :
+\[
+u(r) = \begin{cases} \Omega_0\,r & r \leq r_0 \quad \text{(rotation solide, } \omega_z = 2\Omega_0\text{)} \\[4pt] \dfrac{\Omega_0 r_0^2}{r} & r > r_0 \quad \text{(irrotationnel, } \omega_z = 0\text{)} \end{cases}
+\]
+La vitesse est \textbf{continue} en $r_0$ (valeur commune $v_0 = \Omega_0 r_0$), mais la vorticité y subit une \textbf{discontinuité} : elle saute brutalement de $2\Omega_0$ à $0$.
+\end{importantbox}
+
+\paragraph{Tableau des variables :}
+\begin{center}
+\begin{tabular}{cll}
+\hline
+\textbf{Symbole} & \textbf{Désignation} & \textbf{Unité (SI)} \\ \hline
+$r_0$ & Rayon de cœur du vortex & $\text{m}$ \\
+$\Omega_0$ & Vitesse angulaire du cœur & $\text{rad}\,\text{s}^{-1}$ \\
+$v_0 = \Omega_0 r_0$ & Vitesse azimutale au raccord & $\text{m}\,\text{s}^{-1}$ \\
+$\omega_0 = 2\Omega_0$ & Vorticité uniforme dans le cœur & $\text{s}^{-1}$ \\
+$\Gamma = 2\pi\Omega_0 r_0^2$ & Circulation totale du vortex & $\text{m}^2\,\text{s}^{-1}$ \\ \hline
+\end{tabular}
+\end{center}
+
+\subsection{Le point contre-intuitif fondamental}
+
+\paragraph{Explication avec les mains :}
+La zone extérieure contient le piège conceptuel central. Comment le fluide peut-il décrire des trajectoires \textit{circulaires} (il tourne autour du centre) sans avoir de vorticité (sans que les particules ne pivotent sur elles-mêmes) ?
+
+Imagine une voiture qui fait le tour d'un rond-point circulaire. Le véhicule décrit un grand cercle, mais les passagers ne pivotent pas sur leurs sièges — ils restent orientés vers l'avant. C'est exactement ce que font les particules fluides dans la zone extérieure. La petite croix en bois flottant à la surface décrit une trajectoire circulaire, mais ses branches pointent toujours dans la même direction.
+
+La vorticité mesure la \textbf{rotation propre} de la particule, pas la courbure de sa trajectoire. Et dans la zone extérieure, le profil $u \propto 1/r$ est précisément construit de telle sorte que les deux effets antagonistes de cisaillement (radial et tangentiel) se compensent exactement, laissant la rotation propre nulle. Ceci peut se vérifier : si $u = C/r$, alors $ru = C = \text{cst}$, donc $\partial(ru)/\partial r = 0$ et $\omega_z = 0$.
+
+\paragraph{Pourquoi la vorticité est-elle discontinue en \texorpdfstring{$r_0$}{r0} ?}
+Dans le modèle de Rankine, la vorticité saute brusquement de $\omega_0$ à $0$ en $r_0$ (une \textbf{nappe de vorticité} infiniment mince). Dans un fluide réel et visqueux, ce saut est étalé par la diffusion visqueuse. La solution exacte est le \textbf{vortex de Lamb-Oseen}, qui décrit comment un tourbillon ponctuel initial de circulation $\Gamma$ s'étale au cours du temps :
+\[
+\omega_z(r,t) = \frac{\Gamma}{4\pi\nu t}\exp\!\left(-\frac{r^2}{4\nu t}\right), \qquad u(r,t) = \frac{\Gamma}{2\pi r}\left[1 - \exp\!\left(-\frac{r^2}{4\nu t}\right)\right]
+\]
+Le rayon du cœur croît comme $r_c(t) = \sqrt{4\nu t}$, signature universelle de la diffusion moléculaire. La circulation totale $\Gamma$ est conservée — la vorticité ne disparaît pas, elle s'étale.
+
+\section{L'Équation de Transport de la Vorticité (Helmholtz)}
+
+Maintenant que nous savons ce qu'est la vorticité, demandons-nous comment elle \textit{évolue} dans le temps et l'espace.
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale :} \textit{Comment la rotation propre d'une particule fluide évolue-t-elle au cours du temps sous l'effet de l'inertie et de la viscosité ?}
+
+\subsection{Dérivation}
+
+On part de l'équation de Navier-Stokes reformulée grâce à l'identité vectorielle $(\vec{U}\cdot\vec{\nabla})\vec{U} = \vec{\omega}\times\vec{U} + \vec{\nabla}(\frac{1}{2}U^2)$ :
+\[
+\frac{\partial \vec{U}}{\partial t} + \vec{\omega}\times\vec{U} = -\vec{\nabla} H + \nu\vec{\nabla}^2\vec{U}
+\]
+où $H = p/\rho + \frac{1}{2}U^2 + gz$ est la charge totale. On applique l'opérateur rotationnel ($\vec{\nabla}\times$) à cette équation. Le rotationnel d'un gradient est rigoureusement nul ($\vec{\nabla}\times\vec{\nabla}H = \vec{0}$) : le bloc de pression et de gravité \textbf{disparaît totalement}. En développant les termes restants par les identités vectorielles et en utilisant $\vec{\nabla}\cdot\vec{\omega} = \vec{\nabla}\cdot(\vec{\nabla}\times\vec{U}) = 0$, on obtient :
+
+\begin{importantbox}{Équation de Transport de la Vorticité (Helmholtz)}
+\[
+\frac{D\vec{\omega}}{Dt} = \underbrace{(\vec{\omega}\cdot\vec{\nabla})\vec{U}}_{\text{étirement 3D}} + \underbrace{\nu\vec{\nabla}^2\vec{\omega}}_{\text{diffusion visqueuse}}
+\]
+\end{importantbox}
+
+\subsection{Analyse physique des trois mécanismes}
+
+Le membre gauche $D\vec{\omega}/Dt$ est la dérivée matérielle de la vorticité : il représente la variation de la rotation propre d'une particule fluide en la suivant dans son mouvement. Deux mécanismes peuvent modifier cette rotation.
+
+\paragraph{1. Le terme d'étirement (Vortex Stretching) \texorpdfstring{$(\vec{\omega}\cdot\vec{\nabla})\vec{U}$}{(omega nabla) U} :}
+Ce terme n'existe \textbf{qu'en 3D} — il s'annule identiquement en 2D. Si un gradient de vitesse $\partial U_z/\partial z > 0$ étire un tube de vorticité orienté selon $z$, la conservation du moment cinétique impose que le tube s'amincisse et que la vorticité \textbf{s'amplifie}. C'est l'analogie de la patineuse artistique qui ramène ses bras le long de son corps : le moment cinétique est conservé, la vitesse angulaire explose.
+
+Ce terme est le \textbf{moteur principal de la turbulence} : il génère en cascade des structures tourbillonnaires de plus en plus petites, jusqu'à ce que la diffusion visqueuse dissipe l'énergie aux plus petites échelles.
+
+\paragraph{2. La diffusion visqueuse \texorpdfstring{$\nu\vec{\nabla}^2\vec{\omega}$}{nu nabla2 omega} :}
+La viscosité agit comme un lisseur spatial. Une particule qui tourne transmet sa rotation propre à ses voisines immobiles par friction, étalant progressivement le tourbillon dans l'espace et dissipant son énergie en chaleur. En 2D (où le terme d'étirement disparaît), l'équation se réduit à :
+\[
+\frac{\partial\omega_3}{\partial t} + \vec{U}\cdot\vec{\nabla}\omega_3 = \nu\vec{\nabla}^2\omega_3
+\]
+La vorticité est simplement convectée et diffusée, sans possibilité d'amplification.
+
+\paragraph{3. La convection (membre gauche) :}
+Le terme $\vec{U}\cdot\vec{\nabla}\vec{\omega}$ dans $D\vec{\omega}/Dt$ représente le transport de la vorticité par l'écoulement : une particule fluide emporte sa rotation propre avec elle. Si une particule tourbillonnante est convectée vers une autre région, elle y apporte sa vorticité.
+
+\paragraph{Conséquence pour un fluide non visqueux :}
+Si $\nu = 0$, l'équation devient $D\vec{\omega}/Dt = (\vec{\omega}\cdot\vec{\nabla})\vec{U}$. Si de plus l'écoulement est initialement irrotationnel ($\vec{\omega} = \vec{0}$ partout à $t=0$), le membre droit est nul et $\vec{\omega}$ reste nul pour tout temps. \textbf{Un écoulement non visqueux initialement irrotationnel reste irrotationnel}, d'où l'intérêt des écoulements potentiels.
+
+\section{La Version Forte de Bernoulli}
+
+L'équation de Navier-Stokes reformulée (obtenue lors de la dérivation de Helmholtz) cache un résultat d'une grande puissance pratique : une version généralisée du théorème de Bernoulli.
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale :} \textit{Comment passer d'un théorème de conservation de l'énergie valable le long d'une trajectoire à un résultat valable en tout point de l'écoulement ?}
+
+\subsection{La charge totale \texorpdfstring{$H$}{H} et son interprétation}
+
+L'équation reformulée (exacte, sans hypothèse) est :
+\[
+\frac{\partial \vec{U}}{\partial t} + \vec{\omega}\times\vec{U} = -\vec{\nabla} H + \nu\vec{\nabla}^2\vec{U}
+\]
+avec la charge totale massique :
+\[
+H = \frac{p}{\rho} + \frac{1}{2}U^2 + gz
+\]
+
+\paragraph{Explication avec les mains — Interprétation de \texorpdfstring{$H$}{H} :}
+$H$ est une \textbf{énergie mécanique par unité de masse} (en $\text{m}^2\text{s}^{-2} = \text{J/kg}$). Ses trois termes sont trois réservoirs d'énergie entre lesquels le fluide peut convertir librement :
+\begin{itemize}
+    \item $p/\rho$ : l'énergie de pression — le travail que le fluide environnant doit fournir pour ``injecter'' une particule dans l'écoulement contre la pression ambiante.
+    \item $\frac{1}{2}U^2$ : l'énergie cinétique — l'énergie de la particule due à son mouvement.
+    \item $gz$ : l'énergie potentielle de pesanteur — l'énergie stockée par l'altitude.
+\end{itemize}
+Si la viscosité est nulle, aucune énergie n'est dissipée, et cette somme est conservée.
+
+\subsection{Bernoulli classique : valable le long d'une ligne de courant}
+
+Supposons l'écoulement \textbf{non visqueux} ($\nu = 0$) et \textbf{stationnaire} ($\partial_t = 0$). L'équation reformulée devient :
+\[
+\vec{\omega}\times\vec{U} = -\vec{\nabla} H
+\]
+Prenons le produit scalaire avec $\vec{U}$ :
+\[
+\vec{U}\cdot(\vec{\omega}\times\vec{U}) = -\vec{U}\cdot\vec{\nabla} H
+\]
+Le membre gauche est \textbf{rigoureusement nul} : le produit vectoriel $\vec{\omega}\times\vec{U}$ est perpendiculaire à $\vec{U}$ par définition, donc son produit scalaire avec $\vec{U}$ vaut zéro. Il reste :
+\[
+\vec{U}\cdot\vec{\nabla} H = 0
+\]
+Cela signifie que la dérivée de $H$ dans la direction de $\vec{U}$ est nulle : $H$ est constant le long de toute ligne de courant. Deux lignes de courant différentes peuvent avoir des valeurs de $H$ différentes.
+
+\paragraph{Pourquoi le terme \texorpdfstring{$\vec{\omega}\times\vec{U}$}{omega x U} ne fait-il pas de travail ?}
+Ce terme joue le rôle d'une force de Coriolis locale : il dévie les particules sans jamais modifier leur énergie, exactement comme la force magnétique sur une charge électrique. Il ne peut donc pas modifier $H$ dans la direction du mouvement.
+
+\subsection{Version forte : valable partout dans l'écoulement}
+
+Si l'on ajoute l'hypothèse d'\textbf{irrotationalité} ($\vec{\omega} = \vec{0}$), le terme $\vec{\omega}\times\vec{U}$ disparaît identiquement et l'équation reformulée donne directement :
+\[
+\vec{\nabla} H = \vec{0}
+\]
+
+\begin{importantbox}{Théorème de Bernoulli — Version Forte (Irrotationnel)}
+Pour un écoulement non visqueux, stationnaire et irrotationnel, la charge totale $H$ est uniformément constante dans \textbf{tout le domaine fluide} :
+\[
+\frac{p}{\rho} + \frac{1}{2}U^2 + gz = H = \text{cst partout}
+\]
+On peut relier pression et vitesse entre \textbf{n'importe quels deux points} A et B, même s'ils ne partagent pas la même ligne de courant.
+\end{importantbox}
+
+\paragraph{Tableau des variables :}
+\begin{center}
+\begin{tabular}{cll}
+\hline
+\textbf{Symbole} & \textbf{Désignation} & \textbf{Unité (SI)} \\ \hline
+$H$ & Charge totale massique & $\text{m}^2\,\text{s}^{-2}$ \\
+$p/\rho$ & Énergie de pression massique & $\text{m}^2\,\text{s}^{-2}$ \\
+$\frac{1}{2}U^2$ & Énergie cinétique massique & $\text{m}^2\,\text{s}^{-2}$ \\
+$gz$ & Énergie potentielle massique & $\text{m}^2\,\text{s}^{-2}$ \\ \hline
+\end{tabular}
+\end{center}
+
+\paragraph{Résumé de la chaîne logique :}
+\begin{center}
+\begin{tabular}{ll}
+\hline
+\textbf{Hypothèses} & \textbf{Résultat} \\ \hline
+Non visqueux + stationnaire & $H = \text{cst}$ le long d'une ligne de courant \\
+Non visqueux + stationnaire + $\vec{\omega}=\vec{0}$ & $H = \text{cst}$ dans tout l'écoulement \\ \hline
+\end{tabular}
+\end{center}
+
+La restriction à la ligne de courant dans Bernoulli classique est une conséquence directe de la projection sur $\vec{U}$ : on élimine $\vec{\omega}\times\vec{U}$ mais on perd l'information sur les autres directions. Avec $\vec{\omega} = \vec{0}$, ce terme disparaît sans projection, et $\vec{\nabla}H = \vec{0}$ est une information sur \textit{toutes} les directions simultanément.
+
+\section{Origine Pariétale de la Vorticité}
+
+L'équation de Helmholtz décrit la \textit{propagation} de la vorticité existante. Elle ne dit rien sur sa \textit{création}. Si $\vec{\omega} = \vec{0}$ partout à $t=0$, l'équation prédit $\vec{\omega} = \vec{0}$ pour tout $t > 0$. Pourtant, dans tous les écoulements réels, de la vorticité apparaît. D'où vient-elle ?
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale :} \textit{Où et comment la vorticité est-elle produite dans un écoulement réel ?}
+
+\subsection{La paroi comme unique source}
+
+La vorticité est créée exclusivement aux \textbf{parois solides}. La condition de non-glissement impose $\vec{U} = \vec{0}$ à la paroi. À une distance infinitésimale au-dessus, le fluide se déplace à la vitesse $U_1 \neq 0$. Il existe donc un gradient de vitesse $\partial U_1/\partial x_2$ extrêmement intense dans la direction normale à la paroi. En 2D :
+\[
+\omega_3\bigg|_{\text{paroi}} = -\frac{\partial U_1}{\partial x_2}\bigg|_{\text{paroi}}
+\]
+Ce gradient, imposé par la condition de non-glissement, \textit{est} de la vorticité. La contrainte de frottement visqueux à la paroi est :
+\[
+T_{\text{paroi}} = \mu\frac{\partial U_1}{\partial x_2}\bigg|_{\text{paroi}} = -\mu\,\omega_3
+\]
+\textbf{La vorticité à la paroi est directement proportionnelle au frottement.} Plus le fluide frotte fort sur la paroi, plus la vorticité générée est intense. La paroi agit comme une source de vorticité — de la même façon qu'une batterie est source de courant électrique.
+
+\paragraph{Explication avec les mains :}
+Une fois créée à la paroi, la vorticité est soumise aux trois mécanismes de l'équation de Helmholtz : elle est convectée vers l'aval par l'écoulement, diffusée vers l'intérieur du domaine par la viscosité, et potentiellement amplifiée par l'étirement en 3D. À grand Reynolds, la diffusion est faible (la viscosité est petite) : la vorticité reste confinée dans une couche mince près de la paroi, la \textbf{couche limite}, d'épaisseur $\delta \sim L/\sqrt{Re}$.
+
+\subsection{La couche limite comme zone de vorticité concentrée}
+
+À haut nombre de Reynolds, l'écoulement se divise naturellement en deux régions :
+\begin{itemize}
+    \item \textbf{La couche limite} (épaisseur $\delta \ll L$) : vorticité $\vec{\omega} \neq \vec{0}$, viscosité et inertie du même ordre, équations de Prandtl.
+    \item \textbf{L'écoulement extérieur} : vorticité $\vec{\omega} \approx \vec{0}$, viscosité négligeable, version forte de Bernoulli applicable.
+\end{itemize}
+C'est cette séparation naturelle qui justifie toute l'aérodynamique potentielle développée dans les sections suivantes.
+
+\section{Corps Profilés et Corps Non Profilés à Grand Reynolds}
+
+Maintenant que nous comprenons la vorticité et la couche limite, nous pouvons analyser ce qui se passe lorsqu'un écoulement rencontre un obstacle — et comprendre pourquoi la forme de cet obstacle change radicalement sa résistance.
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale :} \textit{Pourquoi un corps allongé résiste-t-il beaucoup moins à l'écoulement qu'un corps épais de même section frontale ?}
+
+\subsection{Le mécanisme de décollement}
+
+Le nombre de Reynolds contrôle l'épaisseur de la couche limite : $\delta \sim L/\sqrt{Re}$. À grand $Re$, cette couche est mince, mais son comportement détermine tout.
+
+Derrière un obstacle, le fluide ralentit. Par la version forte de Bernoulli, ralentir signifie que la pression remonte : c'est le \textbf{gradient de pression adverse} ($\partial p/\partial x > 0$ dans le sens de l'écoulement). Les particules du cœur de l'écoulement, rapides, ont assez d'énergie cinétique pour remonter ce gradient. Mais les particules de la couche limite, déjà freinées par le frottement sur la paroi, peuvent manquer d'énergie. Elles s'arrêtent, puis refluent : c'est le \textbf{décollement}. La vorticité contenue dans la couche limite est alors éjectée dans l'écoulement.
+
+\subsection{Corps non profilé}
+
+Sur un corps non profilé (sphère, cylindre), la géométrie impose une remontée de pression brutale à l'arrière. La couche limite décolle tôt, sa vorticité est éjectée, et un large \textbf{sillage turbulent} et désorganisé se forme en aval. Ce sillage crée une forte dépression à l'arrière (pression basse) tandis que l'avant reste à haute pression (point de stagnation). Cette différence de pression génère la \textbf{traînée de forme}, qui domine largement le frottement visqueux.
+
+\paragraph{La crise de traînée :}
+Pour une sphère, il existe un Reynolds critique ($Re \approx 3\times10^5$) où la couche limite, jusqu'alors laminaire, transite vers la turbulence. La couche limite turbulente dispose de beaucoup plus d'énergie cinétique : elle résiste mieux au gradient adverse et le décollement recule vers l'arrière. Le sillage rétrécit brutalement et le coefficient de traînée $C_d$ chute d'un facteur~5. C'est pour déclencher cette transition précocement que les balles de golf sont couvertes d'alvéoles.
+
+\subsection{Corps profilé}
+
+Un corps profilé (profil d'aile) est conçu pour que la remontée de pression soit \textbf{douce et progressive} sur toute sa surface. La couche limite reste collée jusqu'au bord de fuite. Le sillage est extrêmement fin. La traînée de forme est quasi nulle — il ne subsiste que la traînée de frottement visqueux, bien plus faible.
+
+\begin{importantbox}{Bilan Corps Profilé vs Non Profilé}
+\begin{center}
+\begin{tabular}{lll}
+\hline
+\textbf{Caractéristique} & \textbf{Corps non profilé} & \textbf{Corps profilé} \\ \hline
+Couche limite & Décolle tôt & Reste collée \\
+Sillage & Large, turbulent & Fin, organisé \\
+Traînée dominante & Traînée de forme & Traînée de frottement \\
+Coefficient $C_d$ & Élevé ($\sim 0{,}4$--$1{,}2$) & Faible ($\sim 0{,}01$--$0{,}05$) \\
+Portance & Nulle ou faible & Élevée \\ \hline
+\end{tabular}
+\end{center}
+\end{importantbox}
+
+\section{L'Écoulement Potentiel et la Modélisation d'un Profil d'Aile}
+
+La section précédente a montré que, loin de la couche limite, l'écoulement est irrotationnel à grand Reynolds. Si l'on idéalise la couche limite comme infiniment mince, le domaine fluide est entièrement irrotationnel. L'écoulement peut alors être décrit par un \textbf{potentiel des vitesses}.
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale :} \textit{Comment exploiter l'irrotationalité pour réduire le calcul d'un écoulement complexe à la résolution d'une seule équation scalaire linéaire ?}
+
+\subsection{Le potentiel des vitesses \texorpdfstring{$\phi$}{phi}}
+
+L'irrotationalité $\vec{\nabla}\times\vec{U} = \vec{0}$ garantit l'existence d'un potentiel scalaire $\phi$ tel que :
+\[
+\vec{U} = \vec{\nabla}\phi \qquad \text{soit} \qquad U_1 = \frac{\partial\phi}{\partial x_1}, \quad U_2 = \frac{\partial\phi}{\partial x_2}
+\]
+$\phi$ est le \textbf{potentiel des vitesses}. En injectant dans l'incompressibilité $\vec{\nabla}\cdot\vec{U} = 0$ :
+
+\begin{importantbox}{Équation de Laplace pour $\phi$}
+\[
+\vec{\nabla}^2\phi = \frac{\partial^2\phi}{\partial x_1^2} + \frac{\partial^2\phi}{\partial x_2^2} = 0
+\]
+Tout le problème de l'écoulement potentiel se ramène à résoudre l'équation de Laplace, linéaire, avec les bonnes conditions aux limites.
+\end{importantbox}
+
+\paragraph{Interprétation physique de \texorpdfstring{$\phi$}{phi} :}
+Les lignes $\phi = \text{cst}$ sont les \textbf{équipotentielles} : le champ de vitesse $\vec{U} = \vec{\nabla}\phi$ leur est perpendiculaire en tout point. L'analogie avec l'électrostatique est parfaite : $\phi$ joue le rôle du potentiel électrique et $\vec{U}$ celui du champ électrique.
+
+\subsection{La fonction de courant \texorpdfstring{$\psi$}{psi}}
+
+En parallèle de $\phi$, la \textbf{fonction de courant} $\psi$ est définie par :
+\[
+U_1 = \frac{\partial\psi}{\partial x_2}, \qquad U_2 = -\frac{\partial\psi}{\partial x_1}
+\]
+Cette définition garantit l'incompressibilité automatiquement. Si l'écoulement est irrotationnel, $\psi$ vérifie aussi $\vec{\nabla}^2\psi = 0$. Les lignes $\psi = \text{cst}$ sont les \textbf{lignes de courant} — les trajectoires des particules fluides.
+
+\paragraph{La relation orthogonale entre \texorpdfstring{$\phi$}{phi} et \texorpdfstring{$\psi$}{psi} :}
+Les deux fonctions satisfont les \textbf{relations de Cauchy-Riemann} :
+\[
+\frac{\partial\phi}{\partial x_1} = \frac{\partial\psi}{\partial x_2}, \qquad \frac{\partial\phi}{\partial x_2} = -\frac{\partial\psi}{\partial x_1}
+\]
+Ces relations impliquent que les équipotentielles ($\phi = \text{cst}$) et les lignes de courant ($\psi = \text{cst}$) sont \textbf{perpendiculaires en tout point}. Elles forment un réseau orthogonal quadrillant le domaine. Ces relations sont exactement celles d'une fonction analytique en variable complexe $w(z) = \phi + i\psi$ avec $z = x_1 + ix_2$ : le \textbf{potentiel complexe}, qui ouvre l'accès à la puissance de l'analyse complexe.
+
+\subsection{Formulation du problème pour un profil d'aile}
+
+La surface du profil est une ligne de courant ($\psi = 0$ sur $S$). Le problème complet s'écrit :
+\[
+\begin{cases}
+\vec{\nabla}^2\psi = 0 & \text{dans le domaine fluide} \\
+\psi = 0 & \text{sur la surface du profil } S \text{ (imperméabilité)} \\
+\psi \to U_\infty x_2 & \text{loin du profil (écoulement uniforme)}
+\end{cases}
+\]
+Une fois $\psi$ déterminé, on dérive pour obtenir $\vec{U}$, puis Bernoulli fort donne $p$ en tout point. L'intégration de la distribution de pression sur $S$ donne les forces.
+
+\section{Le Théorème de Kutta-Joukowski et la Portance}
+\label{sec:kutta}
+
+Plutôt que de résoudre Laplace sur la géométrie précise du profil (analytiquement difficile), le cours exploite une approche élégante : analyser le \textbf{comportement lointain} de la solution, qui est universel.
+
+\vspace{0.4cm}
+\paragraph{Question Fondamentale :} \textit{Comment relier directement la force exercée sur un profil d'aile à une propriété globale et simple de l'écoulement, sans connaître la géométrie précise du profil ?}
+
+\subsection{Développement de la solution lointaine}
+
+Loin du profil, en coordonnées polaires $(r, \theta)$, la solution générale de $\vec{\nabla}^2\psi = 0$ raccordée à l'infini ($\psi \to U_\infty r\sin\theta$) s'écrit :
+\[
+\psi = U_\infty r\sin\theta - \frac{\Gamma}{2\pi}\ln r + O(r^{-1})
+\]
+Le premier terme est l'écoulement uniforme. Le second est exactement la fonction de courant d'un \textbf{tourbillon ponctuel de circulation $\Gamma$}. Quelle que soit la géométrie précise du profil, l'écoulement lointain se comporte comme un tourbillon ponctuel superposé à un écoulement uniforme — le profil est invisible à grande distance.
+
+\subsection{Le champ de vitesse et la pression lointains}
+
+En dérivant $\psi$, le champ de vitesse loin du profil est :
+\[
+\vec{U} = U_\infty\vec{e}_1 - \frac{\Gamma}{2\pi r}\vec{e}_\theta + O(r^{-2})
+\]
+Le terme en $\Gamma/(2\pi r)$ est la signature du vortex : il \textbf{ajoute} de la vitesse en dessous du profil (où $\vec{e}_\theta$ pointe dans le même sens que $\vec{e}_1$) et en \textbf{retranche} au-dessus. Par Bernoulli fort, l'endroit où la vitesse est plus grande est celui où la pression est plus basse. Le dessus du profil est à plus basse pression que le dessous : une force verticale vers le haut apparaît.
+
+\subsection{Calcul de la force par bilan de quantité de mouvement}
+
+On applique le bilan de quantité de mouvement (théorème de Reynolds, écoulement stationnaire non visqueux) sur un grand cercle $\mathcal{C}^*$ de rayon $R \to \infty$ entourant le profil. En substituant les expressions de $\vec{U}$ et de $p$ (via Bernoulli fort) et en intégrant sur $[0, 2\pi]$, les termes oscillants $\cos\theta$ et $\sin\theta$ contribuent, et les calculs donnent :
+
+\begin{importantbox}{Théorème de Kutta-Joukowski}
+La force par unité d'envergure exercée sur un profil portant une circulation $\Gamma$ dans un écoulement uniforme $U_\infty$ est :
+\[
+\vec{F} = \rho\,\Gamma\,U_\infty\,\vec{e}_2
+\]
+\begin{itemize}
+    \item \textbf{Portance :} $L = \rho\,\Gamma\,U_\infty$ (perpendiculaire à $U_\infty$, vers le haut si $\Gamma > 0$)
+    \item \textbf{Traînée :} $D = 0$ (Paradoxe de d'Alembert : pas de résistance pour un fluide non visqueux)
+\end{itemize}
+\end{importantbox}
+
+\paragraph{Tableau des variables :}
+\begin{center}
+\begin{tabular}{cll}
+\hline
+\textbf{Symbole} & \textbf{Désignation} & \textbf{Unité (SI)} \\ \hline
+$\Gamma$ & Circulation autour du profil & $\text{m}^2\,\text{s}^{-1}$ \\
+$U_\infty$ & Vitesse de l'écoulement loin du profil & $\text{m}\,\text{s}^{-1}$ \\
+$\rho$ & Masse volumique du fluide & $\text{kg}\,\text{m}^{-3}$ \\
+$L = \rho\Gamma U_\infty$ & Portance par unité d'envergure & $\text{N}\,\text{m}^{-1}$ \\ \hline
+\end{tabular}
+\end{center}
+
+\subsection{D'où vient la circulation \texorpdfstring{$\Gamma$}{Gamma} ?}
+
+C'est la question physique centrale. Lors du \textbf{démarrage} de l'écoulement, un \textbf{tourbillon de démarrage} (\textit{starting vortex}) est éjecté dans le sillage. Par le \textbf{théorème de Kelvin} (la circulation est conservée dans un fluide non visqueux), si ce tourbillon emporte une circulation $-\Gamma$, le profil acquiert une circulation $+\Gamma$ égale et opposée.
+
+La valeur précise de $\Gamma$ est fixée par la \textbf{condition de Kutta} : à grand Reynolds, l'écoulement doit quitter le bord de fuite sans contourner l'angle vif. Cette condition physique impose une unique valeur de $\Gamma$, et donc une portance bien déterminée.
+
+\subsection{Application : l'Effet Magnus}
+
+Le même résultat s'applique à un \textbf{corps en rotation} (cylindre de rayon $R$ tournant à la vitesse angulaire $\Omega$). La rotation génère une circulation $\Gamma = 2\pi R^2\Omega$ et une force de \textbf{Magnus} :
+\[
+\vec{F}_M = \rho\,\Gamma\,U_\infty\,\vec{e}_2 \propto \rho\,\vec{\Omega}\times\vec{U}_\infty
+\]
+C'est ce mécanisme qui dévie la trajectoire d'une balle en rotation (football, tennis, baseball) : en tournant sur elle-même, la balle crée une circulation et donc une portance latérale.
+
+\subsection{Synthèse : la chaîne logique du chapitre}
+
+Tous les concepts de ce chapitre forment une chaîne cohérente qui mène du microscopique au macroscopique :
+
+\begin{center}
+\begin{tabular}{ll}
+\hline
+\textbf{Étape} & \textbf{Outil / Résultat} \\ \hline
+Grand $Re$ & Couche limite mince, $\delta \sim L/\sqrt{Re}$ \\
+Vorticité confinée à la paroi & $\vec{\omega} \approx \vec{0}$ dans l'écoulement extérieur \\
+Irrotationnel + incompressible & $\vec{\nabla}^2\psi = 0$ (équation de Laplace) \\
+Solution champ lointain & $\psi = U_\infty r\sin\theta - \frac{\Gamma}{2\pi}\ln r$ \\
+Non visqueux + irrotationnel & $H = \text{cst}$ partout (Bernoulli fort) \\
+Bilan de quantité de mouvement & $\vec{F} = \rho\Gamma U_\infty\vec{e}_2$ (Kutta-Joukowski) \\ \hline
+\end{tabular}
+\end{center}
+
+La portance d'une aile est entièrement déterminée par la circulation de la vorticité autour d'elle. Les tourbillons — analysés depuis leur définition microscopique (rotation propre d'une particule) jusqu'à leur effet macroscopique (portance d'une aile) — sont le cœur de l'aérodynamique.
+
+\end{document}

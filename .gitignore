@@ -151,3 +151,5 @@ storage/
 uploads/
 backups/
 *.sql
+
+app_data/*
