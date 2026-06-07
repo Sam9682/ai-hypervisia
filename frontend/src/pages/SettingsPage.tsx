@@ -140,7 +140,7 @@ export const SettingsPage = () => {
                   Répertoire partagé (./docs)
                 </h3>
                 <p className="text-sm text-gray-500 mt-1">
-                  Rend les fichiers du dossier <code className="bg-gray-100 px-1 rounded">./docs</code> du backend
+                  Rend les fichiers du dossier <code className="bg-gray-100 px-1 rounded">./docs/cours</code> du backend
                   visibles et téléchargeables dans l'espace Documents, rubrique « Répertoire partagé ».
                 </p>
               </div>

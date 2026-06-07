@@ -69,7 +69,7 @@ class SharedFilesResponse(BaseModel):
     enabled: bool
 
 
-DOCS_DIR = Path("docs")
+DOCS_DIR = Path("docs/cours")
 
 
 @router.get("/shared-files", response_model=SharedFilesResponse)
@@ -133,4 +133,52 @@ async def download_shared_file(
         path=str(target),
         filename=target.name,
         media_type="application/octet-stream",
+    )
+
+
+GENERATED_PDFS_DIR = Path("storage/generated_pdfs")
+
+
+@router.get("/generated-files", response_model=SharedFilesResponse)
+async def list_generated_files(
+    current_user: User = Depends(get_current_user),
+) -> SharedFilesResponse:
+    """List PDF files in storage/generated_pdfs/ directory."""
+    if not GENERATED_PDFS_DIR.exists():
+        return SharedFilesResponse(files=[], total=0, enabled=True)
+
+    items: List[SharedFileItem] = []
+    for entry in sorted(GENERATED_PDFS_DIR.iterdir(), key=lambda e: e.name.lower()):
+        if entry.is_file() and entry.suffix == '.pdf':
+            items.append(SharedFileItem(
+                name=entry.name,
+                path=str(entry.relative_to(GENERATED_PDFS_DIR)),
+                size=entry.stat().st_size,
+                is_directory=False,
+            ))
+
+    return SharedFilesResponse(files=items, total=len(items), enabled=True)
+
+
+@router.get("/generated-files/download")
+async def download_generated_file(
+    filepath: str,
+    current_user: User = Depends(get_current_user),
+):
+    """Download a file from storage/generated_pdfs/ directory."""
+    target = GENERATED_PDFS_DIR / filepath
+
+    # Prevent path traversal
+    try:
+        target.resolve().relative_to(GENERATED_PDFS_DIR.resolve())
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Chemin invalide")
+
+    if not target.exists() or not target.is_file():
+        raise HTTPException(status_code=404, detail="Fichier introuvable")
+
+    return FileResponse(
+        path=str(target),
+        filename=target.name,
+        media_type="application/pdf",
     )

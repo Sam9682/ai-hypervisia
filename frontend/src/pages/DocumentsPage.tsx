@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react';
 import {
-  listDocuments,
   listGeneratedPdfs,
-  getDocumentDownloadUrl,
   getGeneratedPdfDownloadUrl,
   downloadFile,
-  type DocumentItem,
   type GeneratedPdfItem,
 } from '../services/documentService';
 import api from '../services/api';
@@ -18,26 +15,26 @@ interface SharedFileItem {
 }
 
 export const DocumentsPage = () => {
-  const [documents, setDocuments] = useState<DocumentItem[]>([]);
+  const [generatedFiles, setGeneratedFiles] = useState<SharedFileItem[]>([]);
   const [generatedPdfs, setGeneratedPdfs] = useState<GeneratedPdfItem[]>([]);
   const [sharedFiles, setSharedFiles] = useState<SharedFileItem[]>([]);
   const [sharedEnabled, setSharedEnabled] = useState(false);
   const [sharedPath, setSharedPath] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'generated' | 'uploaded' | 'shared'>('generated');
+  const [activeTab, setActiveTab] = useState<'generated' | 'files' | 'shared'>('generated');
 
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const [docsRes, pdfsRes, sharedRes] = await Promise.all([
-          listDocuments(),
+        const [genFilesRes, pdfsRes, sharedRes] = await Promise.all([
+          api.get('/settings/generated-files').catch(() => ({ data: { files: [], total: 0, enabled: true } })),
           listGeneratedPdfs(),
           api.get('/settings/shared-files', { params: { subpath: '' } }).catch(() => ({ data: { files: [], total: 0, enabled: false } })),
         ]);
-        setDocuments(docsRes.documents);
+        setGeneratedFiles(genFilesRes.data.files);
         setGeneratedPdfs(pdfsRes.pdfs);
         setSharedFiles(sharedRes.data.files);
         setSharedEnabled(sharedRes.data.enabled);
@@ -121,14 +118,14 @@ export const DocumentsPage = () => {
           📚 Cours générés ({generatedPdfs.length})
         </button>
         <button
-          onClick={() => setActiveTab('uploaded')}
+          onClick={() => setActiveTab('files')}
           className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === 'uploaded'
+            activeTab === 'files'
               ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
           }`}
         >
-          📁 Documents partagés ({documents.length})
+          📁 Documents générés ({generatedFiles.length})
         </button>
         {sharedEnabled && (
           <button
@@ -226,15 +223,15 @@ export const DocumentsPage = () => {
         </div>
       )}
 
-      {/* Uploaded Documents Tab */}
-      {!loading && !error && activeTab === 'uploaded' && (
+      {/* Generated Files Tab (storage/generated_pdfs/) */}
+      {!loading && !error && activeTab === 'files' && (
         <div>
-          {documents.length === 0 ? (
+          {generatedFiles.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-lg shadow-md">
               <span className="text-5xl mb-4 inline-block">📭</span>
-              <p className="text-gray-600 text-lg font-medium">Aucun document partagé</p>
+              <p className="text-gray-600 text-lg font-medium">Aucun document généré</p>
               <p className="text-gray-500 text-sm mt-2">
-                Les administrateurs peuvent ajouter des documents depuis le panneau d'administration.
+                Les fichiers PDF générés par EduScalar apparaîtront ici.
               </p>
             </div>
           ) : (
@@ -246,13 +243,7 @@ export const DocumentsPage = () => {
                       Nom
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Catégorie
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       Taille
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      Date
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       Action
@@ -260,32 +251,26 @@ export const DocumentsPage = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {documents.map((doc) => (
-                    <tr key={doc.id} className="hover:bg-gray-50 transition-colors">
+                  {generatedFiles.map((file) => (
+                    <tr key={file.path} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center">
-                          <span className="text-lg mr-2">
-                            {doc.mime_type.includes('pdf') ? '📕' : doc.mime_type.includes('image') ? '🖼️' : '📄'}
-                          </span>
+                          <span className="text-lg mr-2">📕</span>
                           <span className="text-sm text-gray-800 font-medium truncate max-w-xs">
-                            {doc.original_name}
+                            {file.name}
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                          {doc.category.replace(/_/g, ' ')}
-                        </span>
-                      </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
-                        {formatFileSize(doc.size)}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {formatDate(doc.created_at)}
+                        {formatFileSize(file.size)}
                       </td>
                       <td className="px-6 py-4">
                         <button
-                          onClick={() => downloadFile(getDocumentDownloadUrl(doc.id), doc.original_name)}
+                          onClick={() => {
+                            const baseURL = api.defaults.baseURL || '';
+                            const url = `${baseURL}/settings/generated-files/download?filepath=${encodeURIComponent(file.path)}`;
+                            downloadFile(url, file.name);
+                          }}
                           className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors"
                         >
                           📥 Télécharger
