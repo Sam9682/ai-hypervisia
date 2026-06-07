@@ -3,11 +3,13 @@ import api from './api';
 export interface AppSettings {
   pdf_ttl_hours: number;
   docs_shared_enabled: boolean;
+  storage_details_enabled: boolean;
 }
 
 export interface UpdateSettingsRequest {
   pdf_ttl_hours?: number;
   docs_shared_enabled?: boolean;
+  storage_details_enabled?: boolean;
 }
 
 export async function getSettings(): Promise<AppSettings> {

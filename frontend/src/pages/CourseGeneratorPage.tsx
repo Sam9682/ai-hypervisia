@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import eduscalarLogo from '../assets/eduscalar.svg';
 import {
   listCourses,
   generateCourse,
@@ -149,10 +150,15 @@ export const CourseGeneratorPage = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-lg shadow-xl p-8 mb-6">
-        <h1 className="text-4xl font-bold text-white mb-2">📚 EduScalar: Générateur de Cours</h1>
-        <p className="text-emerald-100">
-          Adaptez vos cours de mathématiques à votre public cible grâce à l'intelligence artificielle
-        </p>
+        <div className="flex items-center gap-4">
+          <img src={eduscalarLogo} alt="EduScalar" className="h-20 w-20 object-contain" />
+          <div>
+            <h1 className="text-4xl font-bold text-white mb-2">📚 EduScalar: Générateur de Cours</h1>
+            <p className="text-emerald-100">
+              Adaptez vos cours de mathématiques à votre public cible grâce à l'intelligence artificielle
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Success Notification */}

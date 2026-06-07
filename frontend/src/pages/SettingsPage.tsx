@@ -11,6 +11,7 @@ export const SettingsPage = () => {
   // Local form state
   const [pdfTtl, setPdfTtl] = useState<number>(1);
   const [docsShared, setDocsShared] = useState<boolean>(false);
+  const [storageDetails, setStorageDetails] = useState<boolean>(false);
 
   useEffect(() => {
     loadSettings();
@@ -31,6 +32,7 @@ export const SettingsPage = () => {
       setSettings(data);
       setPdfTtl(data.pdf_ttl_hours);
       setDocsShared(data.docs_shared_enabled);
+      setStorageDetails(data.storage_details_enabled);
     } catch (err: any) {
       const detail = err.response?.data?.detail;
       setError(typeof detail === 'string' ? detail : 'Erreur lors du chargement des paramètres');
@@ -46,6 +48,7 @@ export const SettingsPage = () => {
       const data = await updateSettings({
         pdf_ttl_hours: pdfTtl,
         docs_shared_enabled: docsShared,
+        storage_details_enabled: storageDetails,
       });
       setSettings(data);
       setSuccess('Paramètres enregistrés avec succès');
@@ -58,7 +61,7 @@ export const SettingsPage = () => {
   };
 
   const hasChanges = settings
-    ? pdfTtl !== settings.pdf_ttl_hours || docsShared !== settings.docs_shared_enabled
+    ? pdfTtl !== settings.pdf_ttl_hours || docsShared !== settings.docs_shared_enabled || storageDetails !== settings.storage_details_enabled
     : false;
 
   return (
@@ -132,16 +135,16 @@ export const SettingsPage = () => {
           </div>
 
           {/* Docs Shared */}
-          <div className="pb-2">
+          <div className="border-b border-gray-200 pb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex-1">
                 <h3 className="text-base font-semibold text-gray-800 flex items-center">
                   <span className="mr-2">📂</span>
-                  Répertoire partagé (./docs)
+                  Cours de référence (./docs/cours)
                 </h3>
                 <p className="text-sm text-gray-500 mt-1">
                   Rend les fichiers du dossier <code className="bg-gray-100 px-1 rounded">./docs/cours</code> du backend
-                  visibles et téléchargeables dans l'espace Documents, rubrique « Répertoire partagé ».
+                  visibles et téléchargeables dans l'espace Documents, rubrique « Cours de référence ».
                 </p>
               </div>
               <div>
@@ -155,6 +158,36 @@ export const SettingsPage = () => {
                   <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   <span className="ml-3 text-sm font-medium text-gray-700">
                     {docsShared ? 'Activé' : 'Désactivé'}
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Storage Details */}
+          <div className="pb-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex-1">
+                <h3 className="text-base font-semibold text-gray-800 flex items-center">
+                  <span className="mr-2">🗄️</span>
+                  Détails des Documents générés
+                </h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  Affiche l'ensemble des fichiers sous <code className="bg-gray-100 px-1 rounded">./storage</code> dans
+                  l'espace Documents (rubrique « Détails stockage »). Permet de naviguer dans les sous-dossiers et télécharger les fichiers.
+                </p>
+              </div>
+              <div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={storageDetails}
+                    onChange={(e) => setStorageDetails(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <span className="ml-3 text-sm font-medium text-gray-700">
+                    {storageDetails ? 'Activé' : 'Désactivé'}
                   </span>
                 </label>
               </div>

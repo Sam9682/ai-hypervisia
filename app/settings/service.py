@@ -19,6 +19,7 @@ SETTINGS_FILE = Path("storage/app_settings.json")
 DEFAULTS: Dict[str, Any] = {
     "pdf_ttl_hours": 1,
     "docs_shared_enabled": False,
+    "storage_details_enabled": False,
 }
 
 
