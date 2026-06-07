@@ -351,7 +351,7 @@ export const CourseGeneratorPage = () => {
               </div>
               <p className="text-gray-600 text-sm font-medium">Génération en cours...</p>
               <p className="text-gray-500 text-xs mt-1">
-                L'IA adapte le contenu pour le niveau sélectionné
+                L'IA adapte le contenu pour le niveau sélectionné. Cela peut prendre 15 minutes !
               </p>
             </div>
           )}

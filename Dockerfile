@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     texlive-lang-french \
     texlive-science \
     texlive-pictures \
+    lmodern \
     cm-super \
     && rm -rf /var/lib/apt/lists/*
 
