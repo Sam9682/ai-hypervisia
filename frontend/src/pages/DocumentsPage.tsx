@@ -8,25 +8,39 @@ import {
   type DocumentItem,
   type GeneratedPdfItem,
 } from '../services/documentService';
+import api from '../services/api';
+
+interface SharedFileItem {
+  name: string;
+  path: string;
+  size: number;
+  is_directory: boolean;
+}
 
 export const DocumentsPage = () => {
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [generatedPdfs, setGeneratedPdfs] = useState<GeneratedPdfItem[]>([]);
+  const [sharedFiles, setSharedFiles] = useState<SharedFileItem[]>([]);
+  const [sharedEnabled, setSharedEnabled] = useState(false);
+  const [sharedPath, setSharedPath] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'generated' | 'uploaded'>('generated');
+  const [activeTab, setActiveTab] = useState<'generated' | 'uploaded' | 'shared'>('generated');
 
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const [docsRes, pdfsRes] = await Promise.all([
+        const [docsRes, pdfsRes, sharedRes] = await Promise.all([
           listDocuments(),
           listGeneratedPdfs(),
+          api.get('/settings/shared-files', { params: { subpath: '' } }).catch(() => ({ data: { files: [], total: 0, enabled: false } })),
         ]);
         setDocuments(docsRes.documents);
         setGeneratedPdfs(pdfsRes.pdfs);
+        setSharedFiles(sharedRes.data.files);
+        setSharedEnabled(sharedRes.data.enabled);
       } catch (err: any) {
         const detail = err.response?.data?.detail;
         setError(typeof detail === 'string' ? detail : 'Erreur lors du chargement des documents');
@@ -36,6 +50,33 @@ export const DocumentsPage = () => {
     };
     loadData();
   }, []);
+
+  const loadSharedFiles = async (subpath: string) => {
+    try {
+      const res = await api.get('/settings/shared-files', { params: { subpath } });
+      setSharedFiles(res.data.files);
+      setSharedEnabled(res.data.enabled);
+      setSharedPath(subpath);
+    } catch {
+      setSharedFiles([]);
+    }
+  };
+
+  const handleSharedNavigate = (item: SharedFileItem) => {
+    if (item.is_directory) {
+      loadSharedFiles(item.path);
+    } else {
+      const baseURL = api.defaults.baseURL || '';
+      const url = `${baseURL}/settings/shared-files/download?filepath=${encodeURIComponent(item.path)}`;
+      downloadFile(url, item.name);
+    }
+  };
+
+  const handleSharedBack = () => {
+    const parts = sharedPath.split('/').filter(Boolean);
+    parts.pop();
+    loadSharedFiles(parts.join('/'));
+  };
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return `${bytes} o`;
@@ -89,6 +130,18 @@ export const DocumentsPage = () => {
         >
           📁 Documents partagés ({documents.length})
         </button>
+        {sharedEnabled && (
+          <button
+            onClick={() => { setActiveTab('shared'); loadSharedFiles(''); }}
+            className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'shared'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            📂 Répertoire partagé
+          </button>
+        )}
       </div>
 
       {/* Loading */}
@@ -237,6 +290,82 @@ export const DocumentsPage = () => {
                         >
                           📥 Télécharger
                         </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Shared Files Tab */}
+      {!loading && !error && activeTab === 'shared' && sharedEnabled && (
+        <div>
+          {/* Breadcrumb / Back button */}
+          {sharedPath && (
+            <div className="mb-4 flex items-center gap-2">
+              <button
+                onClick={handleSharedBack}
+                className="inline-flex items-center px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200 transition-colors"
+              >
+                ⬅️ Retour
+              </button>
+              <span className="text-sm text-gray-500">
+                📂 /{sharedPath}
+              </span>
+            </div>
+          )}
+
+          {sharedFiles.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-lg shadow-md">
+              <span className="text-5xl mb-4 inline-block">📭</span>
+              <p className="text-gray-600 text-lg font-medium">Dossier vide</p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Nom
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Taille
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {sharedFiles.map((item) => (
+                    <tr key={item.path} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => handleSharedNavigate(item)}>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">
+                          <span className="text-lg mr-2">
+                            {item.is_directory ? '📁' : item.name.endsWith('.pdf') ? '📕' : item.name.endsWith('.tex') ? '📝' : '📄'}
+                          </span>
+                          <span className="text-sm text-gray-800 font-medium">
+                            {item.name}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {item.is_directory ? '—' : formatFileSize(item.size)}
+                      </td>
+                      <td className="px-6 py-4">
+                        {item.is_directory ? (
+                          <span className="text-xs text-gray-400">Ouvrir</span>
+                        ) : (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleSharedNavigate(item); }}
+                            className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded hover:bg-blue-700 transition-colors"
+                          >
+                            📥 Télécharger
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}

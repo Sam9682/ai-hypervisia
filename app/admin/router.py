@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_, func
 from app.database import get_db
 from app.models import User, UserRole, AuditLog, Topic, Post, Event, EventStatus, Payment, PaymentStatus
+from app.auth.password import hash_password
 from app.events.dependencies import require_admin
 from app.admin.schemas import (
     RoleUpdateRequest,
@@ -870,4 +871,100 @@ async def send_announcement(
         message=f"Announcement sent successfully to {notifications_sent} members",
         notifications_sent=notifications_sent,
         total_members=total_active_members
+    )
+
+
+from pydantic import BaseModel, Field
+
+
+class AdminResetPasswordRequest(BaseModel):
+    """Request schema for admin password reset"""
+    new_password: str = Field(min_length=8, max_length=128, description="New password for the user")
+
+
+class AdminResetPasswordResponse(BaseModel):
+    """Response schema for admin password reset"""
+    success: bool
+    message: str
+    user_id: str
+    email: str
+
+
+@router.put(
+    "/members/{member_id}/reset-password",
+    response_model=AdminResetPasswordResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        403: {"description": "Insufficient permissions or cannot reset admin password"},
+        404: {"description": "Member not found"},
+        400: {"description": "Invalid password"}
+    }
+)
+@limiter.limit("10/hour")
+async def admin_reset_password(
+    request: Request,
+    member_id: UUID,
+    password_data: AdminResetPasswordRequest,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+) -> AdminResetPasswordResponse:
+    """Reset a non-admin user's password (admin only).
+
+    An administrator can reset the password of any non-administrator user.
+    Administrators cannot reset another administrator's password.
+
+    Args:
+        member_id: UUID of the member whose password to reset
+        password_data: New password
+        current_user: Authenticated administrator
+        db: Database session
+
+    Returns:
+        AdminResetPasswordResponse with confirmation
+
+    Raises:
+        HTTPException 403: If user is not admin or target is admin
+        HTTPException 404: If member not found
+    """
+    member = db.query(User).filter(User.id == member_id).first()
+    if not member:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Utilisateur introuvable",
+        )
+
+    # Cannot reset another admin's password
+    if member.role == UserRole.ADMINISTRATOR and member.id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Impossible de réinitialiser le mot de passe d'un autre administrateur",
+        )
+
+    # Hash and set the new password
+    member.password_hash = hash_password(password_data.new_password)
+    member.updated_at = datetime.now(timezone.utc)
+
+    # Audit log
+    audit_entry = AuditLog(
+        admin_id=current_user.id,
+        action="admin_reset_password",
+        target_type="user",
+        target_id=member.id,
+        details={
+            "member_email": member.email,
+            "reset_by": current_user.email,
+        }
+    )
+    db.add(audit_entry)
+    db.commit()
+
+    logger.info(
+        f"Administrator {current_user.email} reset password for user {member.email}"
+    )
+
+    return AdminResetPasswordResponse(
+        success=True,
+        message="Mot de passe réinitialisé avec succès",
+        user_id=str(member.id),
+        email=member.email,
     )

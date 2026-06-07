@@ -29,7 +29,7 @@ STORAGE_DIR = Path("storage/generated_pdfs")
 INDEX_FILE = STORAGE_DIR / "index.json"
 
 # Constants
-PDF_EXPIRATION_HOURS = 1
+PDF_EXPIRATION_HOURS = 1  # Default, overridden by app_settings_service
 AI_TIMEOUT_SECONDS = 1800
 PDFLATEX_TIMEOUT_SECONDS = 1800
 MAX_FILENAME_LENGTH = 100  # Including .pdf extension
@@ -344,7 +344,9 @@ class CourseService:
 
         # Create metadata entry
         now = datetime.now(timezone.utc)
-        expires_at = now + timedelta(hours=PDF_EXPIRATION_HOURS)
+        from app.settings.service import app_settings_service
+        ttl_hours = app_settings_service.get("pdf_ttl_hours")
+        expires_at = now + timedelta(hours=ttl_hours)
 
         entry = GeneratedPDF(
             download_id=download_id,

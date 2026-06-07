@@ -65,6 +65,11 @@ export const Layout = ({ children }: LayoutProps) => {
                         <span className="mr-1">👥</span> Utilisateurs
                       </Link>
                     )}
+                    {isAdmin && (
+                      <Link to="/settings" className="inline-flex items-center px-3 pt-1 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors border-b-2 border-transparent hover:border-primary-600">
+                        <span className="mr-1">⚙️</span> Paramètres
+                      </Link>
+                    )}
                   </>
                 )}
               </div>
@@ -168,6 +173,15 @@ export const Layout = ({ children }: LayoutProps) => {
                       className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-colors"
                     >
                       <span className="mr-2">👥</span> Utilisateurs
+                    </Link>
+                  )}
+                  {isAdmin && (
+                    <Link
+                      to="/settings"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+                    >
+                      <span className="mr-2">⚙️</span> Paramètres
                     </Link>
                   )}
                 </>

@@ -6,6 +6,10 @@ export const AdminUsersPage = () => {
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [resetPasswordUser, setResetPasswordUser] = useState<User | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [resetError, setResetError] = useState<string | null>(null);
+  const [resetSuccess, setResetSuccess] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: '',
     first_name: '',
@@ -89,6 +93,21 @@ export const AdminUsersPage = () => {
       loadUsers();
     } catch (error) {
       console.error('Failed to delete user:', error);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetPasswordUser || !newPassword) return;
+    try {
+      setResetError(null);
+      await adminService.resetUserPassword(resetPasswordUser.id, newPassword);
+      setResetSuccess(`Mot de passe réinitialisé pour ${resetPasswordUser.email}`);
+      setResetPasswordUser(null);
+      setNewPassword('');
+      setTimeout(() => setResetSuccess(null), 4000);
+    } catch (error: any) {
+      const detail = error.response?.data?.detail;
+      setResetError(typeof detail === 'string' ? detail : 'Erreur lors de la réinitialisation');
     }
   };
 
@@ -177,6 +196,14 @@ export const AdminUsersPage = () => {
                   >
                     ✏️ Modifier
                   </button>
+                  {user.role !== 'administrator' && (
+                    <button
+                      onClick={() => { setResetPasswordUser(user); setNewPassword(''); setResetError(null); }}
+                      className="text-orange-600 hover:text-orange-800 font-medium"
+                    >
+                      🔑 MDP
+                    </button>
+                  )}
                   <button
                     onClick={() => handleDelete(user.id)}
                     className="text-red-600 hover:text-red-800 font-medium"
@@ -338,6 +365,60 @@ export const AdminUsersPage = () => {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Password Modal */}
+      {resetPasswordUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-2">🔑 Réinitialiser le mot de passe</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Utilisateur : <span className="font-medium">{resetPasswordUser.email}</span>
+            </p>
+            {resetError && (
+              <div className="mb-4 bg-red-50 border-l-4 border-red-500 p-3 rounded">
+                <p className="text-red-700 text-sm">{resetError}</p>
+              </div>
+            )}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-700">Nouveau mot de passe</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Minimum 8 caractères"
+                  className="w-full px-3 py-2 border rounded-lg text-gray-900"
+                />
+              </div>
+              <div className="flex flex-col sm:flex-row justify-end gap-2 pt-2">
+                <button
+                  onClick={() => { setResetPasswordUser(null); setNewPassword(''); setResetError(null); }}
+                  className="w-full sm:w-auto px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleResetPassword}
+                  disabled={newPassword.length < 8}
+                  className="w-full sm:w-auto px-4 py-2 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  🔑 Réinitialiser
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Notification */}
+      {resetSuccess && (
+        <div className="fixed top-4 right-4 bg-green-50 border-l-4 border-green-500 p-4 rounded-lg shadow-lg z-50">
+          <div className="flex items-center">
+            <span className="text-lg mr-2">✅</span>
+            <p className="text-green-700 text-sm font-medium">{resetSuccess}</p>
           </div>
         </div>
       )}

@@ -13,6 +13,7 @@ import { AdminUsersPage } from './pages/AdminUsersPage';
 import { AdminEventsPage } from './pages/AdminEventsPage';
 import { CourseGeneratorPage } from './pages/CourseGeneratorPage';
 import { DocumentsPage } from './pages/DocumentsPage';
+import { SettingsPage } from './pages/SettingsPage';
 
 function App() {
   return (
@@ -81,6 +82,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <DocumentsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      <SettingsPage />
                     </ProtectedRoute>
                   }
                 />
