@@ -70,4 +70,10 @@ export const adminService = {
       last_name: data.last_name,
     });
   },
+
+  async resetUserPassword(userId: string, newPassword: string): Promise<void> {
+    await api.put(`/admin/members/${userId}/reset-password`, {
+      new_password: newPassword,
+    });
+  },
 };

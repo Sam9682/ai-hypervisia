@@ -8,6 +8,21 @@ RUN apt-get update && apt-get install -y \
     unzip \
     postgresql-client \
     bash \
+    libasound2 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install LaTeX for PDF compilation
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    texlive-latex-base \
+    texlive-latex-extra \
+    texlive-latex-recommended \
+    texlive-fonts-recommended \
+    texlive-fonts-extra \
+    texlive-lang-french \
+    texlive-science \
+    texlive-pictures \
+    lmodern \
+    cm-super \
     && rm -rf /var/lib/apt/lists/*
 
 # Install LaTeX for PDF compilation

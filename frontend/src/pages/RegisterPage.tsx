@@ -56,11 +56,18 @@ export const RegisterPage = () => {
       setTimeout(() => navigate('/login'), 3000);
     } catch (err: any) {
       console.error('Registration error:', err.response?.data);
-      const errorMessage = 
-        err.response?.data?.detail?.error?.message || 
-        err.response?.data?.detail || 
-        err.response?.data?.message ||
-        'Échec de l\'inscription';
+      const data = err.response?.data;
+      const detail = data?.detail;
+      let errorMessage: string;
+      if (typeof detail === 'object' && detail !== null && typeof detail?.error?.message === 'string') {
+        errorMessage = detail.error.message;
+      } else if (typeof detail === 'string') {
+        errorMessage = detail;
+      } else if (typeof data?.message === 'string') {
+        errorMessage = data.message;
+      } else {
+        errorMessage = 'Échec de l\'inscription';
+      }
       setError(errorMessage);
     } finally {
       setLoading(false);

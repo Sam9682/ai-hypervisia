@@ -26,6 +26,10 @@ export interface GenerateCourseRequest {
   course_name: string;
   audience: AudienceLevel;
   ai_provider: 'shai' | 'kiro' | 'openai';
+<<<<<<< HEAD
+=======
+  custom_context?: string;
+>>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
 }
 
 export interface GenerateResponse {
@@ -72,6 +76,32 @@ export async function generateCourse(
 
 export function getDownloadUrl(downloadId: string): string {
   const baseURL = api.defaults.baseURL || '';
+<<<<<<< HEAD
   const token = localStorage.getItem('access_token');
   return `${baseURL}/courses/download/${downloadId}?token=${token}`;
+=======
+  return `${baseURL}/courses/download/${downloadId}`;
+}
+
+export async function downloadPdf(downloadId: string, filename: string): Promise<void> {
+  const url = getDownloadUrl(downloadId);
+  const token = localStorage.getItem('access_token');
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`Download failed: ${response.status}`);
+  }
+  const blob = await response.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = objectUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(objectUrl);
+>>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
 }

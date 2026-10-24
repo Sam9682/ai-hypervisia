@@ -17,6 +17,10 @@ from app.info.router import router as info_router
 from app.users.router import router as users_router
 from app.oracle.router import router as oracle_router
 from app.courses.router import router as courses_router
+<<<<<<< HEAD
+=======
+from app.settings.router import router as settings_router
+>>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
 from app.courses.service import course_service
 from app.scheduler import task_scheduler
 from app.error_handlers import register_exception_handlers
@@ -87,6 +91,10 @@ app.include_router(info_router)
 app.include_router(users_router)
 app.include_router(oracle_router)
 app.include_router(courses_router)
+<<<<<<< HEAD
+=======
+app.include_router(settings_router)
+>>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
 
 
 @app.get("/health")

@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="95" fill="#059669" opacity="0.1"/>
+  <circle cx="100" cy="100" r="85" fill="#059669" opacity="0.15"/>
+  
+  <!-- Open book -->
+  <path d="M50 130 L100 120 L100 70 L50 80 Z" fill="#065f46" opacity="0.9"/>
+  <path d="M150 130 L100 120 L100 70 L150 80 Z" fill="#047857" opacity="0.9"/>
+  <line x1="100" y1="70" x2="100" y2="120" stroke="#34d399" stroke-width="2"/>
+  
+  <!-- Math symbols on left page -->
+  <text x="65" y="98" font-family="serif" font-size="14" fill="#d1fae5" text-anchor="middle">∫</text>
+  <text x="80" y="112" font-family="serif" font-size="10" fill="#d1fae5" text-anchor="middle">∑</text>
+  
+  <!-- Math symbols on right page -->
+  <text x="120" y="98" font-family="serif" font-size="12" fill="#d1fae5" text-anchor="middle">∂/∂x</text>
+  <text x="130" y="112" font-family="serif" font-size="10" fill="#d1fae5" text-anchor="middle">∞</text>
+  
+  <!-- AI brain / circuit pattern -->
+  <circle cx="100" cy="50" r="22" fill="none" stroke="#10b981" stroke-width="2.5"/>
+  <circle cx="100" cy="50" r="8" fill="#10b981" opacity="0.6"/>
+  <!-- Neural connections -->
+  <line x1="85" y1="42" x2="92" y2="47" stroke="#34d399" stroke-width="1.5"/>
+  <line x1="108" y1="47" x2="115" y2="42" stroke="#34d399" stroke-width="1.5"/>
+  <line x1="90" y1="58" x2="95" y2="53" stroke="#34d399" stroke-width="1.5"/>
+  <line x1="105" y1="53" x2="110" y2="58" stroke="#34d399" stroke-width="1.5"/>
+  <circle cx="85" cy="40" r="3" fill="#6ee7b7"/>
+  <circle cx="115" cy="40" r="3" fill="#6ee7b7"/>
+  <circle cx="88" cy="60" r="3" fill="#6ee7b7"/>
+  <circle cx="112" cy="60" r="3" fill="#6ee7b7"/>
+  
+  <!-- Graduation cap on top -->
+  <polygon points="100,28 120,36 100,44 80,36" fill="#065f46"/>
+  <rect x="98" y="24" width="4" height="6" fill="#065f46"/>
+  <line x1="120" y1="36" x2="120" y2="44" stroke="#065f46" stroke-width="1.5"/>
+  <circle cx="120" cy="45" r="2" fill="#065f46"/>
+  
+  <!-- Connecting arrow from brain to book -->
+  <path d="M100 72 L100 68" stroke="#10b981" stroke-width="2" stroke-dasharray="3,2"/>
+  
+  <!-- Students silhouettes at bottom -->
+  <circle cx="75" cy="148" r="8" fill="#047857" opacity="0.7"/>
+  <path d="M63 170 Q75 158 87 170" fill="#047857" opacity="0.5"/>
+  
+  <circle cx="100" cy="145" r="9" fill="#059669" opacity="0.8"/>
+  <path d="M87 170 Q100 156 113 170" fill="#059669" opacity="0.6"/>
+  
+  <circle cx="125" cy="148" r="8" fill="#047857" opacity="0.7"/>
+  <path d="M113 170 Q125 158 137 170" fill="#047857" opacity="0.5"/>
+  
+  <!-- EduScalar text -->
+  <text x="100" y="190" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#065f46" text-anchor="middle">EduScalar</text>
+</svg>

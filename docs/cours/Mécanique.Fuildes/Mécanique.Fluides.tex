@@ -1,0 +1,4302 @@
+\documentclass[11pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+
+%-----DIAGRAMMES (TikZ)-------------
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, calc,
+                decorations.pathreplacing, patterns, decorations.markings}
+
+% --- PACKAGES DE MATHÉMATIQUES ---
+\usepackage{amsmath, amssymb, amsthm, mathrsfs}
+\usepackage{bm}      % vecteurs gras italiques : \bm{U}
+
+% --- CONFIGURATION DES LIENS CLIQUABLES ---
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=green,
+    urlcolor=cyan
+}
+
+% --- ENCADRÉS ARRONDIS PERSONNALISÉS (tcolorbox) ---
+\usepackage[most]{tcolorbox}
+
+\tcbset{
+    commonbox/.style={
+        enhanced,
+        arc=4mm,
+        boxrule=1.5pt,
+        colback=white,
+        fonttitle=\bfseries\sffamily,
+        attach boxed title to top left={yshift=-2mm, xshift=5mm},
+        boxed title style={sharp corners=downhill, arc=1.5mm},
+        top=4mm, bottom=3mm, left=3mm, right=3mm
+    }
+}
+
+% Encadré bleu --- relations importantes
+\newtcolorbox{importantbox}[1]{
+    commonbox,
+    colframe=blue!70!black,
+    colbacktitle=blue!70!black,
+    coltitle=white,
+    title=#1
+}
+
+% Encadré rouge --- définitions
+\newtcolorbox{defbox}[1]{
+    commonbox,
+    colframe=red!75!black,
+    colbacktitle=red!75!black,
+    coltitle=white,
+    title=#1
+}
+
+% --- MISE EN PAGE ---
+\usepackage{geometry}
+\geometry{hmargin=2.5cm,vmargin=3cm}
+
+% --- TABLEAUX ET GRAPHIQUES ---
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{booktabs}
+
+% --- COMMANDES PERSONNALISÉES ---
+\newcommand{\DD}[1]{\dfrac{D #1}{Dt}}
+\newcommand{\pd}[2]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\ten}[1]{\overline{\overline{#1}}}   % tenseur d'ordre 2
+
+% ==========================================
+\begin{document}
+% ==========================================
+
+\title{\Huge\bfseries Mécanique des Fluides}
+\author{\Large Nael LEPETRE \\ \small Centrale Lyon --- LMFA}
+\date{\the\year}
+\maketitle
+
+\tableofcontents
+\newpage
+
+% ==========================================
+\chapter{Cinématique, lois fondamentales et modèle non visqueux}
+% ==========================================
+
+Un Rafale Marine décolle d'un porte-avions à 180~km/h, 9~tonnes sous les ailes.
+La question naïve---mais fondamentale---est : \textit{pourquoi cet engin ne s'écrase
+pas dans l'océan~?}
+
+La réponse tient en un mot : l'air. Plus précisément, les forces que l'air exerce
+sur l'aile. Et pour calculer ces forces, il faut d'abord disposer d'un modèle
+mathématique décrivant comment l'air s'écoule. C'est exactement l'objet de ce
+premier chapitre.
+
+On va construire brique par brique les outils de la cinématique des fluides, puis
+on posera les lois de conservation (masse, quantité de mouvement), et on finira
+par dériver l'équation de Bernoulli---qui explique pourquoi le Rafale vole---et son
+application directe au tube de Pitot qui mesure la vitesse de l'avion.
+
+\begin{defbox}{Fil conducteur}
+Le Rafale en vol subsonique ($M_a \approx 0{,}2$ à l'approche, $M_a \leq 1{,}8$
+en pointe) est notre système de référence tout au long de ce chapitre. On y reviendra
+à chaque étape pour ancrer les concepts abstraits dans une réalité physique concrète.
+\end{defbox}
+
+% ------------------------------------------
+\section{Décrire le mouvement d'un fluide}
+% ------------------------------------------
+
+\subsection{L'hypothèse du milieu continu}
+
+L'air est un gaz composé de molécules qui se baladent en tous sens, se cognent
+les unes aux autres, et font leur vie à l'échelle nanométrique. Si on prend au
+sérieux cette description microscopique, le champ de vitesse de l'air autour du
+Rafale est un chaos discontinu, inutilisable pour calculer quoi que ce soit de
+macroscopique.
+
+La bonne nouvelle : on n'a pas besoin de ce niveau de détail. Dès que l'échelle
+caractéristique de l'écoulement $L$ est très grande devant le libre parcours moyen
+des molécules $\lambda$, les comportements moléculaires se moyennent et le fluide
+se comporte comme un milieu \textit{continu}---avec des champs de pression, de
+densité et de vitesse bien définis en tout point.
+
+\begin{defbox}{Hypothèse du milieu continu --- Nombre de Knudsen}
+On caractérise l'échelle relative de la structure moléculaire par le
+\textbf{nombre de Knudsen} :
+\[
+    Kn \equiv \frac{\lambda}{L},
+\]
+où $\lambda$ est le libre parcours moyen moléculaire et $L$ l'échelle caractéristique
+de l'écoulement. L'hypothèse du milieu continu est valide dès lors que
+\[
+    Kn \ll 1.
+\]
+\end{defbox}
+
+Pour le Rafale à basse altitude : $\lambda \sim 70~\text{nm}$ et $L \sim 1~\text{m}$
+(envergure), soit $Kn \sim 7 \times 10^{-8}$. On est parfaitement dans le régime
+continu. L'hypothèse ne lâche qu'à très haute altitude (re-entrée atmosphérique,
+vol hypersonique) ou pour des objets microscopiques (MEMS, microfluidique)---ce n'est
+pas notre problème ici.
+
+Une seconde hypothèse de travail sera souvent faite dans ce chapitre : celle
+d'\textbf{incompressibilité}. Un gaz est compressible par nature, mais si les vitesses
+en jeu sont petites devant la vitesse du son, les variations de densité induites par
+les variations de pression sont négligeables.
+
+\begin{defbox}{Nombre de Mach et condition d'incompressibilité}
+Le \textbf{nombre de Mach} compare la vitesse de l'écoulement à la vitesse du son $c$
+dans le milieu :
+\[
+    M_a \equiv \frac{U}{c}.
+\]
+Un gaz peut être traité comme \textbf{incompressible} ($\rho \approx \text{cst}$)
+dès lors que
+\[
+    M_a \lesssim 0{,}3.
+\]
+\end{defbox}
+
+Le Rafale en phase d'approche vole à $\sim 250~\text{km/h} \approx 70~\text{m/s}$.
+La vitesse du son à $20\,°C$ est $c \approx 340~\text{m/s}$, donc $M_a \approx 0{,}2$ :
+l'hypothèse d'incompressibilité est valide. Ce premier chapitre se place donc dans ce
+cadre. On y reviendra au chapitre~7 pour le vol supersonique (Mach~1{,}8).
+
+\subsection{Quantités macroscopiques : les champs de l'écoulement}
+
+Dans le cadre du milieu continu, on remplace la description moléculaire par des
+\textbf{champs continus}. Les deux quantités fondamentales qui nous intéressent sont :
+
+\begin{defbox}{Champs macroscopiques}
+\begin{itemize}
+    \item La \textbf{masse volumique} $\rho(\bm{x},t)$ (en kg/m$^3$) : masse par unité
+    de volume au point $\bm{x}$ à l'instant $t$.
+    \item Le \textbf{champ de vitesse} $\bm{U}(\bm{x},t)$ (en m/s) : vitesse
+    macroscopique du fluide au point $\bm{x}$ à l'instant $t$.
+\end{itemize}
+Ces champs sont définis en \textit{tout} point de l'espace occupé par le fluide, à
+tout instant.
+\end{defbox}
+
+Ce point de vue---fixer un point dans l'espace et observer ce qui s'y passe au fil
+du temps---est la description \textbf{eulérienne}. C'est la description naturelle en
+expérience : un tube de Pitot est installé en un point fixe sur le Rafale et mesure
+$\bm{U}$ en ce point.
+
+L'autre description, dite \textbf{lagrangienne}, consiste à suivre chaque particule
+fluide individuellement dans son mouvement. Les deux approches sont équivalentes ; on
+passera de l'une à l'autre selon la commodité mathématique.
+
+\subsection{Domaine matériel et particule fluide}
+
+Imaginons qu'on colorie en rouge un petit volume d'air juste en amont de l'aile du
+Rafale. Ce volume se déplace et se déforme en suivant l'écoulement : il forme ce
+qu'on appelle un \textbf{domaine matériel}.
+
+\begin{defbox}{Domaine matériel}
+Un \textbf{domaine matériel} $\mathcal{D}(t)$, délimité par une surface de contrôle
+$\mathcal{S}(t)$, est un volume se déplaçant et se déformant avec le fluide. Sa
+surface se déplace à la vitesse locale $\bm{U}_\mathcal{S} = \bm{U}$.
+
+Un domaine matériel est toujours constitué des mêmes particules fluides : sa masse
+est conservée.
+\end{defbox}
+
+La \textbf{particule fluide} est la limite infinitésimale de ce concept : un volume
+élémentaire $d\mathcal{V}$ qu'on suit dans son mouvement. Elle a une masse
+$dm = \rho\,d\mathcal{V}$ et une vitesse $\bm{U}$. C'est sur elle qu'on appliquera
+le principe fondamental de la dynamique dans la suite.
+
+\subsection{Lignes de courant et trajectoires}
+
+Pour visualiser un écoulement, on dispose de deux outils complémentaires :
+
+\begin{defbox}{Lignes de courant}
+À un instant $t$ fixé, les \textbf{lignes de courant} sont les courbes partout
+tangentes au champ de vitesse $\bm{U}(\bm{x},t)$. Ce sont des photographies
+instantanées de la structure de l'écoulement.
+\end{defbox}
+
+\begin{defbox}{Trajectoires}
+La \textbf{trajectoire} d'une particule fluide est le chemin parcouru au cours du
+temps. Si $\bm{x}(t)$ désigne la position de la particule, elle vérifie :
+\[
+    \frac{d\bm{x}}{dt} = \bm{U}\!\left(\bm{x}(t),\, t\right).
+\]
+\end{defbox}
+
+Pour un \textbf{écoulement stationnaire} ($\bm{U}$ indépendant de $t$), lignes de
+courant et trajectoires coïncident. Pour un écoulement instationnaire (comme le
+sillage tourbillonnaire derrière le Rafale en virage serré), les deux divergent.
+
+\subsection{La dérivée matérielle : voir le monde depuis la particule}
+
+On veut quantifier comment une grandeur physique $f(\bm{x},t)$ (température,
+pression, norme de la vitesse\ldots) évolue \textit{vue depuis une particule fluide}
+en mouvement.
+
+La particule est en $\bm{x}(t)$ à l'instant $t$. Un instant $dt$ plus tard, elle
+est en $\bm{x}(t+dt) = \bm{x}(t) + \bm{U}\,dt$. La variation de $f$ le long de
+sa trajectoire vaut donc :
+\[
+    df = f\!\left(\bm{x} + \bm{U}\,dt,\; t + dt\right) - f(\bm{x},t)
+       = \underbrace{\pd{f}{t}\,dt}_{\text{variation temporelle locale}}
+       + \underbrace{(\bm{U}\cdot\boldsymbol{\nabla} f)\,dt}_{\text{variation convective}}.
+\]
+
+En divisant par $dt$, on obtient l'opérateur qui traduit ce ``regard en suivant
+la particule'' :
+
+\begin{importantbox}{Dérivée matérielle}
+\[
+    \frac{Df}{Dt} \;\equiv\; \pd{f}{t} + \bm{U}\cdot\boldsymbol{\nabla}f
+    \;=\; \pd{f}{t} + U_j\,\pd{f}{x_j}.
+\]
+La dérivée matérielle $D/Dt$ donne le taux de variation d'une grandeur en suivant
+une particule fluide. Elle se décompose en :
+\begin{itemize}
+    \item un terme \textbf{instationnaire} $\partial f/\partial t$ : variation due
+    à l'évolution temporelle du champ en un point fixe,
+    \item un terme \textbf{convectif} $\bm{U}\cdot\boldsymbol{\nabla}f$ : variation
+    due au déplacement de la particule dans un champ spatialement non uniforme.
+\end{itemize}
+\end{importantbox}
+
+Appliquée au champ de vitesse lui-même, la dérivée matérielle donne
+l'\textbf{accélération} d'une particule fluide, qui vaut composante par composante :
+\[
+    \left.\frac{D\bm{U}}{Dt}\right|_i = \pd{U_i}{t} + U_j\,\pd{U_i}{x_j}.
+\]
+C'est ce terme qui joue le rôle du ``$\bm{a}$'' dans le principe fondamental de la
+dynamique.
+
+\subsection{Le théorème de Reynolds : différentier une intégrale sur domaine mobile}
+
+On voudra souvent écrire la dérivée temporelle d'une grandeur intégrée sur un
+domaine matériel en mouvement---la masse totale, la quantité de mouvement, etc. Le
+problème est que les bornes d'intégration se déplacent avec le fluide. Le théorème
+de Reynolds gère exactement cette difficulté.
+
+La dérivée temporelle d'une intégrale de volume se décompose en deux contributions :
+la variation de la grandeur à l'intérieur du domaine, et le flux de la grandeur à
+travers la frontière qui se déplace à la vitesse $\bm{U}_\mathcal{S}$ :
+
+\begin{importantbox}{Théorème de Reynolds}
+Pour tout domaine $\mathcal{D}(t)$ de surface $\mathcal{S}(t)$ se déplaçant à la
+vitesse de surface $\bm{U}_\mathcal{S}$, et pour toute grandeur scalaire
+$\varphi(\bm{x},t)$ :
+\[
+    \frac{d}{dt}\int_{\mathcal{D}} \varphi\,d\mathcal{V}
+    = \int_{\mathcal{D}} \pd{\varphi}{t}\,d\mathcal{V}
+    + \int_{\mathcal{S}} \varphi\,\bm{U}_\mathcal{S}\cdot\bm{n}\,ds.
+\]
+Pour une grandeur \emph{massique} $\chi$ (i.e.\ $\varphi = \rho\chi$), on montre
+que :
+\[
+    \frac{d}{dt}\int_{\mathcal{D}} \rho\chi\,d\mathcal{V}
+    = \int_{\mathcal{D}} \rho\,\frac{D\chi}{Dt}\,d\mathcal{V}
+    + \int_{\mathcal{S}} \rho\chi(\bm{U}_\mathcal{S}-\bm{U})\cdot\bm{n}\,ds.
+\]
+\end{importantbox}
+
+Deux cas particuliers reviennent constamment :
+
+\begin{itemize}
+    \item \textbf{Domaine matériel} ($\bm{U}_\mathcal{S} = \bm{U}$) : le flux
+    surfacique s'annule et $\dfrac{d}{dt}\displaystyle\int_{\mathcal{D}} \rho\chi\,d\mathcal{V}
+    = \displaystyle\int_{\mathcal{D}} \rho\,\dfrac{D\chi}{Dt}\,d\mathcal{V}$.
+
+    \item \textbf{Domaine fixe} ($\bm{U}_\mathcal{S} = \bm{0}$) :
+    $\dfrac{d}{dt}\displaystyle\int_{\mathcal{D}} \rho\chi\,d\mathcal{V}
+    = \displaystyle\int_{\mathcal{D}} \rho\,\dfrac{D\chi}{Dt}\,d\mathcal{V}
+    - \displaystyle\int_{\mathcal{S}} \rho\chi\,\bm{U}\cdot\bm{n}\,ds$.
+\end{itemize}
+
+% ------------------------------------------
+\section{Conservation de la masse}
+% ------------------------------------------
+
+\subsection{L'équation de continuité}
+
+La masse d'un domaine matériel est constante---les mêmes particules sont toujours
+là. Dit mathématiquement :
+\[
+    \frac{d}{dt}\int_{\mathcal{D}} \rho\,d\mathcal{V} = 0.
+\]
+
+On applique le théorème de Reynolds avec $\chi = 1$ sur un domaine matériel
+($\bm{U}_\mathcal{S} = \bm{U}$, terme surfacique nul) :
+\[
+    \int_{\mathcal{D}} \frac{D\rho}{Dt}\,d\mathcal{V} = 0.
+\]
+
+On développe la dérivée matérielle :
+$D\rho/Dt = \partial_t\rho + \bm{U}\cdot\boldsymbol{\nabla}\rho$, et on utilise
+l'identité vectorielle
+$\boldsymbol{\nabla}\cdot(\rho\bm{U}) = \rho\,\boldsymbol{\nabla}\cdot\bm{U}
++ \bm{U}\cdot\boldsymbol{\nabla}\rho$
+pour regrouper :
+\[
+    \int_{\mathcal{D}} \left(\pd{\rho}{t} + \boldsymbol{\nabla}\cdot(\rho\bm{U})\right)d\mathcal{V} = 0.
+\]
+
+Comme le domaine $\mathcal{D}$ est arbitraire, l'intégrand doit être nul en tout
+point :
+
+\begin{importantbox}{Équation de continuité}
+\[
+    \pd{\rho}{t} + \boldsymbol{\nabla}\cdot(\rho\bm{U}) = 0.
+\]
+Cette relation, valable pour tout fluide (compressible ou non), est la transcription
+locale de la conservation de la masse.
+\end{importantbox}
+
+\subsection{L'incompressibilité : condition de divergence nulle}
+
+Pour un fluide \textbf{incompressible}, chaque particule conserve sa densité :
+$D\rho/Dt = 0$. On peut alors développer l'équation de continuité :
+\[
+    \underbrace{\pd{\rho}{t} + \bm{U}\cdot\boldsymbol{\nabla}\rho}_{= D\rho/Dt = 0}
+    + \rho\,\boldsymbol{\nabla}\cdot\bm{U} = 0
+    \quad\Longrightarrow\quad
+    \rho\,\boldsymbol{\nabla}\cdot\bm{U} = 0.
+\]
+
+Comme $\rho \neq 0$, on conclut :
+
+\begin{importantbox}{Incompressibilite : divergence nulle}
+\[
+    \boldsymbol{\nabla}\cdot\bm{U} = 0.
+\]
+Cette condition est vérifiée pour tout écoulement vérifiant $M_a \lesssim 0{,}3$.
+Elle signifie que le champ de vitesse est \textbf{à divergence nulle} : tout volume
+de fluide se conserve (ni compression, ni dilatation).
+\end{importantbox}
+
+\subsection{Application : conservation du débit volumique en conduite}
+
+L'une des conséquences directes de $\boldsymbol{\nabla}\cdot\bm{U} = 0$ est la
+conservation du débit dans une conduite. Considérons un conduit avec deux sections
+$S_1$ et $S_2$ et une paroi imperméable $S_w$ ($\bm{U}\cdot\bm{n}=0$). En intégrant
+la condition d'incompressibilité sur le volume du conduit et en appliquant le théorème
+de la divergence, le flux net à travers la surface fermée $\mathcal{S} = S_1 \cup S_2
+\cup S_w$ est nul :
+\[
+    \int_{S_1} \bm{U}\cdot\bm{n}\,ds + \int_{S_2} \bm{U}\cdot\bm{n}\,ds
+    + \underbrace{\int_{S_w} \bm{U}\cdot\bm{n}\,ds}_{=\,0} = 0.
+\]
+
+\begin{importantbox}{Conservation du débit volumique}
+Le débit volumique $Q_v = \int_S \bm{U}\cdot\bm{n}\,ds$ est conservé le long d'une
+conduite en écoulement incompressible. La \textbf{vitesse de débit}
+$U_d = Q_v/S$ est donc inversement proportionnelle à la section.
+\end{importantbox}
+
+Léonard de Vinci avait empiriquement constaté ce résultat sur les cours d'eau dès
+1502---avant même que les mathématiques de la mécanique des fluides n'existent.
+
+% ------------------------------------------
+\section{Les forces sur un domaine fluide}
+% ------------------------------------------
+
+Pour écrire le principe fondamental de la dynamique, il faut recenser toutes les
+forces qui agissent sur une portion de fluide. Ces forces sont de deux types.
+
+\subsection{Forces volumiques et forces surfaciques}
+
+La force totale $\bm{F}$ sur un domaine $\mathcal{D}$ se décompose en :
+\[
+    \bm{F} = \bm{F}_s + \bm{F}_v.
+\]
+
+Les \textbf{forces volumiques} $\bm{F}_v$ agissent à distance sur l'ensemble du
+volume (pesanteur, forces électromagnétiques pour les fluides conducteurs). Pour
+la gravité :
+\[
+    \bm{F}_v = \int_{\mathcal{D}} \rho\bm{g}\,d\mathcal{V}.
+\]
+
+Les \textbf{forces surfaciques} $\bm{F}_s$ résultent des interactions (essentiellement
+des chocs moléculaires) entre le domaine $\mathcal{D}$ et le fluide environnant, au
+travers de la surface de contrôle $\mathcal{S}$. On introduit le \textbf{vecteur
+contrainte} $\bm{T}(\bm{x},t,\bm{n})$ (en Pa), force par unité de surface, tel
+que :
+\[
+    \bm{F}_s = \int_{\mathcal{S}} \bm{T}\,ds.
+\]
+
+Le vecteur $\bm{n}$ dans l'argument de $\bm{T}$ est la normale extérieure à $\mathcal{S}$ :
+la contrainte dépend de l'orientation de la surface sur laquelle elle s'exerce. La
+troisième loi de Newton impose immédiatement :
+\[
+    \bm{T}(\bm{x},t,-\bm{n}) = -\bm{T}(\bm{x},t,\bm{n}).
+\]
+
+\subsection{Le tenseur des contraintes de Cauchy}
+
+La dépendance de $\bm{T}$ en $\bm{n}$ pourrait a priori être quelconque. Augustin-Louis
+Cauchy (1789--1857) a démontré qu'elle est en réalité \textbf{linéaire} : il existe
+un tenseur d'ordre~2, le \textbf{tenseur des contraintes} $\ten{\sigma}$, tel que
+$\bm{T}$ s'exprime simplement.
+
+L'idée de la preuve est de calculer $\bm{T}(\bm{e}_i)$ sur chaque face du trièdre
+de base. Par linéarité de la décomposition, $\bm{T}(\bm{n})$ pour une normale
+quelconque s'obtient en combinant ces trois vecteurs contrainte via le tenseur :
+
+\begin{defbox}{Tenseur des contraintes de Cauchy}
+Le tenseur des contraintes $\ten{\sigma}$ est défini par ses composantes :
+\[
+    \sigma_{ij} \equiv T_i(\bm{e}_j)
+    \quad \text{(composante }i\text{ de la contrainte sur une face de normale }\bm{e}_j\text{)}.
+\]
+Le vecteur contrainte sur une surface de normale $\bm{n}$ quelconque vaut :
+\[
+    \bm{T}(\bm{x},t,\bm{n}) = \ten{\sigma}\cdot\bm{n}.
+\]
+Le tenseur $\ten{\sigma}$ est \textbf{symétrique} : $\sigma_{ij} = \sigma_{ji}$
+(résultat de l'équilibre des moments cinétiques internes).
+\end{defbox}
+
+On peut alors exprimer la force surfacique totale. On applique le théorème de la
+divergence à $\bm{F}_s = \int_\mathcal{S}\ten{\sigma}\cdot\bm{n}\,ds$, ce qui
+convertit l'intégrale de surface en intégrale de volume :
+\[
+    \bm{F}_s = \int_{\mathcal{S}} \ten{\sigma}\cdot\bm{n}\,ds
+             = \int_{\mathcal{D}} \boldsymbol{\nabla}\cdot\ten{\sigma}\,d\mathcal{V}.
+\]
+
+\textbf{Cas du fluide non visqueux ou au repos.} Quand seule la pression contribue
+aux contraintes surfaciques, la contrainte est purement normale et isotrope :
+$\bm{T} = -p\bm{n}$ (le signe moins vient du fait que la pression comprime le
+volume). Le tenseur se réduit alors à :
+\[
+    \ten{\sigma} = -p\,\ten{I}
+    = \begin{pmatrix} -p & 0 & 0 \\ 0 & -p & 0 \\ 0 & 0 & -p \end{pmatrix},
+    \qquad
+    \bm{F}_s = -\int_\mathcal{S} p\bm{n}\,ds.
+\]
+
+% ------------------------------------------
+\section{Conservation de la quantité de mouvement}
+% ------------------------------------------
+
+On a maintenant tous les ingrédients. On applique le principe fondamental de la
+dynamique ($\bm{F} = m\bm{a}$) à une particule fluide de masse $\rho\,d\mathcal{V}$ :
+\[
+    \rho\,d\mathcal{V}\cdot\frac{D\bm{U}}{Dt}
+    = d\bm{F}_s + d\bm{F}_v.
+\]
+
+En exprimant $\bm{F}_s$ et $\bm{F}_v$ sous forme volumique et en identifiant les
+intégrands (valable pour tout domaine arbitraire), on obtient la forme locale :
+
+\begin{importantbox}{Conservation de la quantité de mouvement}
+\[
+    \rho\,\frac{D\bm{U}}{Dt} = \boldsymbol{\nabla}\cdot\ten{\sigma} + \rho\bm{g}.
+\]
+C'est le ``$m\bm{a} = \bm{F}$'' de la mécanique des fluides : l'accélération
+matérielle de la particule est égale à la résultante des forces surfaciques
+($\boldsymbol{\nabla}\cdot\ten{\sigma}$) et volumiques ($\rho\bm{g}$).
+\end{importantbox}
+
+Via le théorème de Reynolds, cette même conservation s'écrit sous forme intégrale
+pour un domaine quelconque (fixe ou mobile) :
+\[
+    \frac{d}{dt}\int_{\mathcal{D}} \rho\bm{U}\,d\mathcal{V}
+    = \int_{\mathcal{S}} \ten{\sigma}\cdot\bm{n}\,ds
+    + \int_{\mathcal{D}} \rho\bm{g}\,d\mathcal{V}
+    + \int_{\mathcal{S}} \rho\bm{U}(\bm{U}_\mathcal{S}-\bm{U})\cdot\bm{n}\,ds.
+\]
+
+% ------------------------------------------
+\section{Hydrostatique : quand le fluide ne bouge pas}
+% ------------------------------------------
+
+Avant d'aborder l'écoulement non visqueux, traitons le cas le plus simple qui soit :
+le fluide au repos, $\bm{U} = \bm{0}$. C'est l'\textbf{hydrostatique}.
+
+\subsection{Équilibre hydrostatique et profil de pression}
+
+Quand $\bm{U} = \bm{0}$, l'accélération est nulle et $\ten{\sigma} = -p\ten{I}$
+(pas de viscosité, le fluide ne cisaille rien). L'équation de conservation de
+la quantité de mouvement se réduit à :
+\[
+    \bm{0} = -\boldsymbol{\nabla}p + \rho\bm{g}.
+\]
+
+On choisit $x_3$ comme axe vertical ascendant, $\bm{g} = -g\bm{e}_3$. Les
+composantes horizontales donnent $\partial p/\partial x_1 = \partial p/\partial x_2 = 0$,
+et la composante verticale donne $\partial p/\partial x_3 = -\rho g$. Par intégration :
+
+\begin{importantbox}{Profil de pression hydrostatique}
+\[
+    p(x_3) = p_0 - \rho g x_3,
+\]
+où $p_0$ est la pression à $x_3 = 0$ (surface libre). La pression augmente avec
+la profondeur. Pour l'eau ($\rho \simeq 10^3~\text{kg/m}^3$), elle augmente d'environ
+une atmosphère ($10^5~\text{Pa}$) tous les 10~m.
+\end{importantbox}
+
+\subsection{La force d'Archimède}
+
+Considérons un corps immergé dans le fluide au repos. La force exercée par le fluide
+sur ce corps est une force surfacique associée à la pression. Elle vaut :
+\[
+    \bm{F}_A = \int_\mathcal{S} (-p\ten{I})\cdot\bm{n}\,ds
+             = -\int_\mathcal{S} p\bm{n}\,ds.
+\]
+
+On applique le théorème de la divergence (en se rappelant que
+$\boldsymbol{\nabla}p = \rho\bm{g}$ à l'équilibre) :
+\[
+    \bm{F}_A = -\int_\mathcal{D} \boldsymbol{\nabla}p\,d\mathcal{V}
+             = -\int_\mathcal{D} \rho\bm{g}\,d\mathcal{V}
+             = -\bm{g}\int_\mathcal{D} \rho\,d\mathcal{V}
+             = -\bm{g}\,M_f.
+\]
+
+\begin{importantbox}{Principe d'Archimède}
+La force de flottabilité exercée par un fluide au repos sur un corps immergé est :
+\[
+    \bm{F}_A = -M_f\bm{g},
+\]
+où $M_f$ est la masse du fluide déplacé. Cette force est verticale, ascendante,
+et s'applique au \textbf{centre de masse du fluide déplacé}
+$\bm{x}_A$, défini par $M_f\bm{x}_A \equiv \int_\mathcal{D}\rho\bm{x}\,d\mathcal{V}$.
+\end{importantbox}
+
+Si le pilote du Rafale s'éjecte en mer, il flotte parce que sa densité moyenne
+(humain + combinaison) est inférieure à celle de l'eau de mer
+($\rho_{mer} \approx 1025~\text{kg/m}^3$). Archimède (287--212 av.~J.-C.) aurait
+compris le problème de survie en mission.
+
+\textbf{Stabilité d'un corps immergé.} Pour qu'un corps complètement immergé (un
+sous-marin, par exemple) soit stable, son centre de gravité $\bm{x}_G$ doit se
+trouver \textit{en dessous} du centre $\bm{x}_A$ du fluide déplacé. Si c'est
+l'inverse, un léger roulis crée un couple déstabilisant qui chavire le corps.
+
+% ------------------------------------------
+\section{Le modèle non visqueux}
+% ------------------------------------------
+
+\subsection{Motivations}
+
+Tout fluide réel possède une viscosité : c'est sa résistance interne au cisaillement,
+la propriété qui fait qu'un filet d'eau ne glisse pas librement sur une surface. Dans
+l'expression générale du tenseur des contraintes, la viscosité introduit des termes
+supplémentaires au-delà de la pression (nous les étudierons au chapitre~2).
+
+Cependant, pour des fluides peu visqueux comme l'air, et loin des parois où les
+frottements se concentrent, ces termes visqueux sont souvent négligeables devant les
+effets de pression. On peut alors adopter le \textbf{modèle non visqueux} (ou fluide
+parfait) :
+
+\begin{defbox}{Modèle non visqueux}
+Dans le modèle non visqueux, le tenseur des contraintes se réduit à la pression :
+\[
+    \ten{\sigma} = -p\,\ten{I}, \qquad \bm{T} = -p\bm{n}.
+\]
+Il n'y a ni frottement ni cisaillement : la seule force surfacique est due à la
+pression, qui agit toujours perpendiculairement à la surface.
+\end{defbox}
+
+\subsection{Les équations d'Euler}
+
+En substituant $\ten{\sigma} = -p\ten{I}$ dans l'équation de conservation de la
+quantité de mouvement, et en utilisant
+$\boldsymbol{\nabla}\cdot(-p\ten{I}) = -\boldsymbol{\nabla}p$, on obtient
+les équations d'Euler (1757) :
+
+\begin{importantbox}{Équations d'Euler --- écoulement incompressible non visqueux}
+\[
+    \begin{cases}
+        \dfrac{D\bm{U}}{Dt} = -\dfrac{1}{\rho}\,\boldsymbol{\nabla}p + \bm{g}
+        \\[10pt]
+        \boldsymbol{\nabla}\cdot\bm{U} = 0.
+    \end{cases}
+\]
+\end{importantbox}
+
+\textbf{Conditions aux limites.} Sans viscosité, on ne peut imposer qu'une seule
+condition sur $\bm{U}$ à la paroi : l'\textbf{imperméabilité}, c'est-à-dire que le
+fluide ne traverse pas la paroi,
+\[
+    \bm{U}\cdot\bm{n} = 0 \quad \text{(paroi imperméable)}.
+\]
+Le fluide peut donc glisser tangentiellement le long de la paroi, contrairement à la
+réalité visqueuse. Pour une interface entre deux milieux $A$ et $B$, la condition
+devient $\bm{U}_A\cdot\bm{n} = \bm{U}_B\cdot\bm{n}$.
+
+\subsection{L'équation de Bernoulli}
+
+On dispose des équations d'Euler. Pour en extraire une information sur l'énergie,
+on prend le produit scalaire avec la vitesse $\bm{U}$ :
+\[
+    \bm{U}\cdot\frac{D\bm{U}}{Dt}
+    = \bm{U}\cdot\!\left(-\frac{1}{\rho}\,\boldsymbol{\nabla}p + \bm{g}\right).
+\]
+
+Le membre gauche est la puissance de l'accélération. On reconnaît l'identité
+$\bm{U}\cdot\dfrac{D\bm{U}}{Dt} = \dfrac{D}{Dt}\!\left(\dfrac{U^2}{2}\right)$.
+
+Pour un écoulement \textbf{stationnaire} ($\partial_t = 0$), la dérivée matérielle
+agit comme $D/Dt = \bm{U}\cdot\boldsymbol{\nabla}$. Le membre droit se réorganise
+grâce à deux observations :
+\begin{itemize}
+    \item Pour un fluide incompressible ($\rho = \text{cst}$) :
+    $\dfrac{1}{\rho}\,\boldsymbol{\nabla}p = \boldsymbol{\nabla}\!\left(\dfrac{p}{\rho}\right)$.
+    \item La pesanteur est une force conservative :
+    $\bm{g} = \boldsymbol{\nabla}(\bm{g}\cdot\bm{x})$, soit avec
+    $\bm{g} = -g\bm{e}_3$ : $\bm{g} = \boldsymbol{\nabla}(-gx_3)$.
+\end{itemize}
+
+L'équation d'énergie cinétique se récrit :
+\[
+    \bm{U}\cdot\boldsymbol{\nabla}\!\left(\frac{U^2}{2} + \frac{p}{\rho} - gx_3\right) = 0.
+\]
+
+Cette relation signifie que la quantité entre parenthèses est constante dans la
+direction de $\bm{U}$, c'est-à-dire \textit{le long d'une ligne de courant}.
+En multipliant par $\rho$ :
+
+\begin{importantbox}{Équation de Bernoulli}
+Pour un écoulement \textbf{non visqueux}, \textbf{stationnaire},
+\textbf{incompressible}, sous \textbf{forces volumiques conservatives}
+(pesanteur) :
+\[
+    \mathcal{H} \;\equiv\; p + \rho\,g\,x_3 + \rho\,\frac{U^2}{2} = \text{cst}
+    \quad \text{le long d'une ligne de courant.}
+\]
+$\mathcal{H}$ (en J/m$^3$) est la \emph{charge totale} : somme de la pression
+statique, de la pression hydrostatique et de la \emph{pression dynamique}
+$q = \tfrac{1}{2}\rho U^2$.
+\end{importantbox}
+
+La physique est limpide : si le fluide accélère (car une conduite se rétrécit, ou
+car l'extrados de l'aile oblige les lignes de courant à se resserrer), la pression
+diminue pour compenser. C'est exactement ce qui génère la portance sur l'aile du
+Rafale : l'air s'écoule plus vite sur l'extrados que sur l'intrados, donc la
+pression est plus faible au-dessus qu'en dessous, et cette différence de pression
+crée une force ascendante. Voilà pourquoi le Rafale ne coule pas dans l'océan.
+
+$\mathcal{H}$ prend des valeurs potentiellement différentes d'une ligne de courant
+à l'autre. Pour un écoulement stationnaire, les lignes de courant coïncident avec
+les trajectoires : $\mathcal{H}$ est donc conservé pour une particule fluide donnée
+tout au long de son trajet.
+
+\subsection{Application : le tube de Pitot}
+
+Le Rafale embarque plusieurs \textbf{tubes de Pitot} sur le nez et le fuselage.
+Ces sondes mesurent la pression en deux points d'une même ligne de courant et en
+déduisent la vitesse par application directe de Bernoulli.
+
+\vspace{0.5cm}
+\begin{center}
+\begin{tikzpicture}[scale=1.0]
+    % Corps du tube
+    \fill[gray!30] (-4, 0.55) rectangle (2, -0.55);
+    % Pointe (point d'arrêt)
+    \fill[gray!50] (2, 0.55) -- (3, 0) -- (2, -0.55) -- cycle;
+    \draw[thick] (-4, 0.55) -- (2, 0.55) -- (3, 0) -- (2,-0.55) -- (-4,-0.55);
+    % Point d'arrêt
+    \fill[red!80!black] (3, 0) circle (3pt);
+    \node[right=4pt] at (3.05, 0) {$p_0$ (point d'arrêt, $U=0$)};
+    % Prise de pression statique
+    \draw[thick] (-0.5, 0.55) -- (-0.5, 1.4);
+    \fill[white] (-0.5, 1.2) circle (6pt);
+    \node[above] at (-0.5, 1.5) {$p_1$ (pression statique)};
+    % Flèches d'écoulement amont
+    \foreach \y in {1.1, 0.55, 0, -0.55, -1.1} {
+        \draw[->, >=Stealth, thick, blue!70!black] (-6.5, \y) -- (-5.5, \y);
+    }
+    \node[left=4pt] at (-6.5, 0) {$U_1,\; p_1,\; \rho_1$};
+    % Capteur différentiel (manomètre)
+    \draw[thick] (-0.5, -0.55) -- (-0.5, -1.5) -- (3.0, -1.5) -- (3.0, 0);
+    \node[below] at (1.25, -1.5) {capteur $\Delta p = p_0 - p_1$};
+\end{tikzpicture}
+\end{center}
+\vspace{0.3cm}
+
+Le long de la ligne de courant centrale, qui aboutit au point d'arrêt (où
+$U = 0$), Bernoulli donne (à $x_3$ constant, donc sans terme hydrostatique) :
+\[
+    p_1 + \rho_1\,\frac{U_1^2}{2} = p_0 + \rho_1\cdot\frac{0^2}{2} = p_0.
+\]
+
+\begin{importantbox}{Mesure de vitesse par tube de Pitot}
+\[
+    U_1 = \sqrt{\dfrac{2(p_0 - p_1)}{\rho_1}}.
+\]
+$p_0$ est la \textbf{pression totale} (ou d'arrêt), $p_1$ la \textbf{pression
+statique}, et $q_1 = \tfrac{1}{2}\rho_1 U_1^2$ la \textbf{pression dynamique}.
+La relation $p_0 = p_1 + q_1$ n'est valable \emph{qu'en régime incompressible}
+($M_a \lesssim 0{,}3$) ; une formulation corrigée pour le régime compressible
+sera vue au chapitre~7.
+\end{importantbox}
+
+Les calculateurs avioniques du Rafale évaluent $U_1$ en temps réel à partir de
+la mesure de $\Delta p = p_0 - p_1$. Henri Pitot avait développé cet instrument
+en 1732 pour mesurer la vitesse de la Seine à Paris. Aujourd'hui, le même principe
+physique équipe les Airbus A350, les F-22, et les sondes spatiales.
+
+% ------------------------------------------
+\section*{Résumé du chapitre}
+\addcontentsline{toc}{section}{Résumé du chapitre}
+% ------------------------------------------
+
+\begin{importantbox}{Ce qu'il faut retenir}
+\begin{itemize}
+    \item \textbf{Milieu continu} : valide dès que $Kn = \lambda/L \ll 1$.
+    Incompressible si $M_a \lesssim 0{,}3$.
+
+    \item \textbf{Dérivée matérielle} :
+    $\dfrac{Df}{Dt} = \dfrac{\partial f}{\partial t} + \bm{U}\cdot\boldsymbol{\nabla}f$
+    --- variation vue en suivant une particule fluide.
+
+    \item \textbf{Théorème de Reynolds} :
+    $\dfrac{d}{dt}\displaystyle\int_\mathcal{D}\varphi\,d\mathcal{V}
+    = \displaystyle\int_\mathcal{D}\dfrac{\partial\varphi}{\partial t}\,d\mathcal{V}
+    + \displaystyle\int_\mathcal{S}\varphi\,\bm{U}_\mathcal{S}\cdot\bm{n}\,ds$.
+
+    \item \textbf{Conservation de la masse} :
+    $\dfrac{\partial\rho}{\partial t} + \boldsymbol{\nabla}\cdot(\rho\bm{U}) = 0$.
+    En incompressible : $\boldsymbol{\nabla}\cdot\bm{U} = 0$.
+
+    \item \textbf{Tenseur des contraintes} : $\bm{T} = \ten{\sigma}\cdot\bm{n}$,
+    $\ten{\sigma}$ symétrique.
+
+    \item \textbf{Conservation de la QDM} :
+    $\rho\dfrac{D\bm{U}}{Dt} = \boldsymbol{\nabla}\cdot\ten{\sigma} + \rho\bm{g}$.
+
+    \item \textbf{Fluide non visqueux} :
+    $\ten{\sigma} = -p\,\ten{I}$, $\bm{T} = -p\bm{n}$.
+    Hydrostatique : $p = p_0 - \rho g x_3$.
+    Archimède : $\bm{F}_A = -M_f\bm{g}$.
+
+    \item \textbf{Équations d'Euler} :
+    $\dfrac{D\bm{U}}{Dt} = -\dfrac{1}{\rho}\boldsymbol{\nabla}p + \bm{g}$
+    et $\boldsymbol{\nabla}\cdot\bm{U} = 0$.
+
+    \item \textbf{Bernoulli} (non visqueux, stationnaire, incompressible,
+    forces conservatives) :
+    $p + \rho g x_3 + \dfrac{\rho U^2}{2} = \text{cst}$ le long d'une ligne
+    de courant. Application directe : tube de Pitot.
+\end{itemize}
+\end{importantbox}
+
+% ==========================================
+\chapter{Fluide visqueux newtonien}
+% ==========================================
+
+\noindent
+\textit{Fil conducteur --- le Rafale Marine.}
+Au chapitre précédent, nous avons posé les équations de conservation de la masse
+et de la quantité de mouvement, en traitant le fluide comme parfait (non visqueux).
+Ce modèle était suffisant pour comprendre la portance en régime de vol rapide via
+Bernoulli, et pour calculer la poussée d'Archimède lors d'un éjection en mer.
+Mais il reste muet sur une réalité fondamentale~: la résistance de l'air.
+Un Rafale en vol de convoyage consomme du kérosène non pas pour vaincre l'inertie
+(il vole à vitesse constante) mais pour compenser la \emph{traînée}, cette force
+qui s'oppose à son déplacement et qui naît des frottements visqueux entre l'air et
+la voilure. Pour décrire ces frottements, il faut enrichir notre modèle du tenseur
+des contraintes~: c'est l'objet de ce chapitre.
+
+% ==========================================
+\section{Du tenseur de Cauchy au fluide newtonien}
+% ==========================================
+
+\subsection{Décomposition du tenseur des contraintes}
+
+Au chapitre 1 nous avons introduit le tenseur de Cauchy $\ten{\sigma}$ qui encode
+l'intégralité des efforts de contact exercés par le fluide environnant sur une
+particule fluide. Un résultat général de la mécanique des milieux continus est que
+ce tenseur peut toujours se décomposer en deux contributions de nature distincte~:
+
+\begin{equation}
+    \ten{\sigma} = -p\,\ten{I} + \ten{\tau}
+    \label{eq:decomp_sigma}
+\end{equation}
+
+Cette décomposition \emph{n'est pas une définition arbitraire}~: elle reflète une
+réalité physique. Considérons un fluide au repos. Il exerce une pression $p$ sur
+toutes les faces d'un volume de contrôle, de manière isotrope (égale dans toutes
+les directions). Cette contribution isotrope s'écrit précisément $-p\,\ten{I}$~: le
+signe moins vient de la convention que $\bm{n}$ pointe vers l'extérieur, et la
+pression pousse vers l'intérieur. Dès que le fluide se met en mouvement, des
+contraintes \emph{déviatoriques} $\ten{\tau}$ apparaissent en plus~: ce sont les
+contraintes visqueuses, liées aux gradients de vitesse et donc nulles au repos.
+
+\begin{defbox}{Décomposition du tenseur des contraintes}
+\[
+    \ten{\sigma} = -p\,\ten{I} + \ten{\tau}
+\]
+$p$ est la pression thermodynamique (Pa), $\ten{I}$ l'identité, et $\ten{\tau}$
+le \textbf{tenseur des contraintes visqueuses} (Pa), nul pour un fluide parfait.
+\end{defbox}
+
+\subsection{Tenseur des taux de déformation}
+
+La question qui se pose naturellement est~: de quoi dépend $\ten{\tau}$~?
+Physiquement, les frottements visqueux naissent de la \emph{déformation} du fluide~:
+c'est parce que les couches fluides glissent les unes sur les autres que des forces
+tangentielles apparaissent. La mesure locale de cette déformation est encodée dans
+le gradient de vitesse $\nabla\bm{U}$, dont la composante $(i,j)$ est
+$\partial U_i/\partial x_j$.
+
+Ce tenseur gradient peut être décomposé de manière unique en une partie symétrique
+et une partie antisymétrique~:
+
+\begin{equation}
+    \nabla\bm{U} = \ten{D} + \ten{\Omega}
+\end{equation}
+
+avec~:
+
+\begin{align}
+    D_{ij} &= \frac{1}{2}\left(\pd{U_i}{x_j} + \pd{U_j}{x_i}\right)
+    & \ten{D} &~: \text{tenseur des taux de déformation (symétrique)} \\[6pt]
+    \Omega_{ij} &= \frac{1}{2}\left(\pd{U_i}{x_j} - \pd{U_j}{x_i}\right)
+    & \ten{\Omega} &~: \text{tenseur des taux de rotation (antisymétrique)}
+\end{align}
+
+Pourquoi ce partage~? Parce que $\ten{\Omega}$ décrit une rotation de corps rigide
+locale~: elle ne déforme pas le fluide, donc elle ne génère aucune contrainte
+visqueuse. Seule $\ten{D}$, qui mesure la déformation irréversible, peut produire
+des frottements. On peut le montrer formellement~: le vecteur tourbillon
+$\bm{\omega} = \frac{1}{2}\nabla\times\bm{U}$ est lié à $\ten{\Omega}$ par
+$\Omega_{ij} = -\varepsilon_{ijk}\omega_k$.
+
+\begin{defbox}{Tenseur des taux de déformation}
+\[
+    D_{ij} = \frac{1}{2}\left(\pd{U_i}{x_j} + \pd{U_j}{x_i}\right)
+    \qquad \Longleftrightarrow \qquad
+    \ten{D} = \frac{1}{2}\left(\nabla\bm{U} + (\nabla\bm{U})^T\right)
+\]
+$\ten{D}$ est symétrique~; ses composantes diagonales $D_{ii} = \partial U_i/\partial x_i$
+sont des taux d'élongation, et ses composantes hors-diagonale $D_{ij}$ ($i\neq j$) sont
+des taux de cisaillement.
+\end{defbox}
+
+\textit{Illustration.} L'écoulement de Couette plan---air entre deux plaques, la
+plaque supérieure se déplaçant à $U_e$---donne $\bm{U} = (U_e x_2/h,\,0,\,0)$.
+Seul $D_{12}=D_{21}=U_e/(2h)$ est non nul~: l'écoulement est un pur cisaillement.
+C'est exactement la situation qui règne dans la couche limite contre la peau du Rafale.
+
+\subsection{Loi constitutive newtonienne}
+
+Il reste à relier $\ten{\tau}$ à $\ten{D}$. La relation la plus simple---et la plus
+répandue---est la proportionnalité linéaire~: c'est la \textbf{loi de Newton} pour les
+fluides visqueux. Elle énonce que les contraintes visqueuses sont proportionnelles aux
+taux de déformation~:
+
+\begin{importantbox}{Loi de Newton pour un fluide visqueux newtonien (incompressible)}
+\[
+    \ten{\tau} = 2\mu\,\ten{D}
+    \qquad\Longleftrightarrow\qquad
+    \tau_{ij} = \mu\left(\pd{U_i}{x_j} + \pd{U_j}{x_i}\right)
+\]
+$\mu$ (Pa$\cdot$s) est la \textbf{viscosité dynamique}, propriété du fluide, mesurée
+expérimentalement~: $\mu_\text{air}\approx 1{,}8\times10^{-5}$~Pa$\cdot$s à $20\,^{\circ}$C,
+$\mu_\text{eau}\approx 10^{-3}$~Pa$\cdot$s.
+\end{importantbox}
+
+Ce modèle est dit \emph{newtonien} car il postule la linéarité entre contrainte et taux
+de déformation. Il fonctionne très bien pour l'air et l'eau, mais pas pour tous les
+fluides (cf.\ section suivante).
+
+\subsection{Lois rhéologiques --- au-delà du modèle newtonien}
+
+La loi de Newton n'est qu'un cas particulier. Pour un écoulement de Couette
+($\tau = \tau_{12}$, $\dot{\gamma}=\partial U_1/\partial x_2$), on peut classer les
+comportements rhéologiques~:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{lll}
+\toprule
+\textbf{Comportement} & \textbf{Loi} & \textbf{Exemples} \\
+\midrule
+Fluide parfait & $\tau=0$ & air à grande échelle \\
+Newtonien & $\tau=\mu\dot{\gamma}$ & air, eau, huile \\
+Rhéo-épaississant & $\tau=k\dot{\gamma}^n$, $n>1$ & amidon dans l'eau \\
+Rhéo-fluidifiant & $\tau=k\dot{\gamma}^n$, $n<1$ & sang, ketchup, moutarde \\
+Bingham & $\tau=\tau_0+\mu_B\dot{\gamma}$ si $\tau>\tau_0$ & chocolat, dentifrice \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Le sang est rhéo-fluidifiant~: sa viscosité effective diminue quand le cœur pompe
+plus fort (gradient de vitesse élevé dans les artères). Le ketchup obéit à un
+modèle de Bingham~: il faut exercer un seuil de contrainte $\tau_0$ pour le faire
+couler. Dans ce chapitre, nous travaillons exclusivement avec des fluides newtoniens
+(air, eau)~; le Rafale ne carbure pas au ketchup.
+
+% ==========================================
+\section{Écoulement de Couette plan}
+% ==========================================
+
+Avant de poser les équations générales, ancrons nos idées sur un cas canonique~:
+l'écoulement de Couette plan entre deux plaques parallèles distantes de $h$, la
+plaque inférieure fixe, la plaque supérieure entraînée à vitesse $U_e$.
+
+Ce profil de vitesse est~: $\bm{U}=(U_e x_2/h,\, 0,\, 0)$.
+On peut vérifier qu'il satisfait $\nabla\cdot\bm{U}=0$ (incompressible) et que les
+termes d'accélération sont nuls (écoulement établi, stationnaire).
+
+\begin{center}
+\begin{tikzpicture}[scale=1.2]
+    % plaques
+    \fill[gray!30] (-0.2,0) rectangle (4.2,-0.15);
+    \fill[gray!30] (-0.2,2) rectangle (4.2,2.15);
+    \draw[thick] (-0.2,0) -- (4.2,0);
+    \draw[thick] (-0.2,2) -- (4.2,2);
+    % hachures plaque inférieure
+    \foreach \x in {0,0.4,...,4} {
+        \draw[gray] (\x,0) -- (\x-0.2,-0.2);
+    }
+    % hachures plaque supérieure
+    \foreach \x in {0,0.4,...,4} {
+        \draw[gray] (\x,2) -- (\x-0.2,2.2);
+    }
+    % profil linéaire
+    \foreach \y in {0,0.4,0.8,1.2,1.6,2.0} {
+        \pgfmathsetmacro{\len}{1.6*\y/2}
+        \draw[-{Latex}, blue!70!black, thick] (1,\y) -- (1+\len,\y);
+    }
+    % accolade h
+    \draw[<->,gray] (-0.05,0) -- (-0.05,2);
+    \node[left,gray] at (-0.1,1) {$h$};
+    % étiquettes
+    \node[right] at (2.6,2) {$U_e$};
+    \node[right] at (1,0.2) {\small $U_1(x_2)=U_e\dfrac{x_2}{h}$};
+    % axe
+    \draw[->,gray] (3.8,-0.3) -- (3.8,2.4) node[right] {$x_2$};
+\end{tikzpicture}
+\end{center}
+
+Le tenseur des contraintes se calcule directement~:
+\[
+    \ten{D} = \begin{pmatrix} 0 & \frac{U_e}{2h} & 0 \\ \frac{U_e}{2h} & 0 & 0 \\ 0 & 0 & 0 \end{pmatrix},
+    \qquad
+    \ten{\tau} = 2\mu\ten{D} = \begin{pmatrix} 0 & \frac{\mu U_e}{h} & 0 \\ \frac{\mu U_e}{h} & 0 & 0 \\ 0 & 0 & 0 \end{pmatrix}
+\]
+
+La contrainte de cisaillement est uniforme dans tout l'écoulement~:
+
+\begin{importantbox}{Contrainte pariétale en Couette plan}
+\[
+    \tau_w = \tau_{12} = \mu\,\frac{U_e}{h}
+\]
+Plus le gradient de vitesse est grand (couche mince, vitesse élevée), plus le
+frottement est intense. C'est précisément ce qui se passe dans la couche limite
+contre la peau du Rafale~: $U_e/h \to \infty$ car $h$ est très petit.
+\end{importantbox}
+
+% ==========================================
+\section{Forces aérodynamiques~: portance et traînée}
+% ==========================================
+
+Un avion en vol est soumis à deux forces aérodynamiques résultantes~: la
+\textbf{portance} $F_L$ perpendiculaire à la direction de vol $\bm{U}_\infty$, et la
+\textbf{traînée} $F_D$ parallèle à $\bm{U}_\infty$ (s'opposant au mouvement).
+Ces forces résultent de l'intégration du vecteur contrainte $\bm{T}=\ten{\sigma}\cdot\bm{n}$
+sur la surface de l'aile~:
+
+\[
+    \bm{F} = \oint_{\text{aile}} \ten{\sigma}\cdot\bm{n}\,dS
+    = \underbrace{-\oint p\,\bm{n}\,dS}_{\text{contrib.\ pression}}
+      + \underbrace{\oint \ten{\tau}\cdot\bm{n}\,dS}_{\text{contrib.\ visqueuse}}
+\]
+
+La portance résulte principalement de la différence de pression entre l'intrados
+et l'extrados (Bernoulli~: l'air accélère sur l'extrados, la pression diminue).
+La traînée a deux origines~: la traînée de forme (liée aux recirculations en aval)
+et la traînée de frottement (liée à $\ten{\tau}\cdot\bm{n}$ sur la surface).
+
+\begin{defbox}{Finesse aérodynamique}
+\[
+    f = \frac{F_L}{F_D}
+\]
+La finesse mesure l'efficacité aérodynamique d'un aéronef~: pour un angle de
+descente $\alpha$, la distance planée vaut $L = h/\tan\alpha \approx f \times h$.
+\end{defbox}
+
+\medskip
+\noindent Quelques ordres de grandeur instructifs~:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{lc}
+\toprule
+\textbf{Aéronef} & \textbf{Finesse} $F_L/F_D$ \\
+\midrule
+Planeur ETA & 70 \\
+Solar Impulse 2 & $\approx 34$ \\
+Airbus A380 & 20 \\
+Concorde & 7{,}5 \\
+\textbf{Rafale} & \textbf{$\approx$ 5--9} \\
+Navette spatiale & $\approx 1$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\medskip
+La faible finesse du Rafale (comparée à un liner) n'est pas un défaut~: c'est le
+prix de la manœuvrabilité. Un avion de chasse doit pouvoir virer à $9g$, accélérer
+de $0$ à Mach~2 en quelques secondes, et voler à très basse altitude à grande
+vitesse. Ces performances exigent une voilure courte, épaisse, à faible allongement,
+ce qui génère beaucoup de traînée induite. Le moteur M88-2 (73~kN de poussée unitaire)
+compense cette traînée en permanence.
+
+% ==========================================
+\section{Équations de Navier-Stokes}
+% ==========================================
+
+Nous avons maintenant tous les ingrédients pour écrire les équations gouvernant
+un fluide visqueux newtonien incompressible. L'équation de conservation de la
+quantité de mouvement du chapitre 1 est~:
+\[
+    \rho\,\DD{\bm{U}} = \nabla\cdot\ten{\sigma} + \rho\bm{g}
+\]
+On substitue la décomposition $\ten{\sigma}=-p\ten{I}+\ten{\tau}$ et la loi de
+Newton $\ten{\tau}=2\mu\ten{D}$. Pour un fluide incompressible
+($\nabla\cdot\bm{U}=0$), on montre que $\nabla\cdot(2\mu\ten{D})=\mu\nabla^2\bm{U}$
+(le terme croisé disparaît grâce à la condition d'incompressibilité). On obtient~:
+
+\begin{importantbox}{Équations de Navier-Stokes --- fluide newtonien incompressible}
+\[
+    \nabla\cdot\bm{U} = 0
+\]
+\[
+    \DD{\bm{U}} = -\frac{1}{\rho}\nabla p + \nu\nabla^2\bm{U} + \bm{g}
+\]
+avec la \textbf{viscosité cinématique} $\nu = \mu/\rho$ (m$^2$/s)~:
+\quad $\nu_\text{air} \approx 1{,}5\times10^{-5}$~m$^2$/s,
+\quad $\nu_\text{eau} \approx 1{,}0\times10^{-6}$~m$^2$/s.
+\end{importantbox}
+
+Ces équations ont été établies indépendamment par \textbf{Navier} (1822) et
+\textbf{Stokes} (1845). Elles forment le modèle de référence pour tous les
+écoulements de fluides newtoniens~: elles décrivent aussi bien le décollement de
+la couche limite sur l'aile du Rafale que la formation des ouragans dans
+l'Atlantique. Leur solution générale reste un problème ouvert~: l'existence et la
+régularité des solutions en trois dimensions est l'un des sept problèmes du
+millénaire (Clay Mathematics Institute, 2000, doté de 1~million de dollars).
+
+Le terme $\nu\nabla^2\bm{U}$ est le terme visqueux (diffusion de quantité de
+mouvement). Il tend à \emph{homogénéiser} le profil de vitesse, comme la chaleur
+diffuse des zones chaudes vers les zones froides.
+
+\subsection{Conditions aux limites}
+
+Les équations de Navier-Stokes sont des équations aux dérivées partielles du second
+ordre en espace~: elles nécessitent des conditions aux limites sur tout le bord du
+domaine fluide.
+
+\medskip
+\noindent\textbf{À la paroi solide} (peau du Rafale, paroi d'une canalisation)~:
+la condition de non-glissement exprime que le fluide adhère à la paroi.
+Contrairement au modèle parfait qui autorisait le glissement, ici~:
+\[
+    \bm{U}_\text{fluide} = \bm{U}_\text{paroi}
+    \qquad\text{(condition de non-glissement)}
+\]
+C'est l'existence de cette couche de fluide \emph{immobile} contre la paroi qui
+génère le gradient de vitesse $\partial U/\partial n$ et donc les contraintes
+visqueuses.
+
+\medskip
+\noindent\textbf{À l'interface entre deux fluides} (surface libre eau/air, interface
+entre deux huiles)~: on impose la continuité de la vitesse et la continuité du
+vecteur contrainte~:
+\[
+    \bm{U}_A = \bm{U}_B,
+    \qquad
+    \ten{\sigma}_A\cdot\bm{n} = \ten{\sigma}_B\cdot\bm{n},
+    \qquad
+    \bm{U}_S\cdot\bm{n} = \bm{U}\cdot\bm{n}
+\]
+
+\medskip
+\noindent\textbf{Pression effective.} Il est souvent commode de travailler avec la
+\emph{pression effective} $p_\text{eff}=p-\rho\bm{g}\cdot\bm{x}$, qui absorbe
+les effets de la gravité dans le terme de pression et simplifie les équations en
+régimes horizontaux.
+
+% ==========================================
+\section{Bilan de l'énergie cinétique}
+% ==========================================
+
+\subsection{Dérivation depuis la conservation de la quantité de mouvement}
+
+Pour comprendre les pertes de charge et le travail des machines, on a besoin d'un
+bilan d'énergie mécanique. Ce bilan n'est pas une nouvelle hypothèse~: on l'obtient
+en prenant le produit scalaire de l'équation de Newton avec la vitesse locale $\bm{U}$.
+
+En effet, $\bm{U}\cdot(m\bm{a}) = \bm{U}\cdot\bm{F} = \text{puissance des forces}$
+est le théorème travail-puissance de la mécanique du point. Son analogue pour une
+particule fluide de densité $\rho$ est~:
+
+\[
+    \bm{U}\cdot\left\{\rho\DD{\bm{U}} = \nabla\cdot\ten{\sigma}+\rho\bm{g}\right\}
+    \quad\Longrightarrow\quad
+    \rho\,\DD{}\!\left(\frac{U^2}{2}\right) = \bm{U}\cdot\left(\nabla\cdot\ten{\sigma}+\rho\bm{g}\right)
+\]
+
+On applique ensuite le théorème de Reynolds à l'énergie cinétique $\chi=U^2/2$
+sur un domaine fixe $\mathcal{D}$ de surface $\mathcal{S}$~:
+
+\[
+    \frac{d}{dt}\int_{\mathcal{D}}\rho\frac{U^2}{2}\,dv
+    = \underbrace{\int_{\mathcal{D}}\bm{U}\cdot\left(\nabla\cdot\ten{\sigma}+\rho\bm{g}\right)dv}_{=(a)}
+    - \int_{\mathcal{S}}\rho\frac{U^2}{2}\,\bm{U}\cdot\bm{n}\,ds
+\]
+
+Pour transformer le terme (a), on utilise l'identité vectorielle (que l'on
+démontre par développement en indices, en exploitant la symétrie de $\ten{\sigma}$)~:
+\[
+    \bm{U}\cdot(\nabla\cdot\ten{\sigma})
+    = \nabla\cdot(\bm{U}\cdot\ten{\sigma}) - \ten{\sigma}:\ten{D}
+\]
+
+où le \textbf{double produit contracté} $\ten{\sigma}:\ten{D}=\sigma_{ij}D_{ij}$
+est un scalaire obtenu par multiplication terme à terme et sommation.
+On peut alors séparer (a) en une puissance des forces extérieures $P_\text{ext}$
+et une puissance des forces intérieures $P_\text{int}$~:
+
+\[
+    (a) = \underbrace{\int_{\mathcal{S}}\bm{U}\cdot(\ten{\sigma}\cdot\bm{n})\,ds
+          + \int_{\mathcal{D}}\rho\bm{U}\cdot\bm{g}\,dv}_{P_\text{ext}}
+          \underbrace{- \int_{\mathcal{D}}\ten{\sigma}:\ten{D}\,dv}_{P_\text{int}}
+\]
+
+On obtient finalement~:
+
+\begin{importantbox}{Bilan intégral d'énergie cinétique}
+\[
+    \frac{d}{dt}\int_{\mathcal{D}}\rho\frac{U^2}{2}\,dv
+    = P_\text{ext} + P_\text{int} - \int_{\mathcal{S}}\rho\frac{U^2}{2}\,\bm{U}\cdot\bm{n}\,ds
+    \tag{13}
+\]
+La variation d'énergie cinétique dans $\mathcal{D}$ est alimentée par la puissance
+des forces extérieures et intérieures, et diminuée par le flux d'énergie cinétique
+sortant.
+\end{importantbox}
+
+\subsection{Dissipation visqueuse}
+
+Pour un fluide newtonien incompressible, le terme $P_\text{int}$ se simplifie.
+En substituant $\ten{\sigma}=-p\ten{I}+\ten{\tau}$ et en notant que
+$(-p\ten{I}):\ten{D} = -p\,\text{tr}(\ten{D}) = -p\nabla\cdot\bm{U}=0$
+(incompressible), on obtient~:
+\[
+    -P_\text{int} = \int_{\mathcal{D}}\ten{\sigma}:\ten{D}\,dv
+    = \int_{\mathcal{D}}\ten{\tau}:\ten{D}\,dv
+\]
+
+En substituant $\ten{\tau}=2\mu\ten{D}$~:
+
+\begin{importantbox}{Dissipation visqueuse}
+\[
+    \mathcal{D}_v \equiv \int_{\mathcal{D}}\ten{\tau}:\ten{D}\,dv
+    = \int_{\mathcal{D}} 2\mu\ten{D}:\ten{D}\,dv
+    = \int_{\mathcal{D}} \frac{\mu}{2}\left(\pd{U_i}{x_j}+\pd{U_j}{x_i}\right)^2 dv \geq 0
+\]
+La dissipation visqueuse $\mathcal{D}_v \geq 0$ est toujours \textbf{positive}~:
+c'est une transformation irréversible d'énergie mécanique en chaleur par
+frottements visqueux. Elle est nulle dans un fluide parfait ($\mu=0$).
+\end{importantbox}
+
+La positivité de $\mathcal{D}_v$ traduit le second principe de la thermodynamique~:
+les frottements ne créent pas d'énergie mécanique, ils la dégradent en agitation
+thermique. Pour le Rafale, la dissipation visqueuse dans la couche limite représente
+une part non négligeable de la traînée totale~: même si elle est petite comparée à
+l'énergie cinétique de l'écoulement, c'est ce terme qui oblige les moteurs à
+tourner en croisière.
+
+\subsection{Illustration~: écoulement de Poiseuille en canal plan}
+
+L'écoulement de Poiseuille entre deux plaques parallèles (distantes de $2h$,
+écoulement selon $x_1$) admet le profil parabolique~:
+\[
+    \bm{U} = \left(\frac{U_0}{h^2}(h^2-x_2^2),\;0,\;0\right)
+\]
+Les tenseurs correspondants sont~:
+
+\[
+    \ten{D} = \begin{pmatrix} 0 & -\frac{U_0 x_2}{h^2} & 0 \\[4pt] -\frac{U_0 x_2}{h^2} & 0 & 0 \\ 0 & 0 & 0 \end{pmatrix},
+    \quad
+    \ten{\tau} = 2\mu\ten{D},
+    \quad
+    \ten{\sigma} = \begin{pmatrix} -p & -\frac{2\mu U_0 x_2}{h^2} & 0 \\[4pt] -\frac{2\mu U_0 x_2}{h^2} & -p & 0 \\ 0 & 0 & -p \end{pmatrix}
+\]
+
+Sur la paroi supérieure ($x_2=h$, normale $\bm{n}=(0,1,0)$), le vecteur contrainte est~:
+\[
+    \bm{T} = \ten{\sigma}\cdot\bm{n} = \begin{pmatrix} -2\mu U_0/h \\ -p \\ 0 \end{pmatrix}
+\]
+La force visqueuse par unité de surface exercée par le fluide sur la paroi supérieure
+vaut $\bm{F}=2(\mu U_0/h)\bm{e}_1$, et par symétrie la force totale (deux parois) est
+$4\mu(U_0/h)\bm{e}_1$.
+
+La dissipation visqueuse intégrée sur la hauteur du canal~:
+\[
+    \int_{-h}^{+h}\ten{\tau}:\ten{D}\,dx_2
+    = \int_{-h}^{+h}4\mu\left(\frac{U_0 x_2}{h^2}\right)^2 dx_2
+    = \frac{8\mu U_0^2}{3h} \quad \text{(W.m}^{-2}\text{)}
+\]
+
+\textbf{Résultat clé~:} la dissipation visqueuse est proportionnelle à $U_0^2$.
+Doubler la vitesse dans une conduite quadruple les pertes par frottement.
+Pour le Rafale, cela signifie que voler à Mach~1{,}6 au lieu de Mach~0{,}8
+ne consomme pas deux fois plus pour les frottements de peau~: il en consomme
+quatre fois plus.
+
+% ==========================================
+\section{Énergétique d'un système à flux continu}
+% ==========================================
+
+\subsection{Bilan d'énergie mécanique}
+
+La plupart des systèmes industriels---tuyauteries, pompes, turbines---sont des
+\emph{systèmes à flux continu}~: le fluide entre par une section $\mathcal{S}_1$,
+traverse un domaine $\mathcal{D}$ (éventuellement muni d'une machine), et sort
+par $\mathcal{S}_2$.
+
+\begin{center}
+\begin{tikzpicture}[scale=1.0]
+    % domaine
+    \draw[thick, blue!50!black, rounded corners=8pt]
+        (0,0.8) -- (0,2.2) -- (4,2.2) -- (4,0.8) -- (3.2,0.8)
+        arc[start angle=90, end angle=-90, radius=0.5]
+        -- (0.8,0.8) arc[start angle=-90, end angle=90, radius=0.5]
+        -- cycle;
+    \node[blue!50!black] at (2,1.5) {$\mathcal{D}$};
+    % machine
+    \draw[fill=gray!30] (2.1,0.5) ellipse (0.5 and 0.6);
+    \draw[thick, dashed] (2.1,1.1) -- (2.1,2.5);
+    \node[above] at (2.1,2.5) {$P_m$};
+    \draw[->, thick] (2.1,2.5) -- (2.1,2.1);
+    % sections
+    \draw[fill=blue!20] (-0.1,0.8) rectangle (0,2.2);
+    \node[left] at (0,1.5) {$\mathcal{S}_1$};
+    \draw[->,blue!70!black, thick] (-0.5,1.5) -- (0.3,1.5);
+    \draw[fill=blue!20] (4,0.8) rectangle (4.1,2.2);
+    \node[right] at (4.1,1.5) {$\mathcal{S}_2$};
+    \draw[->,blue!70!black, thick] (3.7,1.5) -- (4.5,1.5);
+    % paroi
+    \node[below] at (2.1,0.0) {$\mathcal{S}_w$ (paroi fixe)};
+\end{tikzpicture}
+\end{center}
+
+Depuis le bilan d'énergie cinétique, en utilisant que la gravité est conservative
+($\bm{g}=\nabla(\bm{g}\cdot\bm{x})$) pour absorber l'énergie potentielle~:
+
+\[
+    \frac{d}{dt}\int_{\mathcal{D}}\rho\left(\frac{U^2}{2}-\bm{g}\cdot\bm{x}\right)dv
+    = P_m - \mathcal{D}_v
+    - \int_{\mathcal{S}_1\cup\mathcal{S}_2}\rho\left(\frac{U^2}{2}-\bm{g}\cdot\bm{x}\right)\bm{U}\cdot\bm{n}\,ds
+\]
+
+En développant $P_\text{ext}^{\mathcal{S}}$ et en regroupant la pression dans
+l'intégrale surfacique, on fait apparaître la densité d'énergie de Bernoulli
+$\mathcal{H}=p-\rho\bm{g}\cdot\bm{x}+\rho U^2/2$~:
+
+\[
+    \frac{d}{dt}\int_{\mathcal{D}}\rho\left(\frac{U^2}{2}-\bm{g}\cdot\bm{x}\right)dv
+    = P_m - \mathcal{D}_v
+    - \int_{\mathcal{S}_1\cup\mathcal{S}_2}\mathcal{H}\,\bm{U}\cdot\bm{n}\,ds
+\]
+
+En régime permanent, la dérivée temporelle s'annule. En prenant la
+\textbf{moyenne temporelle} (pour traiter indifféremment les régimes laminaires et
+turbulents), on obtient~:
+
+\begin{importantbox}{Bilan d'énergie mécanique --- régime permanent (moyenne temporelle)}
+\[
+    \bar{P}_m = \int_{\mathcal{S}_1\cup\mathcal{S}_2}\overline{\mathcal{H}\bm{U}\cdot\bm{n}}\,ds
+    + \bar{\mathcal{D}}_v
+\]
+La puissance fournie à l'écoulement par la machine alimente deux termes~: la
+variation du flux d'énergie entre l'entrée $\mathcal{S}_1$ et la sortie $\mathcal{S}_2$,
+et la dissipation visqueuse $\bar{\mathcal{D}}_v \geq 0$.
+\end{importantbox}
+
+\subsection{Perte de charge}
+
+Pour modéliser simplement l'intégrale de flux, on introduit la
+\textbf{charge hydraulique} $H$ (attention~: $H \neq \mathcal{H}$), définie par~:
+\[
+    \bar{Q}_v H \equiv \int_{\mathcal{S}}\overline{\mathcal{H}\,\bm{U}\cdot\bm{n}}\,ds
+\]
+
+$H$ est une valeur moyennée en temps et en espace de $\mathcal{H}/Q_v$
+sur la section~: c'est l'énergie mécanique transportée par unité de volume
+de fluide. Le bilan d'énergie s'écrit alors sous forme compacte~:
+
+\begin{importantbox}{Bilan énergétique d'un système à flux continu}
+\[
+    \bar{P}_m + \bar{Q}_v(H_1 - H_2) = \bar{\mathcal{D}}_v
+    \tag{17}
+\]
+\end{importantbox}
+
+Dans une conduite simple sans machine ($\bar{P}_m=0$), on a nécessairement
+$\bar{Q}_v(H_1-H_2) = \bar{\mathcal{D}}_v > 0$, c'est-à-dire $H_1>H_2$~:
+la charge diminue dans le sens de l'écoulement. Cette perte de charge est
+la manifestation macroscopique de la dissipation visqueuse~: l'énergie mécanique du
+fluide est dégradée irréversiblement en chaleur par frottements contre les parois.
+
+\subsection{Rendement des machines hydrauliques}
+
+Lorsqu'une machine est présente, on introduit son \textbf{rendement} $\eta$
+pour relier la puissance mécanique de l'arbre $P_m$ à la puissance réellement
+transmise au fluide.
+
+\medskip
+\textbf{Pompe (ou ventilateur, compresseur)~:} la machine fournit de l'énergie au
+fluide pour l'élever en charge ($H_2>H_1$)~:
+\[
+    \bar{Q}_v(H_2-H_1) = \eta P_m > 0, \qquad \bar{Q}_v\Delta H_P = \eta P_m
+\]
+
+\textbf{Turbine~:} le fluide cède de l'énergie à la machine ($H_1>H_2$)~:
+\[
+    P_T = -P_m = \eta\,\bar{Q}_v(H_1-H_2) > 0, \qquad P_T = \eta Q_v\Delta H_T
+\]
+
+\subsection{Application~: centrale hydroélectrique de Malgovert (barrage de Tignes)}
+
+\begin{center}
+\begin{tikzpicture}[scale=0.9]
+    % barrage
+    \fill[blue!40] (0,4) rectangle (2,5);
+    \draw[thick] (0,4) -- (2,4) -- (2,5) -- (0,5);
+    \node[left] at (-0.1,4.5) {\small barrage de Tignes};
+    \node[right] at (2.1,4.7) {\small $\mathcal{H}_D = p_0+\rho g z_D$};
+    % conduite forcée
+    \draw[thick, blue!70!black] (2,4.2) -- (5,1.5);
+    \draw[thick, blue!70!black] (2,4.0) -- (5,1.3);
+    \node[below left] at (3.2,2.9) {\small conduite forcée $\Delta H_L$};
+    % turbine
+    \draw[fill=gray!30] (5,1.3) rectangle (5.6,1.5);
+    \node[below] at (5.3,1.3) {\small turbine $\Delta H_T$};
+    \draw[->,thick] (5.3,1.5) -- (5.3,2.2);
+    \node[right] at (5.3,1.9) {\small $\sim$};
+    % sortie
+    \fill[blue!40] (5.6,1.0) rectangle (7,1.5);
+    \node[right] at (7.0,1.3) {\small $\mathcal{H}_R = p_0+\rho g z_R$};
+    % altitude z
+    \draw[->,gray] (-0.3,1.0) -- (-0.3,5.3);
+    \node[left,gray] at (-0.3,3.1) {$z$};
+\end{tikzpicture}
+\end{center}
+
+Le bilan de charge entre le réservoir amont (Tignes, altitude $z_D$) et le canal de
+fuite (Malgovert, altitude $z_R$) s'écrit~:
+\[
+    H_D - H_R = \rho g(z_D - z_R) = \Delta H_L + \Delta H_T + \Delta H_O
+\]
+
+où $\Delta H_L$ et $\Delta H_O$ sont les pertes de charge dans la conduite forcée
+et à la sortie, et $\Delta H_T$ est la charge récupérée par la turbine. La puissance
+électrique produite est~:
+\[
+    P_T = \eta_T Q_v \Delta H_T = \eta_T Q_v\left[\rho g(z_D-z_R) - \Delta H_L - \Delta H_O\right]
+\]
+
+\textit{Remarque~:} à la surface du barrage ($x_2=z_D$), la vitesse $U_D$ est
+négligeable (énorme surface $\mathcal{S}$, petit débit $Q_v=U_D\times\mathcal{S}$),
+donc $\mathcal{H}_D\approx p_0+\rho g z_D$ (la contribution cinétique $\rho U_D^2/2$
+est infime). C'est la même approximation que lors du calcul Bernoulli de la
+vidange d'un réservoir.
+
+L'énergie est donc essentiellement de l'énergie potentielle gravitationnelle~:
+le barrage de Tignes (situé à environ 1800~m d'altitude) alimente la centrale
+de Malgovert (environ 900~m) via une conduite forcée de plus de 4~km.
+La puissance installée de la centrale est d'environ 180~MW~: c'est le poids de
+l'eau qui fait tourner la turbine.
+
+% ==========================================
+\section*{Résumé du chapitre}
+\addcontentsline{toc}{section}{Résumé du chapitre}
+% ==========================================
+
+\begin{importantbox}{Ce qu'il faut retenir}
+\textbf{Loi constitutive newtonienne}~:
+\[
+    \ten{\sigma} = -p\ten{I} + 2\mu\ten{D},
+    \qquad
+    D_{ij} = \tfrac{1}{2}\!\left(\pd{U_i}{x_j}+\pd{U_j}{x_i}\right)
+\]
+
+\vspace{4pt}
+\textbf{Équations de Navier-Stokes} (incompressible)~:
+\[
+    \nabla\cdot\bm{U}=0,
+    \qquad
+    \rho\DD{\bm{U}} = -\nabla p + \mu\nabla^2\bm{U} + \rho\bm{g}
+\]
+
+\vspace{4pt}
+\textbf{Dissipation visqueuse} (toujours $\geq 0$)~:
+\[
+    \mathcal{D}_v = \int_{\mathcal{D}}2\mu\ten{D}:\ten{D}\,dv \geq 0
+\]
+
+\vspace{4pt}
+\textbf{Perte de charge en système à flux continu}~:
+\[
+    \bar{P}_m + \bar{Q}_v(H_1-H_2) = \bar{\mathcal{D}}_v
+\]
+La charge $H$ diminue toujours dans le sens de l'écoulement en l'absence
+de machine. La viscosité prend, la machine rend.
+
+\vspace{4pt}
+\textbf{Rendement}~: pompe $Q_v\Delta H_P = \eta P_m$~;
+turbine $P_T = \eta Q_v \Delta H_T$.
+\end{importantbox}
+
+% ==========================================
+\chapter{Analyse dimensionnelle --- nombre de Reynolds}
+% ==========================================
+
+\noindent
+\textit{Fil conducteur --- le Rafale Marine.}
+La soufflerie F1 de l'ONERA à Fauga-Mauzac peut accueillir une maquette d'avion
+à l'échelle~$1/10$. La question que pose l'ingénieur est simple~: les données
+mesurées sur la maquette sont-elles directement transposables au Rafale réel~?
+Plus généralement, peut-on identifier de manière \emph{systématique} les quelques
+paramètres adimensionnels qui gouvernent la physique d'un écoulement, sans avoir
+à réaliser des milliers d'expériences en faisant varier indépendamment chaque
+grandeur physique~?
+
+La réponse est oui, et elle repose sur un théorème profond~: le
+\textbf{théorème $\Pi$} de Vaschy-Buckingham. Ce chapitre en montre la puissance,
+en dégage le nombre adimensionnel central de la mécanique des fluides --- le
+\textbf{nombre de Reynolds} --- et l'applique aux conduites (Poiseuille).
+
+% ==========================================
+\section{Analyse dimensionnelle}
+% ==========================================
+
+\subsection{Unités et dimensions}
+
+Avant de construire des nombres sans dimension, il faut clarifier ce qu'est
+une dimension. La physique reconnaît quatre dimensions primitives en mécanique
+des fluides~:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Grandeur} & \textbf{Dimension} & \textbf{Unité SI} \\
+\midrule
+Masse      & $[M]$ & kg \\
+Longueur   & $[L]$ & m  \\
+Temps      & $[T]$ & s  \\
+Température& $[\Theta]$ & K \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Le choix des unités est arbitraire (on pourrait travailler en pieds,
+en livres et en secondes), mais les \emph{dimensions} sont universelles.
+Toute grandeur physique s'exprime comme un produit de puissances de ces quatre
+dimensions de base~:
+
+\[
+[V] = LT^{-1}, \quad
+[F] = MLT^{-2}, \quad
+[p] = ML^{-1}T^{-2}, \quad
+[\nu] = L^2T^{-1}, \quad
+[\mu] = ML^{-1}T^{-1}
+\]
+
+\subsection{Théorème $\Pi$ de Vaschy-Buckingham}
+
+Considérons un problème physique impliquant $n$ grandeurs dimensionnelles
+$a_1, a_2, \ldots, a_n$. On suppose qu'il existe une relation implicite
+\[
+    \mathcal{F}(a_1, a_2, \ldots, a_n) = 0
+\]
+entre toutes ces grandeurs (la traînée d'un avion, par exemple, \emph{doit}
+dépendre d'un certain nombre de paramètres physiques, même si la forme exacte
+de la loi est inconnue).
+
+Chaque grandeur $a_i$ possède une dimension de la forme
+$[a_i] = L^{\alpha_i}T^{\beta_i}M^{\gamma_i}\Theta^{\delta_i}$.
+On cherche les combinaisons $a_1^{\lambda_1}\cdots a_n^{\lambda_n}$
+qui sont sans dimension, c'est-à-dire telles que
+$[a_1]^{\lambda_1}\cdots[a_n]^{\lambda_n} = L^0T^0M^0\Theta^0$.
+Cela revient à résoudre le système linéaire~:
+
+\[
+\begin{pmatrix} \alpha_1 & \cdots & \alpha_n \\ \beta_1 & & \beta_n \\ \gamma_1 & & \gamma_n \\ \delta_1 & \cdots & \delta_n \end{pmatrix}
+\begin{pmatrix} \lambda_1 \\ \vdots \\ \lambda_n \end{pmatrix} = \mathbf{0}
+\]
+
+Notons $r$ le rang de cette matrice dimensionnelle~: le noyau du système est
+de dimension $n-r$, ce qui signifie qu'il existe exactement $n-r$ combinaisons
+adimensionnelles indépendantes $\Pi_1, \ldots, \Pi_{n-r}$.
+
+\begin{importantbox}{Théorème Pi --- Vaschy (1892) et Buckingham (1914)}
+Tout problème physique impliquant $n$ grandeurs et de rang dimensionnel $r$
+peut être entièrement décrit par une loi reliant $n-r$ paramètres
+adimensionnels~:
+\[
+    \Pi_1 = \mathcal{F}_0(\Pi_2, \ldots, \Pi_{n-r})
+\]
+où $\Pi_1$ est le nombre sans dimension associé à la grandeur d'intérêt.
+Cas particulier~: si $n - r = 1$, alors $\Pi_1 = \mathrm{cst}$.
+\end{importantbox}
+
+La force du théorème est de réduire drastiquement l'espace paramétrique~:
+au lieu de faire varier $n$ paramètres dimensionnels indépendamment,
+il suffit d'explorer $n-r$ groupes adimensionnels.
+
+\subsection{Application~: fréquence de détachement tourbillonnaire}
+
+\textit{Problème.} Derrière un cylindre placé dans un écoulement uniforme
+$U_\infty$, des tourbillons se détachent alternativement de chaque côté
+(allée de Von Kármán). Quelle est la fréquence $f$ de ce détachement~?
+
+Les paramètres physiques pertinents sont~: $f$, $U_\infty$, $\rho$, $\mu$, $D$
+(diamètre du cylindre). Soit $n=5$. La matrice dimensionnelle est~:
+
+\begin{center}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{c|ccccc}
+ & $U_\infty$ & $\rho$ & $\mu$ & $D$ & $f$ \\
+\hline
+$L$ & $1$ & $-3$ & $-1$ & $1$ & $0$ \\
+$T$ & $-1$ & $0$ & $-1$ & $0$ & $-1$ \\
+$M$ & $0$ & $1$ & $1$ & $0$ & $0$ \\
+$\Theta$ & $0$ & $0$ & $0$ & $0$ & $0$ \\
+\end{tabular}
+\end{center}
+
+Le rang de cette matrice est $r=3$, donc $n-r=2$ paramètres adimensionnels
+à construire. On obtient naturellement~:
+
+\begin{importantbox}{Nombre de Strouhal et nombre de Reynolds}
+\[
+\Pi_1 = \frac{fD}{U_\infty} \equiv \mathrm{St} \quad \text{(nombre de Strouhal)},
+\qquad
+\Pi_2 = \frac{\rho U_\infty D}{\mu} \equiv \mathrm{Re} \quad \text{(nombre de Reynolds)}
+\]
+\[
+\Longrightarrow \quad \mathrm{St} = \mathcal{F}_0(\mathrm{Re})
+\]
+\end{importantbox}
+
+Ce résultat est remarquable~: la fréquence de détachement, qui dépend
+\textit{a priori} de cinq paramètres, ne dépend en réalité que d'un seul
+nombre adimensionnel, Re. Les expériences confirment~:
+
+\[
+\mathrm{St} \approx 0.198\left(1 - \frac{19.7}{\mathrm{Re}}\right)
+\quad \text{(Lienhard 1966)}
+\]
+
+Pour les antennes radar d'un Rafale en vol à basse altitude --- profil de mât
+de diamètre $D\sim 2$~cm, $U_\infty\sim 100$~m/s~--- on obtient
+$\mathrm{Re} \approx 1.3\times10^5$ et $f \approx \mathrm{St}\cdot U_\infty/D \approx 1$~kHz.
+Si cette fréquence coïncide avec un mode propre de la structure, on risque
+la résonance~: c'est un problème réel en conception aéronautique.
+
+% ==========================================
+\section{Nombre de Reynolds}
+% ==========================================
+
+\subsection{Définition et interprétation physique}
+
+Le nombre de Reynolds est \emph{le} paramètre adimensionnel central de la
+mécanique des fluides des fluides incompressibles. Il est défini à partir
+d'une vitesse caractéristique $U$ et d'une longueur caractéristique $L$
+de l'écoulement~:
+
+\begin{defbox}{Nombre de Reynolds}
+\[
+    \mathrm{Re} = \frac{UL}{\nu} = \frac{\rho UL}{\mu}
+\]
+$U$~: vitesse caractéristique (m/s),
+$L$~: longueur caractéristique (m),
+$\nu$~: viscosité cinématique (m$^2$/s).
+\end{defbox}
+
+Pour comprendre ce que Re mesure physiquement, regardons les ordres de grandeur
+des termes dans les équations de Navier-Stokes~:
+
+\[
+\underbrace{\pd{\bm{U}}{t} + \bm{U}\cdot\nabla\bm{U}}_{\sim\,U^2/L\;(\text{inertie})}
+= -\frac{1}{\rho}\nabla p + \underbrace{\nu\nabla^2\bm{U}}_{\sim\,\nu U/L^2\;(\text{viscosité})} + \bm{g}
+\]
+
+Le rapport de ces deux termes est~:
+\[
+    \frac{\text{terme convectif (inertiel)}}{\text{terme visqueux}}
+    \sim \frac{U^2/L}{\nu U/L^2} = \frac{UL}{\nu} = \mathrm{Re}
+\]
+
+Re est donc le rapport des forces inertielles sur les forces visqueuses.
+On peut aussi l'interpréter comme un rapport de temps~:
+\[
+    \mathrm{Re} = \frac{L^2/\nu}{L/U}
+    = \frac{\text{temps de diffusion visqueuse}}{\text{temps de convection}}
+\]
+
+\medskip
+\noindent Deux régimes extrêmes~:
+
+\medskip
+$\mathrm{Re} \ll 1$ --- \textbf{écoulement de Stokes} (ou rampant)~: la viscosité
+domine, le terme convectif est négligeable. C'est le régime des microorganismes
+nageant dans l'eau~: une bactérie s'arrête instantanément si elle cesse de
+battre ses flagelles.
+
+\medskip
+$\mathrm{Re} \gg 1$ --- \textbf{écoulement quasi-parfait}~: la viscosité est
+négligeable sauf dans des couches minces près des parois (couches limites,
+chapitre~4). C'est le régime du Rafale en vol~:
+
+\[
+    \mathrm{Re}_\text{Rafale} = \frac{U_\infty \cdot c}{\nu}
+    \approx \frac{200\,\text{m/s} \times 5.3\,\text{m}}{1.5\times10^{-5}\,\text{m}^2/\text{s}}
+    \approx 7\times10^7
+\]
+
+À ce nombre de Reynolds, l'écoulement autour de l'aile est très loin d'être
+laminaire~: la couche limite est turbulente sur presque toute la corde.
+
+\subsection{Expérience de Reynolds (1883)}
+
+Osborne Reynolds a mis en évidence expérimentalement la transition
+laminaire-turbulent dans une conduite en injectant un filet de colorant~:
+\begin{itemize}
+    \item À faible $U$ (Re petit)~: le filet reste parfaitement droit --- écoulement \textbf{laminaire}.
+    \item Au-dessus d'un seuil Re\,$\approx 2300$~: le filet se mélange brusquement
+    à l'eau environnante --- écoulement \textbf{turbulent}.
+\end{itemize}
+Cette expérience, publiée en 1883 dans les \textit{Phil.\ Trans.\ Roy.\ Soc.},
+est l'une des plus importantes de l'histoire de la mécanique des fluides.
+
+\subsection{Équation de Navier-Stokes adimensionnée}
+
+En adimensionnant les variables par les échelles caractéristiques du problème~:
+\[
+    \tilde{U}_i = \frac{U_i}{U_\infty}, \quad
+    \tilde{p} = \frac{p}{\rho U_\infty^2}, \quad
+    \tilde{x}_i = \frac{x_i}{L}, \quad
+    \tilde{t} = \frac{t}{L/U_\infty}
+\]
+
+l'équation de Navier-Stokes devient~:
+
+\begin{importantbox}{NS adimensionnée --- Re seul paramètre gouvernant}
+\[
+    \frac{\partial \tilde{\bm{U}}}{\partial \tilde{t}}
+    + \tilde{\bm{U}}\cdot\tilde{\nabla}\tilde{\bm{U}}
+    = -\tilde{\nabla}\tilde{p}
+    + \frac{1}{\mathrm{Re}}\tilde{\nabla}^2\tilde{\bm{U}},
+    \qquad \tilde{\nabla}\cdot\tilde{\bm{U}} = 0
+\]
+avec Re $= U_\infty L/\nu$.
+\end{importantbox}
+
+Ce résultat est fondamental~: une fois adimensionné, l'écoulement autour d'un
+obstacle de géométrie donnée ne dépend que d'un seul paramètre, Re.
+Deux expériences de géométrie similaire ayant le même Re produisent
+\emph{exactement} le même champ de vitesse adimensionnel.
+C'est le \textbf{principe de similitude dynamique}~: c'est lui qui justifie
+les essais en soufflerie.
+
+% ==========================================
+\section{Écoulement autour d'un obstacle}
+% ==========================================
+
+\subsection{Coefficient de traînée}
+
+Appliquons le théorème $\Pi$ à la force de traînée $F_D$ exercée par un
+écoulement sur un obstacle de taille caractéristique $L$. Les paramètres
+sont $F_D,\,\mu,\,\rho,\,U_\infty,\,L$~; $n=5$, rang $r=3$, donc $n-r=2$.
+
+On construit les deux groupes adimensionnels~:
+
+\[
+    \Pi_1 = \frac{F_D}{q_\infty S} \equiv C_D,
+    \qquad
+    \Pi_2 = \frac{\rho U_\infty L}{\mu} \equiv \mathrm{Re}
+\]
+
+où $q_\infty = \frac{1}{2}\rho U_\infty^2$ est la pression dynamique
+(déjà rencontrée au tube de Pitot) et $S \propto L^2$ est la surface
+de référence (maître-couple).
+
+\begin{defbox}{Coefficient de traînée}
+\[
+    C_D \equiv \frac{F_D}{\dfrac{1}{2}\rho U_\infty^2 S}
+    \qquad \Longrightarrow \qquad
+    C_D = C_D(\mathrm{Re})
+\]
+La traînée est entièrement déterminée par Re pour une géométrie donnée.
+\end{defbox}
+
+Pour une sphère lisse de diamètre $D$ ($S=\pi D^2/4$)~:
+\begin{itemize}
+    \item $\mathrm{Re}_D \ll 1$ (Stokes)~: $C_D = 24/\mathrm{Re}_D$ --- la traînée
+    est due entièrement à la viscosité.
+    \item $10^2 \lesssim \mathrm{Re}_D \lesssim 10^5$~: $C_D \approx 0.4$ --- la traînée
+    est dominée par la dépression dans le sillage (recirculation).
+    \item $\mathrm{Re}_D^c \approx 3\times10^5$~: \textbf{crise de traînée} --- la couche
+    limite passe de laminaire à turbulente, la séparation recule et $C_D$ chute
+    brutalement de $\sim0.4$ à $\sim0.1$.
+\end{itemize}
+
+La crise de traînée explique pourquoi les balles de golf sont texturées~:
+les alvéoles déclenchent la transition turbulente de la couche limite à
+$\mathrm{Re}$ modéré, réduisant la traînée et augmentant la portée.
+
+\subsection{Maquette et similitude en soufflerie}
+
+Pour mesurer correctement $C_D = C_D(\mathrm{Re}')$ du Rafale à l'échelle~$1$
+sur une maquette de corde $c < c'$, il faut reproduire le nombre de Reynolds
+réel~:
+
+\[
+    \mathrm{Re}' = \frac{\rho'_\infty U'_\infty c'}{\mu'_\infty}
+    \overset{!}{=}
+    \mathrm{Re} = \frac{\rho_\infty U_\infty c}{\mu_\infty}
+\]
+
+En aéronautique, $U_\infty \approx U'_\infty$ (le nombre de Mach doit aussi être
+conservé), mais $c < c'$~: il faut donc augmenter $\rho_\infty/\mu_\infty$ en
+soufflerie. Deux stratégies~:
+
+\medskip
+\noindent \textbf{Soufflerie pressurisée} ($p_\infty \nearrow$)~: en utilisant
+$\rho_\infty = p_\infty/(rT_\infty)$, augmenter $p_\infty$ augmente $\rho_\infty$
+et donc Re. Inconvénient~: la pression dynamique $q_\infty = \frac{\gamma}{2}p_\infty M^2$
+augmente aussi, ce qui génère des contraintes mécaniques élevées sur la maquette.
+
+\medskip
+\noindent \textbf{Soufflerie cryogénique} ($T_\infty \searrow$)~: abaisser $T_\infty$
+diminue $\mu_\infty$ (viscosité dynamique) et augmente $\rho_\infty$, les deux
+effets augmentant Re. L'\textbf{European Transonic Windtunnel} (ETW, Cologne)
+injecte de l'azote liquide pour atteindre $T_\infty$ entre 110 et 313~K, à des
+pressions de 1.25 à 4.5~bar, permettant des nombres de Reynolds de corde
+jusqu'à $80\times10^6$ --- comparable aux conditions de vol réelles des
+grands avions de ligne.
+
+\medskip
+La viscosité dynamique de l'air suit la \textbf{loi de Sutherland}~:
+\[
+    \mu(T) \approx \mu_0\left(\frac{T}{T_0}\right)^{3/2}\frac{T_0+T_s}{T+T_s}
+\]
+avec $T_0=273$~K, $T_s=111$~K, $\mu_0=1.716\times10^{-5}$~kg/(m$\cdot$s).
+Ainsi $\mu$ augmente avec $T$ (contrairement aux liquides~!), ce qui signifie
+que l'air froid est moins visqueux~: c'est l'effet recherché en soufflerie
+cryogénique.
+
+% ==========================================
+\section{Applications du théorème $\Pi$}
+% ==========================================
+
+\subsection{Traînée de la coque d'un bateau}
+
+Un navire est soumis à deux contributions de traînée de natures très différentes~:
+le frottement visqueux le long de la coque, et la traînée de vagues (ondes de
+surface créées par le déplacement du bateau). Les variables pertinentes sont~:
+$F_D,\,\mu,\,\rho,\,U_\infty,\,L,\,g$ --- la gravité apparaît car elle régit
+la dynamique des ondes de surface. Soit $n=6$, rang $r=3$, donc $n-r=3$.
+
+\[
+    \Pi_1 = \frac{F_D}{\frac{1}{2}\rho U^2 S} = C_D, \qquad
+    \Pi_2 = \frac{\rho U L}{\mu} = \mathrm{Re}, \qquad
+    \Pi_3 = \frac{U}{\sqrt{gL}} = \mathrm{Fr} \quad \text{(Froude)}
+\]
+
+On obtient $C_D = C_D(\mathrm{Re}, \mathrm{Fr})$. Le nombre de Froude compare
+la vitesse du navire à la vitesse des ondes de surface~: $\mathrm{Fr} > 1$
+signifie que le bateau va plus vite que ses propres vagues (régime de
+planage). Le sillage en V que font les canards sur un lac a toujours
+le même angle ($\approx 39°$)~: c'est une conséquence directe du nombre
+de Froude et de la dispersion des ondes de surface.
+
+Puisqu'on ne peut pas simultanément conserver Re et Fr entre la maquette
+et le bateau réel (cela imposerait des contraintes incompatibles sur $U$
+et $\nu$), on utilise \textbf{l'hypothèse de Froude}~:
+
+\[
+    C_D \approx C_F(\mathrm{Re}) + C_R(\mathrm{Fr})
+\]
+
+Les deux contributions obéissent à des physiques distinctes~: on les mesure
+séparément et on les recombine. En essais sur maquette~: Fr est conservé
+(ce qui fixe la vitesse de la maquette), $C_D$ total est mesuré, et $C_F$ est
+calculé analytiquement (frottement laminaire ou turbulent connu), ce qui
+permet d'extraire $C_R$. À l'échelle~$1$, Re réel est connu, $C_F$ est
+recalculé, et on recompose $C_D$ réel.
+
+\subsection{Vitesse d'une embarcation d'aviron}
+
+Pourquoi un équipage de 8 rameurs va-t-il plus vite qu'un équipage de 1~?
+L'analyse dimensionnelle apporte une réponse élégante (McMahon, \textit{Sciences}, 1971).
+
+On suppose $N$ rameurs identiques (puissance individuelle $P$, poids et
+morphologie similaires), et une géométrie d'embarcation similaire. Le frottement
+est dominé par la traînée de peau ($C_D \approx C_F(\mathrm{Re})$, ondes négligeables
+pour un bateau profilé dans la plage de vitesse d'aviron).
+
+La puissance fournie doit équilibrer la puissance de traînée~:
+\[
+    N \times P \propto C_F \cdot \frac{1}{2}\rho U^2 S \cdot U
+\]
+
+Or le volume submergé est $\mathcal{V} \sim N$ (un équipage de 8 pèse 8 fois plus
+qu'un rameur seul), d'où la surface mouillée $S \sim \mathcal{V}^{2/3} \sim N^{2/3}$.
+En supposant $C_F$ approximativement constant (Re varie peu)~:
+
+\[
+    N \times P \propto N^{2/3} \cdot U^3
+    \quad\Longrightarrow\quad
+    U \propto N^{1/9}
+\]
+
+Ce résultat prédit que la vitesse croit très lentement avec le nombre de
+rameurs~: de 1 à 8 rameurs, le gain de vitesse théorique est
+$8^{1/9} \approx 1.28$, soit $+28\%$. Les données des championnats du monde
+(Lucerne 2010) confirment remarquablement cette loi en $N^{1/9}$.
+
+% ==========================================
+\section{Écoulement de Poiseuille en conduite circulaire}
+% ==========================================
+
+\subsection{Solution analytique}
+
+Revenons à un écoulement canonique~: l'écoulement laminaire établi dans une
+conduite circulaire de rayon $R$ et de diamètre $D=2R$. Le circuit hydraulique
+du Rafale (carburant, fluide de refroidissement, circuit de commande de vol)
+est constitué de tels tuyaux~: comprendre la perte de charge qui s'y développe
+est indispensable pour dimensionner les pompes.
+
+En coordonnées cylindriques $(r, \theta, z)$ avec $\bm{U}=(0,0,U(r))$,
+les équations de Navier-Stokes (gravité négligée, conduite horizontale)
+se réduisent à~:
+
+\[
+    0 = -\pd{p}{r}, \qquad 0 = -\frac{1}{r}\pd{p}{\theta}, \qquad
+    0 = -\pd{p}{z} + \frac{\mu}{r}\frac{d}{dr}\!\left(r\frac{dU}{dr}\right)
+\]
+
+Les deux premières équations indiquent que $p = p(z)$ uniquement. La troisième
+égalise une fonction de $z$ et une fonction de $r$~: les deux doivent être
+égales à une constante $G$~:
+
+\[
+    \frac{dp}{dz} = \mu\frac{1}{r}\frac{d}{dr}\!\left(r\frac{dU}{dr}\right) = G = \text{cst}
+\]
+
+En intégrant deux fois avec les conditions aux limites $U(R)=0$ (non-glissement)
+et $dU/dr|_{r=0}=0$ (symétrie axiale)~:
+
+\begin{importantbox}{Profil de Poiseuille (conduite circulaire)}
+\[
+    U(r) = -\frac{GR^2}{4\mu}\left[1-\left(\frac{r}{R}\right)^2\right]
+    = U_0\left[1-\left(\frac{r}{R}\right)^2\right]
+\]
+Profil \textbf{parabolique}~; $U_0=-GR^2/(4\mu) > 0$ (car $G<0$~: la pression
+décroît dans le sens de l'écoulement).
+La pression varie linéairement~: $p = Gz$.
+\end{importantbox}
+
+\begin{center}
+\begin{tikzpicture}[scale=1.1]
+    \draw[thick] (-0.3,1.2) -- (4.5,1.2);
+    \draw[thick] (-0.3,-1.2) -- (4.5,-1.2);
+    \foreach \x in {-0.3,-0.1,...,0.1} {
+        \draw[gray] (\x,1.2) -- (\x-0.2,1.4);
+        \draw[gray] (\x,-1.2) -- (\x-0.2,-1.4);
+    }
+    \foreach \x in {4.3,4.1,3.9} {
+        \draw[gray] (\x,1.2) -- (\x+0.2,1.4);
+        \draw[gray] (\x,-1.2) -- (\x+0.2,-1.4);
+    }
+    \foreach \y in {-1.1,-0.7,-0.3,0,0.3,0.7,1.1} {
+        \pgfmathsetmacro{\len}{2.2*(1-(\y/1.2)^2)}
+        \draw[-{Latex}, blue!70!black] (1.0,\y) -- (1.0+\len,\y);
+    }
+    \draw[<->, gray] (0.2,-1.2) -- (0.2,1.2);
+    \node[left, gray] at (0.2,0) {$D$};
+    \node[right] at (3.2,0) {\small $U_0$};
+    \node[below] at (2.5,-1.2) {\small $U(r)=U_0[1-(r/R)^2]$};
+    \node at (0.7,0) {$z$};
+    \draw[->, gray, thin] (0.6,0) -- (0.95,0);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Vitesse de débit et contrainte pariétale}
+
+La \textbf{vitesse de débit} $U_d$ (vitesse moyenne sur la section) est~:
+\[
+    U_d \equiv \frac{1}{\pi R^2}\int_0^R U(r)\,2\pi r\,dr = \frac{U_0}{2}
+\]
+La vitesse maximale (en $r=0$) est le double de la vitesse de débit.
+
+La \textbf{contrainte pariétale} en $r=R$~:
+\[
+    \tau_w = \mu\left.\frac{dU}{dr}\right|_{r=R} = -\frac{2\mu U_0}{R}
+    = -\frac{4\mu U_d}{R}
+\]
+
+\subsection{Coefficient de frottement et modèle 1-D}
+
+On définit le \textbf{coefficient de frottement} par analogie avec le
+coefficient de traînée~:
+
+\begin{defbox}{Coefficient de frottement en conduite}
+\[
+    C_f \equiv \frac{|\tau_w|}{\rho U_d^2/2} = \frac{16}{\mathrm{Re}_D}
+    \qquad \text{avec} \quad \mathrm{Re}_D = \frac{U_d D}{\nu}
+\]
+\end{defbox}
+
+Ce résultat est valable en régime laminaire ($\mathrm{Re}_D \lesssim 2300$).
+En régime turbulent ($\mathrm{Re}_D \gtrsim 4000$), la loi de Blasius donne
+$C_f \approx 0.0791\,\mathrm{Re}_D^{-1/4}$, et à très grand Reynolds la
+relation implicite de Prandtl-Kármán~:
+\[
+    \frac{1}{\sqrt{C_f}} \approx 3.86\log_{10}\!\left(\mathrm{Re}_D\sqrt{C_f}\right) - 0.088
+\]
+
+Relions maintenant $C_f$ à la perte de charge macroscopique.
+En appliquant le bilan d'énergie du chapitre~2 (éq.~17) à la conduite
+sans machine~:
+
+\[
+    Q_v(H_1 - H_2) = \mathcal{D}_v
+\]
+
+Seule la pression contribue à la variation de charge $H$ (les termes cinétiques
+sont identiques à l'entrée et à la sortie d'une conduite de section constante).
+Le calcul donne~:
+
+\begin{importantbox}{Perte de charge en conduite --- modèle 1-D}
+\[
+    \Delta H = [p]^1_2 = -GL = \frac{4\mu U_0}{R^2} L
+    = \underbrace{\frac{64}{\mathrm{Re}_D}}_{\psi(\mathrm{Re}_D)}
+    \cdot\frac{L}{D}\cdot\frac{1}{2}\rho U_d^2
+\]
+
+Plus généralement, pour tout régime d'écoulement en conduite~:
+\[
+    \Delta H = \psi(\mathrm{Re}_D)\,\frac{L}{D}\,\frac{1}{2}\rho U_d^2
+\]
+avec $\psi = 64/\mathrm{Re}_D$ (laminaire) ou $\psi \approx 0.316\,\mathrm{Re}_D^{-1/4}$
+(turbulent --- Blasius).
+\end{importantbox}
+
+Cette formule est directement utilisable pour dimensionner les circuits de
+carburant du Rafale. Supposons un tube de rayon $R=5$~mm, longueur $L=1$~m,
+débit volumique $Q_v=10^{-4}$~m$^3$/s de kérosène ($\rho\approx800$~kg/m$^3$,
+$\nu\approx 2\times10^{-6}$~m$^2$/s)~:
+\[
+    U_d = \frac{Q_v}{\pi R^2} \approx 1.27\,\text{m/s},
+    \quad
+    \mathrm{Re}_D = \frac{U_d D}{\nu} \approx \frac{1.27\times0.01}{2\times10^{-6}} \approx 6350
+\]
+L'écoulement est turbulent. La perte de charge sur 1~m est de l'ordre de
+$\Delta H \approx 0.316\times6350^{-1/4}\times(1/0.01)\times\frac{1}{2}\times800\times1.27^2
+\approx 640$~Pa. Pour 20~m de tuyauterie, on obtient~$\sim$12~kPa~: la pompe
+à carburant doit fournir cette pression en plus de la pression d'injection.
+
+% ==========================================
+\section*{Résumé du chapitre}
+\addcontentsline{toc}{section}{Résumé du chapitre}
+% ==========================================
+
+\begin{importantbox}{Ce qu'il faut retenir}
+\textbf{Théorème $\Pi$} (Vaschy-Buckingham)~: $n$ variables, rang dimensionnel $r$
+$\Rightarrow$ $n-r$ groupes adimensionnels, loi de la forme
+$\Pi_1 = \mathcal{F}_0(\Pi_2,\ldots,\Pi_{n-r})$.
+
+\vspace{4pt}
+\textbf{Nombre de Reynolds}~:
+\[
+    \mathrm{Re} = \frac{UL}{\nu} = \frac{\text{forces inertielles}}{\text{forces visqueuses}}
+    = \frac{\text{temps visqueux}}{\text{temps convectif}}
+\]
+
+\vspace{4pt}
+\textbf{Nombres sans dimension classiques}~:
+\quad St $= fD/U_\infty$,\quad
+Fr $= U/\!\sqrt{gL}$,\quad
+$C_D = F_D/(\frac{1}{2}\rho U^2 S)$.
+
+\vspace{4pt}
+\textbf{NS adimensionnée}~: l'écoulement ne dépend que de Re (pour géométrie fixée).
+
+\vspace{4pt}
+\textbf{Poiseuille}~:
+$U(r)=U_0[1-(r/R)^2]$,\quad $U_d=U_0/2$,\quad $C_f=16/\mathrm{Re}_D$.
+
+\vspace{4pt}
+\textbf{Perte de charge}~:
+$\Delta H = \psi(\mathrm{Re}_D)\dfrac{L}{D}\dfrac{1}{2}\rho U_d^2$,\quad
+$\psi = 64/\mathrm{Re}_D$ (laminaire).
+\end{importantbox}
+
+% ==========================================
+\chapter{R\'egimes d'\'ecoulement en fonction du nombre de Reynolds}
+% ==========================================
+
+Le chapitre pr\'ec\'edent a \'etabli que le nombre de Reynolds $\mathrm{Re}_L = UL/\nu$
+est le param\`etre sans dimension gouvernant les \'ecoulements incompressibles --- il est
+seul \`a appara\^itre dans les \'equations de Navier-Stokes adimensionn\'ees. Ce chapitre
+explore les deux r\'egimes limites oppos\'es: $\mathrm{Re}_L \ll 1$ (viscosit\'e dominante,
+\'ecoulement \emph{rampant} de Stokes) et $\mathrm{Re}_L \gg 1$ (inertie dominante,
+apparition d'une \emph{couche limite} pr\`es des parois).
+
+Le Rafale Marine vole \`a $\mathrm{Re} \approx 7\times10^7$ sur son aile (corde $L\approx
+3\,\text{m}$, $U_\infty\approx 200\,\text{m/s}$, $\nu_\text{air}\approx
+1{,}5\times10^{-5}\,\text{m}^2/\text{s}$), ce qui place sans ambigu\"{i}t\'e l'avion dans
+le r\'egime \`a haut nombre de Reynolds. Ses moteurs M88-2 ing\`erent cependant des
+particules microm\'etriques (poussi\`eres, bruine saline) dont le nombre de Reynolds
+particulaire est inf\'erieur \`a~1 --- preuve que les deux r\'egimes peuvent coexister au
+sein d'un m\^eme syst\`eme.
+
+%===========================================================================
+\section{\'Ecoulement \`a bas nombre de Reynolds}
+%===========================================================================
+
+\subsection{Le terme convectif peut \^etre n\'eglig\'e}
+
+Rappelons les \'equations de Navier-Stokes pour un fluide incompressible de densit\'e
+$\rho$ et viscosit\'e cin\'ematique $\nu$~:
+\[
+  \pd{\bm{U}}{t} + \bm{U}\cdot\nabla\bm{U}
+  = -\frac{1}{\rho}\nabla p + \nu\nabla^2\bm{U},
+  \qquad \nabla\cdot\bm{U}=0.
+\]
+En notant $U$ et $L$ les \'echelles caract\'eristiques de vitesse et de longueur, on
+estime les ordres de grandeur~:
+\[
+  \underbrace{\bm{U}\cdot\nabla\bm{U}}_{\sim\, U^2/L}
+  \qquad\text{contre}\qquad
+  \underbrace{\nu\nabla^2\bm{U}}_{\sim\, \nu U/L^2}.
+\]
+Le rapport terme convectif / terme visqueux vaut $UL/\nu = \mathrm{Re}_L$. Lorsque
+$\mathrm{Re}_L \ll 1$, le terme convectif est n\'egligeable.
+
+\subsection{\'Ecoulement de Stokes ($\mathrm{Re}_L \ll 1$)}
+
+Pour \'etudier ce r\'egime, on choisit comme temps caract\'eristique le \emph{temps de
+diffusion visqueuse} $L^2/\nu$ (et non $L/U$ adapt\'e au cas inertiel), car c'est la
+viscosit\'e qui dicte la dynamique. En posant~:
+\[
+  \tilde{U}_i = \frac{U_i}{U_\infty}, \quad
+  \tilde{t} = \frac{t}{L^2/\nu}, \quad
+  \tilde{p} = \frac{p}{\mu U_\infty/L},
+  \quad \mathrm{Re}_L = \frac{\rho L U_\infty}{\mu},
+\]
+les \'equations de Navier-Stokes adimensionn\'ees deviennent~:
+\[
+  \pd{\tilde{\bm{U}}}{\tilde{t}} + \mathrm{Re}_L\,\tilde{\bm{U}}\cdot
+  \tilde{\nabla}\tilde{\bm{U}}
+  = -\tilde{\nabla}\tilde{p} + \tilde{\nabla}^2\tilde{\bm{U}}.
+\]
+Pour $\mathrm{Re}_L \ll 1$, le terme $\mathrm{Re}_L\,\tilde{\bm{U}}\cdot
+\tilde{\nabla}\tilde{\bm{U}} \ll 1$ (sous r\'eserve que la solution approch\'ee reste
+d'ordre~1 en variables adimensionn\'ees --- condition \`a v\'erifier \emph{a posteriori},
+tr\`es restrictive en pratique). On parle d'\textbf{\'ecoulement rampant} ou
+\textbf{\'ecoulement de Stokes}.
+
+\subsection{\'Ecoulement de Stokes stationnaire}
+
+En r\'egime permanent, les \'equations se r\'eduisent \`a~:
+\[
+  \left\{\begin{aligned}
+    \mu\nabla^2\bm{U} &= \nabla p \\[4pt]
+    \nabla\cdot\bm{U} &= 0
+  \end{aligned}\right.
+  \qquad + \text{ conditions aux limites.}
+\]
+Ce syst\`eme est lin\'eaire --- une simplification spectaculaire par rapport aux
+\'equations de Navier-Stokes compl\`etes. Stokes (1851) en trouva la solution analytique
+exacte pour une sph\`ere, donnant le champ de vitesse et les iso-contours de pression
+de part et d'autre du corps. Le caract\`ere rampant se traduit par une absence de
+d\'ecollement: les lignes de courant restent attach\'ees \`a la sph\`ere et l'\'ecoulement
+est quasi-sym\'etrique amont/aval (visualisation de Taneda, $\mathrm{Re}_D = 0{,}16$).
+
+\subsection{Force de Stokes --- coefficient de tra\^in\'ee d'une sph\`ere}
+
+La force exerc\'ee par le fluide sur une sph\`ere de rayon $a$ (diam\`etre $D=2a$)
+plong\'ee dans un \'ecoulement uniforme $U_\infty$ se d\'ecompose en tra\^in\'ee de
+forme (pression) et de frottement (visqueux)~:
+\[
+  \bm{F}_{\text{fluide}\to\text{sph\`ere}}
+  = \int_{\mathcal{S}} \bigl(-p\,\bm{n}\bigr)\,ds
+  + \int_{\mathcal{S}} \ten{\tau}\cdot\bm{n}\,ds.
+\]
+La r\'esolution analytique des \'equations de Stokes donne la force de tra\^in\'ee~:
+\[
+  F_D = 6\pi\mu a\, U_\infty
+  \qquad\text{(force de Stokes, 1851)},
+\]
+o\`u le facteur $6\pi = 2\pi + 4\pi$: les $2\pi$ viennent de la diff\'erence de pression
+amont/aval (tra\^in\'ee de forme), les $4\pi$ du frottement visqueux pari\'etal (tra\^in\'ee
+de peau). Le coefficient de tra\^in\'ee en d\'ecoule~:
+\[
+  C_D \equiv \frac{F_D}{\dfrac{1}{2}\rho U_\infty^2 \cdot \pi a^2}
+  = \frac{6\pi\mu a\, U_\infty}{\dfrac{1}{2}\rho U_\infty^2 \cdot \pi a^2}
+  = \frac{24}{\rho U_\infty D/\mu}
+  = \frac{24}{\mathrm{Re}_D}.
+\]
+
+\begin{importantbox}{Force de Stokes --- sph\`ere lisse \`a $\mathrm{Re}_D \ll 1$}
+\[
+  F_D = 6\pi\mu a\, U_\infty,
+  \qquad
+  C_D = \dfrac{24}{\mathrm{Re}_D}.
+\]
+La tra\^in\'ee est domin\'ee par les effets visqueux et cro\^it \emph{lin\'eairement}
+avec la vitesse. Sur la courbe $C_D(\mathrm{Re}_D)$ pour une sph\`ere lisse, la loi
+$24/\mathrm{Re}_D$ est valide jusqu'\`a $\mathrm{Re}_D \approx 1$; pour
+$10^3 \lesssim \mathrm{Re}_D \lesssim 3\times10^5$, $C_D \approx 0{,}4$ (plateau);
+puis crise de tra\^in\'ee \`a $\mathrm{Re}_D^c \approx 3\times10^5$.
+\end{importantbox}
+
+\subsection{Applications de la force de Stokes}
+
+La condition $\mathrm{Re} = U_\infty d_p/\nu \leq 1$ est satisfaite dans de nombreux
+contextes~:
+
+\begin{itemize}
+  \item \textbf{Ensemencement en m\'ecanique des fluides exp\'erimentale (PIV, LDV)~:}
+    gouttes d'huile d'olive de diam\`etre $d_p = 1{,}5\,\mu$m, $\rho = 970\,\text{kg/m}^3$,
+    $\nu = 1{,}5\times10^{-5}\,\text{m}^2/\text{s}$. La condition $\mathrm{Re} \leq 1$
+    impose $U_\infty < 9{,}7\,\text{m/s}$ --- largement v\'erifi\'e dans les souffleries
+    o\`u ces particules servent de traceurs fid\`eles.
+
+  \item \textbf{Exp\'erience de Millikan (1913)~:} des gouttelettes d'huile \'electris\'ees
+    tombent sous gravit\'e, frein\'ees par la force de Stokes. L'application d'un champ
+    \'electrique compensant exactement les deux forces permit \`a Millikan de mesurer la
+    charge \'el\'ementaire $e = 1{,}6\times10^{-19}\,\text{C}$.
+
+  \item \textbf{Moteur M88-2 du Rafale~:} l'air est aspir\'e \`a ${\approx}60\,\text{m/s}$
+    \`a l'entr\'ee. Des particules de poussi\`ere de diam\`etre $d_p\sim 10\,\mu$m voient
+    une vitesse relative $\Delta U\sim 1\,\text{m/s}$ (elles ne suivent pas imm\'ediatement
+    l'acc\'el\'eration du fluide). Alors $\mathrm{Re}_p = \Delta U\,d_p/\nu \approx 0{,}7
+    \ll 1$~: la force de Stokes s'applique. C'est ce principe qui fonde les s\'eparateurs
+    centrifuges plac\'es en entr\'ee de turbor\'eacteurs militaires pour limiter
+    l'\'erosion des aubes de compresseur.
+\end{itemize}
+
+%===========================================================================
+\section{\'Ecoulement \`a haut nombre de Reynolds}
+%===========================================================================
+
+\subsection{Retour des \'equations d'Euler --- et leurs limites}
+
+\`A l'oppos\'e, pour $\mathrm{Re} \gg 1$, le terme visqueux $\nu\nabla^2\bm{U}
+\sim \nu U/L^2$ devient n\'egligeable devant le terme convectif $\sim U^2/L$. Le
+mod\`ele non visqueux du chapitre~1 peut \^etre r\'eappliqu\'e~:
+\[
+  \left\{\begin{aligned}
+    \pd{\bm{U}}{t} + \bm{U}\cdot\nabla\bm{U} &= -\dfrac{1}{\rho}\nabla p \\[6pt]
+    \nabla\cdot\bm{U} &= 0
+  \end{aligned}\right.
+  \qquad\text{(\'equations d'Euler).}
+\]
+
+Mais cette simplification a une limite cruciale~: les \'equations d'Euler ne peuvent
+pas satisfaire la condition d'adh\'erence $\bm{U}=\bm{0}$ \`a une paroi solide. La
+vitesse doit passer de $U_\infty$ (\`a l'infini) \`a~0 (paroi) sur une distance tr\`es
+courte, g\'en\'erant des gradients de vitesse $\partial U/\partial x_2 \gg U/L$ et donc
+des contraintes visqueuses localement importantes m\^eme si $\mu$ est petit~: c'est la
+\textbf{couche limite}.
+
+\subsection{Concept de couche limite (Prandtl, 1904)}
+
+En 1904, Ludwig Prandtl proposa en dix pages seulement une id\'ee r\'evolutionnaire~:
+l'\'ecoulement se structure en deux r\'egions distinctes.
+
+\begin{center}
+\begin{tikzpicture}[scale=1.05]
+  % Corps profilé stylisé
+  \draw[thick,fill=gray!25]
+    (0,0) .. controls (1,0.45) and (3,0.55) .. (5,0.1)
+          .. controls (3,-0.05) and (1,-0.05) .. (0,0);
+  % Couche limite (bande rouge au-dessus du profil)
+  \draw[red!75,thick,dashed]
+    (0.1,0.05) .. controls (1,0.78) and (3,0.88) .. (5,0.38);
+  % Flèche delta
+  \draw[<->,red!70,thick] (2.5,0.48) -- (2.5,0.78);
+  \node[red!70,right] at (2.55,0.63) {$\delta \ll L$};
+  % Lignes d'écoulement externe
+  \foreach \y in {1.0,1.4,1.8} {
+    \draw[->,blue!65,thick] (-1.4,\y) -- (-0.1,\y);
+  }
+  \node[blue!75] at (-0.9,1.4) {$U_\infty$};
+  % Labels
+  \draw[<->] (0,-0.4) -- (5,-0.4);
+  \node[below] at (2.5,-0.4) {$L$};
+  \node[blue!75,above] at (3.5,1.85)
+    {\footnotesize \'ecoulement externe (Euler)};
+  \node[red!75,below] at (3.5,-0.1)
+    {\footnotesize couche limite~: effets visqueux dominants};
+\end{tikzpicture}
+\end{center}
+
+\begin{itemize}
+  \item \textbf{L'\'ecoulement externe} (loin de la paroi)~: non visqueux, r\'egi par
+    les \'equations d'Euler. L'\'epaisseur de couche limite $\delta \to 0$ quand
+    $\mathrm{Re}\to\infty$.
+  \item \textbf{La couche limite} (pr\`es de la paroi)~: mince couche d'\'epaisseur
+    $\delta \ll L$ dans laquelle les effets visqueux sont localement importants malgr\'e
+    un nombre de Reynolds global \'elev\'e.
+\end{itemize}
+
+Deux remarques~:
+\begin{enumerate}
+  \item Lorsque $\mathrm{Re}$ d\'ecro\^it, $\delta$ grossit~; pour $\mathrm{Re}
+    \lesssim \mathcal{O}(1)$, il n'y a plus de structuration particuli\`ere et c'est
+    l'\'ecoulement de Stokes global.
+  \item \`A $\mathrm{Re}$ suffisamment \'elev\'e, la couche limite laminaire peut
+    transitionner vers une couche limite \textbf{turbulente} --- aux cons\'equences
+    majeures sur la tra\^in\'ee.
+\end{enumerate}
+
+\subsection{Corps profil\'e --- couche limite attach\'ee}
+
+Pour un corps profil\'e (comme l'aile du Rafale), la g\'eom\'etrie est con\c{c}ue pour
+que la couche limite reste attach\'ee sur toute (ou presque toute) la surface~:
+
+\begin{itemize}
+  \item Au bord d'attaque, l'\'ecoulement s'arr\^ete au \textbf{point d'arr\^et}, puis
+    acc\'el\`ere le long de l'extrados et de l'intrados.
+  \item La couche limite se d\'eveloppe le long de la corde et se s\'epare seulement
+    pr\`es du bord de fuite, g\'en\'erant un \textbf{sillage mince}.
+  \item La tra\^in\'ee est alors domin\'ee par la tra\^in\'ee de frottement (tra\^in\'ee
+    de peau), faible car $\delta \ll L$.
+\end{itemize}
+
+Si l'angle d'attaque $\alpha$ augmente, la couche limite se s\'epare pr\'ematur\'ement~:
+le profil non d\'ecorch\'e (corps profil\'e, sillage mince) devient d\'ecorn\'e (corps
+non profil\'e, large sillage turbulent). Pour le profil ONERA~64A015, le d\'ecrochage
+est quasi-total d\`es $\alpha \approx 17{,}5^\circ$ (visualisation Werl\'e, 1974).
+
+\subsection{Corps non profil\'e --- crise de tra\^in\'ee}
+
+Pour un corps non profil\'e (sph\`ere, cylindre, arri\`ere tronqu\'e d'un v\'ehicule),
+les dimensions longitudinale et transversale sont comparables. La couche limite se
+s\'epare bien avant l'arri\`ere, g\'en\'erant un \textbf{large sillage turbulent}
+source d'une forte tra\^in\'ee de forme.
+
+\paragraph{Crise de tra\^in\'ee.}
+Pour un nombre de Reynolds critique $\mathrm{Re}^c$, $C_D$ chute brusquement. Pour
+la sph\`ere lisse, $\mathrm{Re}_D^c \approx 3\times10^5$. Le m\'ecanisme est le
+suivant~:
+
+\begin{enumerate}
+  \item En dessous de $\mathrm{Re}^c$~: couche limite laminaire, s\'eparation pr\'ecoce
+    (vers $\theta\approx 80^\circ$ depuis le bord d'attaque), \textbf{large sillage}
+    et forte tra\^in\'ee de forme.
+  \item Au-dessus de $\mathrm{Re}^c$~: la couche limite transionne en r\'egime
+    \textbf{turbulent} avant le point de s\'eparation. L'\'energie cin\'etique turbulente
+    permet au fluide de r\'esister plus longtemps au gradient de pression adverse~;
+    la s\'eparation est repouss\'ee vers l'aval (vers $\theta\approx 120^\circ$). Le
+    sillage est \textbf{beaucoup plus mince}~: la tra\^in\'ee de forme chute. La l\'eg\`ere
+    augmentation de tra\^in\'ee de frottement (CL turbulente) est amplement compens\'ee.
+\end{enumerate}
+
+\begin{importantbox}{Crise de tra\^in\'ee --- bilan physique}
+Transition laminaire $\to$ turbulent de la couche limite $\Rightarrow$ point de s\'eparation
+repouss\'e en aval $\Rightarrow$ sillage plus mince $\Rightarrow$ chute brutale de $C_D$.
+Pour la sph\`ere~: $C_D \approx 0{,}4$ (subcritique) $\to$ $C_D \approx 0{,}1$
+(supercritique).
+\end{importantbox}
+
+\paragraph{La balle de golf.}
+Les alv\'eoles (\emph{dimples}) induisent une transition turbulente pr\'ematur\'ee,
+abaissant $\mathrm{Re}^c$ \emph{en dessous} du Reynolds de jeu ($D=4{,}3\,\text{cm}$,
+$U\approx 67\,\text{m/s}$, $\mathrm{Re}\approx 1{,}9\times10^5$). Sans alv\'eoles,
+la balle serait subcritique~: $C_D$ quatre fois plus grand, distance de vol divis\'ee
+par quatre.
+
+\paragraph{Le cylindre lisse.}
+Pour le cylindre, $\mathrm{Re}_D^c \approx 2\times10^5$. Son sillage pr\'esente de
+surcro\^it le ph\'enom\`ene de l'\textbf{all\'ee de tourbillons de K\'arm\'an}~: un
+l\^acher p\'eriodique et alternant de tourbillons, caract\'eris\'e par le nombre de
+Strouhal $\mathrm{St} = fD/U \approx 0{,}2$ (d\'eriv\'e au chapitre~3 par analyse
+dimensionnelle). Von K\'arm\'an rapporte lui-m\^eme que l'id\'ee lui fut inspir\'ee par
+un tableau m\'edi\'eval de Saint Christophe traversant un fleuve (\'eglise
+Saint-Dominique, Bologne), dont les pieds cr\'eent exactement une telle all\'ee dans
+l'eau. Ces all\'ees de K\'arm\'an sont visibles depuis l'espace~: des nuages organis\'es
+en double rang\'ee altern\'ee se forment en aval de l'\^ile Alexander Selkirk (Pacifique
+Sud) ou des \^iles Kouriles (entre le Kamtchatka et le Japon).
+
+\paragraph{G\'en\'erateurs de vortex.}
+Sur l'aile du Rafale --- et plus g\'en\'eralement sur les avions \`a hautes performances
+--- des \textbf{g\'en\'erateurs de vortex} (petites ailettes plac\'ees en amont de la
+zone \`a risque) induisent d\'elib\'er\'ement une transition turbulente locale. La couche
+limite turbulente r\'esiste mieux au gradient de pression adverse, retardant le d\'ecrochage
+et \'elargissant le domaine de vol utilisable. On les distingue nettement sur le Boeing~777
+le long de l'intrados de la voilure, et ils \'equipent \'egalement certaines versions
+du Beechcraft Baron.
+
+%===========================================================================
+\section{Couche limite laminaire}
+%===========================================================================
+
+\subsection{G\'eom\'etrie et hypoth\`ese d'\'ecoulement mince}
+
+Consid\'erons une plaque plane d'\'envergure unitaire soumise \`a un \'ecoulement uniforme
+de vitesse $U_{e1}$ parall\`ele \`a la plaque. On note $x_1$ la direction de l'\'ecoulement,
+$x_2$ la normale, $\delta(x_1)$ l'\'epaisseur locale de la couche limite et $L$ la
+distance depuis le bord d'attaque.
+
+\begin{center}
+\begin{tikzpicture}[scale=1.0]
+  % Plaque
+  \fill[gray!20] (-0.1,-0.18) rectangle (7,0);
+  \draw[thick] (0,0) -- (7,0);
+  % Entrée
+  \foreach \y in {0.4,0.9,1.4,1.9} {
+    \draw[->,blue!65,thick] (-1.6,\y) -- (-0.1,\y);
+  }
+  \node[blue!75] at (-1.0,1.3) {$U_{e1}$};
+  % Couche limite
+  \draw[red!80,thick] (0,0) .. controls (2.0,0.28) and (4.5,0.52) .. (7,0.72);
+  \node[red!75,above] at (5.5,0.78) {\small couche limite};
+  % delta
+  \draw[<->,red!65] (3.5,0) -- (3.5,0.46);
+  \node[red!65,right] at (3.55,0.23) {$\delta$};
+  % L arrow
+  \draw[<->] (0,-0.38) -- (3.5,-0.38);
+  \node[below] at (1.75,-0.38) {$L$};
+  % Profil de vitesse (à x = 3.5)
+  \draw[blue!50,thick,->] (3.5,0) -- (3.5,1.8) node[right]{\small $x_2$};
+  \draw[blue!60,thick]
+    (3.5,0) .. controls (3.8,0.2) and (3.92,0.4) .. (3.93,0.46) -- (3.93,1.6);
+  \node[blue!55,right] at (4.0,1.3) {\small $U_1(x_2)$};
+  \node[right] at (7.1,0.36) {\small $U_{e1}$};
+  % Axes x1
+  \draw[->] (0,-0.6) -- (7.5,-0.6) node[right]{$x_1$};
+\end{tikzpicture}
+\end{center}
+
+L'\textbf{hypoth\`ese d'\'ecoulement mince} est $\delta \ll L$. Typiquement~: $\delta
+\approx 1\,\text{cm}$ pour $L\approx 1\,\text{m}$ sur une aile d'avion. Pour le Rafale
+($L\approx 3\,\text{m}$, $\mathrm{Re}_L \approx 4\times10^7$)~:
+\[
+  \frac{\delta}{L} \sim \mathrm{Re}_L^{-1/2} \approx \frac{1}{\sqrt{4\times10^7}}
+  \approx 1{,}6\times10^{-4}
+  \quad\Rightarrow\quad
+  \delta \approx 0{,}5\,\text{mm.}
+\]
+Moins d'un millim\`etre sur trois m\`etres de corde --- une minceur qui l\'egitime
+toutes les approximations qui suivent.
+
+\subsection{Analyse d'ordre de grandeur}
+
+Les \'equations de Navier-Stokes pour un \'ecoulement 2-D stationnaire incompressible
+($U_3=0$) sont~:
+\[
+  \left\{\begin{aligned}
+    U_1\pd{U_1}{x_1} + U_2\pd{U_1}{x_2} &=
+      -\dfrac{1}{\rho}\pd{p}{x_1}
+      + \nu\!\left(\pd{^2U_1}{x_1^2}+\pd{^2U_1}{x_2^2}\right)\\[6pt]
+    U_1\pd{U_2}{x_1} + U_2\pd{U_2}{x_2} &=
+      -\dfrac{1}{\rho}\pd{p}{x_2}
+      + \nu\!\left(\pd{^2U_2}{x_1^2}+\pd{^2U_2}{x_2^2}\right)\\[6pt]
+    \pd{U_1}{x_1} + \pd{U_2}{x_2} &= 0
+  \end{aligned}\right.
+\]
+
+\paragraph{Continuit\'e.}
+Les deux termes de l'\'equation de continuit\'e sont n\'ecessairement du m\^eme ordre~:
+$\mathcal{U}_1/L \sim \mathcal{U}_2/\delta$, d'o\`u~:
+\[
+  \mathcal{U}_2 \sim \frac{\delta}{L}\,\mathcal{U}_1 \ll \mathcal{U}_1.
+\]
+La composante transverse est bien plus petite que la composante longitudinale --- coh\'erent
+avec un \'ecoulement quasi-parall\`ele \`a la plaque.
+
+\paragraph{\'Equation selon $x_1$.}
+On estime chaque terme~:
+\[
+  \underbrace{U_1\pd{U_1}{x_1}}_{\sim\,\mathcal{U}_1^2/L}
+  +\underbrace{U_2\pd{U_1}{x_2}}_{\sim\,\mathcal{U}_1^2/L}
+  = -\dfrac{1}{\rho}\pd{p}{x_1}
+  + \nu\!\underbrace{\pd{^2U_1}{x_1^2}}_{\sim\,\nu\mathcal{U}_1/L^2}
+  + \nu\!\underbrace{\pd{^2U_1}{x_2^2}}_{\sim\,\nu\mathcal{U}_1/\delta^2}.
+\]
+Le premier terme de viscosit\'e ($\sim\nu\mathcal{U}_1/L^2$) est n\'egligeable devant le
+second ($\sim\nu\mathcal{U}_1/\delta^2$) car $\delta \ll L$. Les termes convectifs doivent
+\'equilibrer le terme visqueux dominant~; ni plus grand (sinon l'\'ecoulement serait
+purement non visqueux, contradiction avec l'adh\'erence), ni plus petit (sinon on aurait
+un \'ecoulement de Stokes, valide seulement pour $\mathrm{Re}\leq 1$). Cet \'equilibre
+impose~:
+\[
+  \frac{\mathcal{U}_1^2}{L} \sim \nu\frac{\mathcal{U}_1}{\delta^2}
+  \quad\Rightarrow\quad
+  \left(\frac{\delta}{L}\right)^2 \sim \frac{\nu}{\mathcal{U}_1 L}
+  = \frac{1}{\mathrm{Re}_L}
+  \quad\Rightarrow\quad
+  \boxed{\dfrac{\delta}{L} \sim \mathrm{Re}_L^{-1/2}}.
+\]
+
+\begin{importantbox}{\'Epaisseur de couche limite --- loi d'\'echelle}
+\[
+  \dfrac{\delta}{L} \sim \mathrm{Re}_L^{-1/2}, \qquad
+  \delta \propto \sqrt{x_1}.
+\]
+Pour que $\delta \ll L$, il faut n\'ecessairement $\mathrm{Re}_L \gg 1$~: la th\'eorie
+de couche limite n'est valide qu'\`a grand nombre de Reynolds. Par ailleurs $\mathrm{Re}_\delta
+= \mathrm{Re}_L^{1/2}$, interm\'ediaire entre~1 et $\mathrm{Re}_L$.
+\end{importantbox}
+
+\paragraph{\'Equation selon $x_2$.}
+La m\^eme analyse montre que tous les termes de la composante transversale sont plus petits
+d'un facteur $(\delta/L)^2 \sim 1/\mathrm{Re}_L$ par rapport \`a l'\'equation selon $x_1$.
+En particulier, la variation de pression \`a travers la couche limite est d'ordre
+$\rho\mathcal{U}_1^2/\mathrm{Re}_L$ --- n\'egligeable. On en conclut~:
+\[
+  \pd{p}{x_2} \approx 0
+  \quad\Rightarrow\quad
+  p(x_1,x_2) \approx p_e(x_1).
+\]
+La pression est \textbf{constante \`a travers la couche limite}~: elle est impos\'ee par
+l'\'ecoulement externe eul\'erien. Bernoulli appliqu\'e \`a l'ext\'erieur donne~:
+\[
+  \pd{p}{x_1} = \frac{dp_e}{dx_1} = -\rho U_{e1}\frac{dU_{e1}}{dx_1}.
+\]
+
+\subsection{\'Equations de Prandtl (1904)}
+
+En retenant les simplifications \'etablies ci-dessus, Navier-Stokes se r\'eduit aux
+\textbf{\'equations de Prandtl}~:
+
+\begin{importantbox}{\'Equations de Prandtl --- couche limite laminaire 2-D}
+\[
+  \left\{\begin{aligned}
+    U_1\pd{U_1}{x_1} + U_2\pd{U_1}{x_2}
+      &= U_{e1}\dfrac{dU_{e1}}{dx_1} + \nu\pd{^2U_1}{x_2^2}\\[8pt]
+    \pd{U_1}{x_1} + \pd{U_2}{x_2} &= 0
+  \end{aligned}\right.
+\]
+avec $U_1 = U_2 = 0$ en $x_2 = 0$~~(adh\'erence)~~et~~$U_1\to U_{e1}(x_1)$ quand
+$x_2\to\infty$.
+\end{importantbox}
+
+Ces \'equations sont la \emph{forme parabolois\'ee} des \'equations de Navier-Stokes~:
+le terme de diffusion selon $x_1$ a disparu, et l'\'equation peut \^etre int\'egr\'ee
+pas \`a pas depuis le bord d'attaque vers l'aval, pourvu que l'\'ecoulement externe
+$(U_{e1}, p_e)$ soit connu.
+
+\subsection{R\^ole du gradient de pression}
+
+La pression impos\'ee par l'\'ecoulement externe joue un r\^ole d\'eterminant~:
+\begin{itemize}
+  \item \textbf{Gradient favorable} ($dp_e/dx_1 < 0$, \'ecoulement acc\'el\'er\'e)~:
+    la pression pousse le fluide vers l'aval, favorisant l'attachement de la couche limite.
+    Aucun d\'ecollement ne se produit.
+  \item \textbf{Gradient adverse} ($dp_e/dx_1 > 0$, \'ecoulement d\'ec\'el\'er\'e)~:
+    la pression s'oppose \`a l'\'ecoulement. Le fluide proche de la paroi, d\'ej\`a
+    ralenti par le frottement, peut \^etre stopp\'e puis invers\'e~: c'est la
+    \textbf{s\'eparation} (d\'ecollement) de la couche limite, accompagn\'ee d'une zone
+    de recirculation et d'un large sillage.
+\end{itemize}
+
+Sur l'aile du Rafale, l'extrados pr\'esente une acc\'el\'eration forte pr\`es du bord
+d'attaque (gradient favorable) puis une d\'ec\'el\'eration vers le bord de fuite (gradient
+adverse). Le d\'ecrochage ($\alpha\gtrsim 25^\circ$ en configuration basse vitesse)
+survient quand ce gradient adverse devient trop fort pour la couche limite.
+
+\subsection{Solution de Blasius (1908)}
+
+Pour la plaque plane \`a gradient de pression nul ($U_{e1} = \text{cst}$,
+$dp_e/dx_1=0$), les \'equations de Prandtl admettent une \textbf{solution autosimilaire}~:
+Blasius (premier doctorant de Prandtl) montra en 1908 que le profil $U_1/U_{e1}$ est une
+fonction universelle de la variable $\eta = x_2\sqrt{U_{e1}/(\nu x_1)}$ seulement. La
+r\'esolution num\'erique de l'\'equation diff\'erentielle ordinaire r\'esultante donne~:
+\[
+  \frac{\delta}{x_1} \simeq \frac{4{,}92}{\sqrt{\mathrm{Re}_{x_1}}},
+  \qquad
+  C_f = \frac{\tau_w}{\dfrac{1}{2}\rho U_{e1}^2}
+  \simeq \frac{0{,}664}{\sqrt{\mathrm{Re}_{x_1}}},
+\]
+o\`u $\mathrm{Re}_{x_1} = U_{e1}x_1/\nu$ et $\tau_w = \mu\,\partial U_1/\partial
+x_2\big|_{x_2=0}$ est la contrainte pari\'etale.
+
+\begin{defbox}{Solution de Blasius --- plaque plane sans gradient de pression}
+\[
+  \dfrac{\delta}{x_1} \simeq \dfrac{4{,}92}{\sqrt{\mathrm{Re}_{x_1}}},
+  \qquad
+  C_f \simeq \dfrac{0{,}664}{\sqrt{\mathrm{Re}_{x_1}}}.
+\]
+La couche limite laminaire s'\'epaissit comme $\sqrt{x_1}$ et le frottement pari\'etal
+d\'ecro\^it comme $\mathrm{Re}_{x_1}^{-1/2}$. Le profil de vitesse universel de Blasius
+a \'et\'e v\'erifi\'e exp\'erimentalement avec une pr\'ecision remarquable d\`es 1942
+(Dhawan).
+\end{defbox}
+
+\paragraph{Application au Rafale.}
+Pour $L = 3\,\text{m}$, $U_\infty = 200\,\text{m/s}$, $\nu = 1{,}5\times10^{-5}\,
+\text{m}^2/\text{s}$, $\mathrm{Re}_L = 4\times10^7$~:
+\[
+  \delta(L) = \frac{4{,}92 \times 3}{\sqrt{4\times10^7}} \approx 2{,}3\,\text{mm},
+  \qquad
+  C_f(L) \approx \frac{0{,}664}{\sqrt{4\times10^7}} \approx 1{,}0\times10^{-4}.
+\]
+La surface mouill\'ee du Rafale \'etant $\approx 70\,\text{m}^2$, la tra\^in\'ee de
+peau totale est loin d'\^etre n\'egligeable m\^eme si $C_f$ est tr\`es faible.
+
+% ==========================================
+\section*{Résumé du chapitre}
+\addcontentsline{toc}{section}{Résumé du chapitre}
+% ==========================================
+
+\begin{importantbox}{\`A retenir --- Chapitre 4}
+\textbf{Bas $\mathrm{Re}$~:} \'ecoulement de Stokes, $F_D = 6\pi\mu a\,U_\infty$,
+$C_D = 24/\mathrm{Re}_D$. Applicable aux petites particules (PIV, Millikan, s\'eparateurs
+de moteurs).
+
+\textbf{Haut $\mathrm{Re}$~:} \'ecoulement d'Euler \`a l'ext\'erieur + couche limite
+d'\'epaisseur $\delta/L \sim \mathrm{Re}_L^{-1/2}$. Corps profil\'e~: faible tra\^in\'ee
+de peau. Corps non profil\'e~: forte tra\^in\'ee de forme --- crise de tra\^in\'ee \`a
+$\mathrm{Re}^c$ par transition turbulente de la CL (balle de golf, g\'en\'erateurs de
+vortex).
+
+\textbf{\'Equations de Prandtl~:} pression impos\'ee par l'ext\'erieur~;
+gradient adverse $\Rightarrow$ s\'eparation. Solution de Blasius~: $\delta \propto
+\sqrt{x_1}$, $C_f \propto \mathrm{Re}_{x_1}^{-1/2}$.
+\end{importantbox}
+
+% ==========================================
+\chapter{Vorticit\'e}
+% ==========================================
+
+Lorsqu'un Rafale Marine aponte sur le \emph{Charles de Gaulle}, les pilotes suivants
+doivent attendre plusieurs dizaines de secondes avant de s'engager dans la m\^eme
+trajectoire. La raison~: l'air derri\`ere l'appareil s'enroule en deux puissants
+tourbillons de saumon, visibles par condensation de la vapeur d'eau, capables de
+d\'estabiliser un a\'eronef l\'eger qui les traverserait.
+
+Ces tourbillons ne sont pas un accident~: ils sont la cons\'equence directe de la
+\emph{portance}. Plus pr\'ecis\'ement, ils sont li\'es \`a une grandeur fondamentale
+que nous n'avons pas encore isol\'ee en tant que telle~: la \textbf{vorticit\'e},
+c'est-\`a-dire la rotation locale du fluide. Ce chapitre lui est enti\`erement consacr\'e.
+
+On va d'abord d\'efinir proprement la vorticit\'e et la circulation, puis montrer
+comment elles \'evoluent (\'equation de transport), d'o\`u elles viennent (les parois),
+et enfin comment elles permettent de calculer la portance d'un profil d'aile
+(th\'eor\`eme de Kutta-Joukowski). Le fil conducteur est clair~: comprendre pourquoi
+le Rafale vole, c'est comprendre la vorticit\'e qu'il g\'en\`ere.
+
+\begin{defbox}{Fil conducteur}
+La vorticit\'e est la grandeur qui relie la couche limite (chapitre~4) \`a la portance
+(chapitre~1, Bernoulli). Elle na\^it aux parois par cisaillement visqueux, est transport\'ee
+par l'\'ecoulement, et sa circulation autour du profil d\'etermine directement la force de
+sustentation. Les tourbillons de saumon du Rafale en sont la manifestation tridimensionnelle.
+\end{defbox}
+
+% ------------------------------------------
+\section{D\'efinition et interpr\'etation physique}
+% ------------------------------------------
+
+Au chapitre~2, nous avons d\'ecompos\'e le gradient de vitesse $\nabla\bm{U}$ en une partie
+sym\'etrique $\ten{D}$ (taux de d\'eformation) et une partie antisym\'etrique $\ten{\Omega}$
+(taux de rotation). La partie antisym\'etrique d\'ecrit une rotation locale de corps rigide.
+Il est naturel de vouloir condenser cette information en un seul vecteur~: c'est exactement
+ce que fait la vorticit\'e.
+
+Formellement, on d\'efinit~:
+
+\begin{defbox}{Vorticit\'e}
+\[
+  \boldsymbol{\omega} = \nabla \times \bm{U}
+\]
+Le vecteur $\boldsymbol{\omega}$ est \emph{deux fois} la vitesse angulaire instantan\'ee
+d'une particule fluide~: $\boldsymbol{\omega} = 2\boldsymbol{\Omega}_\text{rotation}$.
+On rappelle que le tenseur des taux de rotation $\ten{\Omega}$
+(partie antisym\'etrique de $\nabla\bm{U}$, vue au chapitre~2) v\'erifie
+$\Omega_{ij} = -\tfrac{1}{2}\varepsilon_{ijk}\omega_k$.
+\end{defbox}
+
+En deux dimensions, o\`u $\bm{U} = U_1(x_1,x_2)\,\bm{e}_1 + U_2(x_1,x_2)\,\bm{e}_2$,
+la vorticit\'e se r\'eduit \`a une seule composante scalaire selon $\bm{e}_3$~:
+\[
+  \omega_3 = \pd{U_2}{x_1} - \pd{U_1}{x_2}.
+\]
+
+Pour fixer les id\'ees, consid\'erons l'\'ecoulement de Couette plan du chapitre~2~:
+$\bm{U} = (U_e x_2/h,\,0,\,0)$. On calcule imm\'ediatement $\omega_3 = -U_e/h$~: la
+vorticit\'e est uniforme et n\'egative (rotation horaire), proportionnelle au gradient
+de vitesse. Plus le cisaillement est fort, plus les particules fluides tournent vite.
+
+Un \'ecoulement est dit \textbf{irrotationnel} si $\boldsymbol{\omega} = \bm{0}$
+partout dans le domaine. On verra que c'est une cl\'e pour mod\'eliser les \'ecoulements
+\`a grand Reynolds autour de profils portants~: loin des parois, l'\'ecoulement est
+irrotationnel, et cela d\'everrouille une version puissante de l'\'equation de Bernoulli.
+
+% ------------------------------------------
+\section{Tourbillon circulaire et circulation}
+% ------------------------------------------
+
+Pour ancrer la notion de vorticit\'e sur un exemple concret, consid\'erons le tourbillon
+circulaire --- mod\`ele id\'ealis\'e des tourbillons de saumon du Rafale, mais aussi
+des tornades, des tourbillons de vidange, et des cyclones.
+
+\subsection{Tourbillon de Rankine}
+
+Consid\'erons un \'ecoulement purement azimutal \`a sym\'etrie axiale~:
+$\bm{U} = u(r)\,\bm{e}_\theta$ en coordonn\'ees cylindriques. La vorticit\'e
+axiale s'\'ecrit, en remarquant que $\nabla\times\bm{U}$ en coordonn\'ees cylindriques
+donne
+\[
+  \omega_z = \frac{1}{r}\pd{(r\,u)}{r}.
+\]
+C'est la d\'erivation de $ru$ qui appara\^it, non pas de $u$ seul~: cela traduit le fait que
+m\^eme une rotation solide (o\`u la vitesse cro\^it lin\'eairement) peut \^etre rotationnelle.
+
+Le \textbf{tourbillon de Rankine} est le mod\`ele canonique d'un vortex de rayon caract\'eristique
+$r_0$~:
+\[
+  u(r) = \begin{cases} \Omega_0\, r & r \le r_0 \quad \text{(rotation solide, }
+  \omega_z = 2\Omega_0\text{)} \\ \dfrac{\Omega_0 r_0^2}{r} & r > r_0 \quad
+  \text{(irrotationnel, } \omega_z = 0\text{)} \end{cases}
+\]
+La vitesse est continue en $r = r_0$, et la vorticit\'e est concentr\'ee \`a l'int\'erieur
+du c\oe ur de rayon $r_0$, nulle \`a l'ext\'erieur.
+
+\begin{center}
+\begin{tikzpicture}[scale=1.1]
+  % Axes
+  \draw[->] (-0.2,0) -- (4.2,0) node[right] {$r$};
+  \draw[->] (0,-0.2) -- (0,2.5) node[above] {$u(r)$};
+  % r0 marker
+  \draw[dashed, gray] (1.5,0) -- (1.5,1.5);
+  \node[below] at (1.5,0) {$r_0$};
+  % solid rotation part
+  \draw[blue, very thick] (0,0) -- (1.5,1.5);
+  % irrotational part
+  \draw[red, very thick, domain=1.5:4.0, samples=60]
+    plot (\x, {1.5*1.5/\x});
+  % labels
+  \node[blue] at (0.7,1.1) {\small rotation solide};
+  \node[red] at (3.0,0.8) {\small irrotationnel};
+  \node[left] at (0,1.5) {$\Omega_0 r_0$};
+  % omega annotation
+  \draw[->] (0.5, 0.05) arc (0:340:0.25);
+  \node at (0.5, 0.5) {\small $\omega_z = 2\Omega_0$};
+  \node at (2.8, 0.25) {\small $\omega_z = 0$};
+\end{tikzpicture}
+\end{center}
+
+\subsection{Circulation et th\'eor\`eme de Stokes}
+
+La vorticit\'e d\'ecrit une propri\'et\'e \emph{locale} du champ de vitesse. Mais en
+pratique, on a souvent besoin d'une mesure \emph{globale} de la rotation d'un \'ecoulement
+autour d'un contour ferm\'e --- par exemple autour d'un profil d'aile. C'est le r\^ole
+de la \textbf{circulation}~:
+
+\begin{defbox}{Circulation}
+\[
+  \Gamma_{\mathcal{C}} = \oint_{\mathcal{C}} \bm{U} \cdot d\bm{x}
+\]
+Le th\'eor\`eme de Stokes relie imm\'ediatement circulation et vorticit\'e~:
+\[
+  \Gamma_{\mathcal{C}} = \iint_{\mathcal{S}} \boldsymbol{\omega} \cdot \bm{n}\, dS
+\]
+o\`u $\mathcal{S}$ est une surface quelconque s'appuyant sur $\mathcal{C}$.
+\end{defbox}
+
+Pour le tourbillon circulaire, en int\'egrant sur un cercle de rayon $r$~:
+\[
+  \Gamma = 2\pi r\, u(r).
+\]
+Dans la zone irrotationnelle ($r > r_0$), $\Gamma = 2\pi\Omega_0 r_0^2 = \text{cst}$,
+ind\'ependamment du rayon du contour. C'est une propri\'et\'e remarquable~: la circulation
+autour de tout contour entourant le c\oe ur vaut la m\^eme constante $\Gamma$, m\^eme si
+l'\'ecoulement est partout irrotationnel hors du c\oe ur.
+
+\subsection{Tourbillon ponctuel}
+
+En faisant tendre $r_0 \to 0$ \`a $\Gamma$ fix\'e, tout le flux de vorticit\'e se concentre en
+un point~: on obtient un \textbf{tourbillon ponctuel} dont le champ de vitesse est
+\[
+  u(r) = \frac{\Gamma}{2\pi r}, \qquad
+  \omega_3 = \Gamma\,\delta(x_1)\delta(x_2).
+\]
+Ce mod\`ele singulier est l'analogue en 2D du tourbillon rectiligne infini, et il servira de
+brique \'el\'ementaire pour construire l'\'ecoulement autour d'un profil portant.
+
+% ------------------------------------------
+\section{Version forte de l'\'equation de Bernoulli}
+% ------------------------------------------
+
+Au chapitre~1, l'\'equation de Bernoulli a \'et\'e \'etablie le long d'une ligne de courant,
+en supposant l'\'ecoulement parfait et stationnaire. La constante $\mathcal{H}$ pouvait
+diff\'erer d'une ligne de courant \`a l'autre. On va montrer ici que si l'\'ecoulement est
+de surcro\^it \emph{irrotationnel}, cette constante est la m\^eme dans tout le domaine~:
+un r\'esultat consid\'erablement plus puissant.
+
+\subsection{Reformulation des \'equations d'Euler}
+
+Le point de d\'epart est une identit\'e vectorielle qui fait appara\^itre explicitement
+la vorticit\'e dans le terme convectif. On peut montrer (en d\'eveloppant composante par
+composante) que~:
+\[
+  (\bm{U}\cdot\nabla)\bm{U} = \boldsymbol{\omega} \times \bm{U}
+  + \nabla\!\left(\tfrac{1}{2}U^2\right).
+\]
+En substituant dans les \'equations d'Euler (fluide parfait incompressible, avec
+$\bm{g} = -g\bm{e}_3 = \nabla(-gx_3)$), on regroupe les gradients~:
+\[
+  \pd{\bm{U}}{t} + \boldsymbol{\omega}\times\bm{U}
+  = -\nabla\!\left(\frac{p}{\rho} + \frac{U^2}{2} + gx_3\right).
+\]
+On reconna\^it dans le gradient la charge totale $H/\rho$ d\'ej\`a rencontr\'ee au
+chapitre~1. En d\'efinissant $H = p + \tfrac{1}{2}\rho U^2 + \rho g x_3$, l'\'equation
+prend la \textbf{forme de Crocco}~:
+\[
+  \pd{\bm{U}}{t} + \boldsymbol{\omega}\times\bm{U}
+  = -\frac{1}{\rho}\nabla H.
+\]
+
+\subsection{Cons\'equence pour un \'ecoulement irrotationnel}
+
+Si l'\'ecoulement est \textbf{stationnaire} ($\partial_t\bm{U} = \bm{0}$) et
+\textbf{irrotationnel} ($\boldsymbol{\omega} = \bm{0}$), le membre de gauche s'annule
+et l'on obtient imm\'ediatement~:
+
+\begin{importantbox}{Bernoulli fort --- \'ecoulement irrotationnel}
+Si l'\'ecoulement est \textbf{irrotationnel} ($\boldsymbol{\omega}=\bm{0}$),
+\textbf{stationnaire} ($\partial_t=0$) et \textbf{non visqueux}~:
+\[
+  \nabla H = \bm{0} \quad \Longrightarrow \quad
+  H = p + \tfrac{1}{2}\rho U^2 + \rho g x_3 = \mathrm{cst} \quad \text{partout dans le domaine.}
+\]
+Contrairement au Bernoulli classique (valable le long d'une ligne de courant seulement),
+cette version forte est uniforme dans tout le fluide.
+\end{importantbox}
+
+La physique est la suivante~: dans le Bernoulli ``faible'' du chapitre~1, la constante
+pouvait diff\'erer entre deux lignes de courant car le terme $\boldsymbol{\omega}\times\bm{U}$
+pouvait transf\'erer de l'\'energie d'une ligne \`a l'autre. En l'absence de vorticit\'e,
+ce couplage dispara\^it~: toutes les lignes de courant partagent la m\^eme \'energie. On
+exploitera ce r\'esultat dans la section~5.7 pour calculer les forces de pression sur un
+profil d'aile.
+
+% ------------------------------------------
+\section{\'Equation de transport de la vorticit\'e}
+% ------------------------------------------
+
+On sait maintenant ce qu'est la vorticit\'e et ce qu'elle implique (Bernoulli fort quand
+elle est nulle). La question naturelle est~: comment \'evolue-t-elle~? Sous quelles conditions
+dispara\^it-elle, se conserve-t-elle, ou s'amplifie-t-elle~? Pour r\'epondre, on d\'erive
+une \'equation d'\'evolution pour $\boldsymbol{\omega}$ directement \`a partir des \'equations
+de Navier-Stokes.
+
+\subsection{D\'erivation}
+
+On part de la forme de Crocco (g\'en\'eralis\'ee au cas visqueux)~:
+\[
+  \pd{\bm{U}}{t} + \boldsymbol{\omega}\times\bm{U}
+  = -\frac{1}{\rho}\nabla H + \nu\nabla^2\bm{U}.
+\]
+On prend le \emph{rotationnel} des deux membres. Le terme de pression dispara\^it
+imm\'ediatement car $\nabla\times\nabla H = \bm{0}$ (rotationnel d'un gradient). Pour le
+terme visqueux, $\nabla\times(\nu\nabla^2\bm{U}) = \nu\nabla^2(\nabla\times\bm{U})
+= \nu\nabla^2\boldsymbol{\omega}$ (les op\'erateurs commutent pour un fluide incompressible).
+Le membre de gauche donne $\partial_t\boldsymbol{\omega}
++ \nabla\times(\boldsymbol{\omega}\times\bm{U})$.
+
+Il reste \`a d\'evelopper $\nabla\times(\boldsymbol{\omega}\times\bm{U})$. En utilisant
+l'identit\'e vectorielle
+$\nabla\times(\bm{A}\times\bm{B}) = \bm{A}(\nabla\cdot\bm{B})
+- \bm{B}(\nabla\cdot\bm{A}) + (\bm{B}\cdot\nabla)\bm{A} - (\bm{A}\cdot\nabla)\bm{B}$,
+avec $\bm{A}=\boldsymbol{\omega}$ et $\bm{B}=\bm{U}$, et en utilisant
+$\nabla\cdot\bm{U}=0$ (incompressibilit\'e) et $\nabla\cdot\boldsymbol{\omega}=0$
+(toujours vrai car divergence d'un rotationnel), on obtient~:
+\[
+  \nabla\times(\boldsymbol{\omega}\times\bm{U})
+  = (\bm{U}\cdot\nabla)\boldsymbol{\omega} - (\boldsymbol{\omega}\cdot\nabla)\bm{U}.
+\]
+
+En rassemblant tous les termes~:
+
+\begin{importantbox}{\'Equation de transport de la vorticit\'e}
+\[
+  \pd{\boldsymbol{\omega}}{t} + \bm{U}\cdot\nabla\boldsymbol{\omega}
+  = \underbrace{\boldsymbol{\omega}\cdot\nabla\bm{U}}_{\text{\'etirement/basculement}}
+  + \underbrace{\nu\nabla^2\boldsymbol{\omega}}_{\text{diffusion visqueuse}}
+\]
+Le membre de gauche est la d\'eriv\'ee mat\'erielle $D\boldsymbol{\omega}/Dt$~: c'est la
+variation de vorticit\'e vue en suivant une particule fluide.
+\end{importantbox}
+
+\subsection{Interpr\'etation physique des termes}
+
+Les termes du membre de droite ont des significations physiques distinctes~:
+
+\medskip
+\noindent\textbf{1. Convection} (membre de gauche, $\bm{U}\cdot\nabla\boldsymbol{\omega}$)
+--- La vorticit\'e est advect\'ee par l'\'ecoulement, transport\'ee d'un point \`a l'autre
+comme n'importe quelle propri\'et\'e mat\'erielle. C'est ce terme qui explique que les
+tourbillons de saumon du Rafale sont emport\'es vers l'aval.
+
+\medskip
+\noindent\textbf{2. \'Etirement et basculement} ($\boldsymbol{\omega}\cdot\nabla\bm{U}$)
+--- Terme purement \textbf{tridimensionnel} (nul en 2D). Imaginons un tube de vorticit\'e
+\'etir\'e par l'\'ecoulement~: par conservation du flux de vorticit\'e $\Gamma = \omega\cdot S$,
+si la section $S$ diminue, l'intensit\'e $\omega$ augmente. C'est l'analogue exact du
+patineur qui ram\`ene les bras et tourne plus vite. Ce m\'ecanisme d'\'etirement est
+le principal responsable de l'amplification de la vorticit\'e dans les \'ecoulements
+turbulents tridimensionnels.
+
+\medskip
+\noindent\textbf{3. Diffusion visqueuse} ($\nu\nabla^2\boldsymbol{\omega}$) --- La viscosit\'e
+\'etale la vorticit\'e spatialement, exactement comme la chaleur diffuse dans un solide
+(m\^eme forme math\'ematique). Le temps caract\'eristique de diffusion sur une longueur
+$\ell$ est $\ell^2/\nu$. C'est ce terme qui \'epaissit progressivement le c\oe ur des
+tourbillons au fil du temps.
+
+\medskip
+\noindent\textbf{Cas particuliers importants.}
+\begin{itemize}
+  \item Fluide parfait ($\nu=0$) en 2D~: pas d'\'etirement, pas de diffusion.
+    La vorticit\'e de chaque particule est conserv\'ee~: $\DD{\omega_3} = 0$.
+  \item Fluide parfait en 3D~: la vorticit\'e peut \^etre amplifi\'ee par \'etirement,
+    m\^eme sans viscosit\'e.
+  \item Fluide visqueux en 2D~: la vorticit\'e ob\'eit \`a une \'equation de
+    convection-diffusion scalaire (section suivante).
+\end{itemize}
+
+% ------------------------------------------
+\section{\'Ecoulement 2D et tourbillon de Lamb-Oseen}
+% ------------------------------------------
+
+Le cas bidimensionnel est particuli\`erement instructif car l'\'equation de transport
+se simplifie consid\'erablement. En deux dimensions, le terme d'\'etirement
+$\boldsymbol{\omega}\cdot\nabla\bm{U}$ est nul (la vorticit\'e $\boldsymbol{\omega}
+= \omega_3\bm{e}_3$ est perpendiculaire au plan de l'\'ecoulement et ne peut pas
+\^etre \'etir\'ee par les gradients de vitesse dans ce plan). L'\'equation de transport
+se r\'eduit \`a un bilan scalaire~:
+\[
+  \pd{\omega_3}{t} + \bm{U}\cdot\nabla\omega_3 = \nu\nabla^2\omega_3.
+\]
+C'est une \'equation de convection-diffusion pour $\omega_3$, formellement identique
+\`a l'\'equation de la chaleur avec advection. Sans viscosit\'e, $D\omega_3/Dt = 0$~:
+chaque particule conserve sa vorticit\'e. Avec viscosit\'e, la vorticit\'e s'\'etale
+progressivement --- exactement comme une tache d'encre diffuse dans l'eau.
+
+\subsection{Solution de Lamb-Oseen}
+
+On part d'un tourbillon ponctuel de circulation $\Gamma$ \`a l'instant $t=0$
+(vorticit\'e concentr\'ee en un point), et on cherche
+comment la viscosit\'e le diffuse au cours du temps. C'est un probl\`eme mod\`ele
+fondamental, analogue \`a la solution de Green pour l'\'equation de la chaleur.
+
+En sym\'etrie axiale ($\omega_3$ ne d\'epend que de $r$
+et $t$, pas de convection radiale par sym\'etrie), l'\'equation se r\'eduit \`a
+\[
+  \pd{\omega_3}{t} = \nu\left(\frac{\partial^2\omega_3}{\partial r^2}
+  + \frac{1}{r}\pd{\omega_3}{r}\right).
+\]
+C'est l'\'equation de la chaleur en coordonn\'ees cylindriques (sans source). La condition
+initiale est $\omega_3(r,0) = \Gamma\,\delta(\bm{x})$, et la condition aux limites
+$\omega_3 \to 0$ quand $r\to\infty$. Par analogie avec la solution fondamentale de la
+chaleur en 2D, on trouve la solution gaussienne~:
+
+\begin{importantbox}{Tourbillon de Lamb-Oseen}
+\[
+  \omega_z(r,t) = \frac{\Gamma}{4\pi\nu t}\exp\!\left(-\frac{r^2}{4\nu t}\right),
+  \qquad
+  u_\theta(r,t) = \frac{\Gamma}{2\pi r}\left[1 - \exp\!\left(-\frac{r^2}{4\nu t}\right)\right].
+\]
+Le rayon caract\'eristique du c\oe ur vortical cro\^it comme~:
+$r_c(t) = \sqrt{4\nu t} \propto \sqrt{t}$.
+\end{importantbox}
+
+Ce r\'esultat illustre la diffusion visqueuse de la vorticit\'e~: le tourbillon initialement
+singulier s'\'etale progressivement, mais la circulation totale $\Gamma$ reste conserv\'ee
+pour tout $t > 0$. C'est ce m\'ecanisme qui explique la longue persistance des tourbillons
+de saumon derri\`ere les avions~--- sur le Rafale Marine en approche, ces tourbillons peuvent
+persister plusieurs dizaines de secondes apr\`es le passage de l'appareil, ce qui impose des
+distances de s\'eparation minimales sur le pont du porte-avions.
+
+\medskip
+Un exemple spectaculaire~: les anneaux de vorticit\'e \'eject\'es par l'Etna atteignent
+${\sim}200\,\mathrm{m}$ de diam\`etre et montent jusqu'\`a $1000\,\mathrm{m}$ d'altitude,
+leur c\oe ur s'\'etalant lentement par diffusion visqueuse.
+
+%============================================================
+\section{Vorticit\'e produite par les parois}
+%============================================================
+
+On a \'etabli comment la vorticit\'e \'evolue (convection, \'etirement, diffusion). Mais
+d'o\`u vient-elle initialement~? Un \'ecoulement uniforme $\bm{U} = U_\infty\bm{e}_1$
+est irrotationnel ($\boldsymbol{\omega} = \bm{0}$). L'\'equation de transport montre que
+si $\boldsymbol{\omega} = \bm{0}$ partout \`a $t=0$ et qu'il n'y a aucune source, la
+vorticit\'e reste nulle pour tout $t$. Alors d'o\`u viennent les tourbillons~?
+
+La r\'eponse est~: des \textbf{parois}. En pr\'esence de la condition de non-glissement
+(chapitre~2), le fluide adh\`ere \`a la surface solide~: $\bm{U} = \bm{0}$ \`a la paroi.
+La vitesse doit passer de z\'ero (paroi) \`a $U_\infty$ (\'ecoulement externe) sur
+l'\'epaisseur $\delta$ de la couche limite. Ce gradient de vitesse \'enorme
+($\partial U_1/\partial x_2 \sim U_\infty/\delta$) engendre une vorticit\'e intense
+pr\`es de la paroi.
+
+Consid\'erons une paroi plane en $x_2 = 0$, avec $U_1(x_1,0) = 0$. La contrainte de
+cisaillement vaut $\tau = \mu\,\partial U_1/\partial x_2$, et la vorticit\'e proche paroi est
+\[
+  \omega_3\big|_{\text{paroi}} = \pd{U_2}{x_1} - \pd{U_1}{x_2}
+  \approx -\pd{U_1}{x_2} = -\frac{\tau}{\mu}.
+\]
+En vecteur, on peut \'ecrire de fa\c con \'el\'egante~: pour une paroi de normale
+$\boldsymbol{n}$,
+\[
+  \boldsymbol{\tau} = \mu\,\boldsymbol{\omega} \times \boldsymbol{n}.
+\]
+
+\begin{importantbox}{Origine pari\'etale de la vorticit\'e}
+La vorticit\'e est \textbf{cr\'e\'ee exclusivement aux parois} (par le cisaillement visqueux),
+puis diffus\'ee et convect\'ee dans le fluide. Dans un \'ecoulement sans paroi (fluide infini,
+$\boldsymbol{\omega}=\bm{0}$ \`a $t=0$), la vorticit\'e reste nulle pour tout $t$.
+
+Ce r\'esultat justifie \emph{a posteriori} le mod\`ele d'\'ecoulement potentiel (irrotationnel)
+utilis\'e loin des parois~: la vorticit\'e n'a aucune raison d'appara\^itre l\`a o\`u elle
+n'a pas \'et\'e produite.
+\end{importantbox}
+
+Sur le Rafale Marine, la couche limite sur l'aile est la source primaire de vorticit\'e~: elle
+na\^it au bord d'attaque sous l'effet du cisaillement visqueux, est convect\'ee jusqu'au bord
+de fuite, et se retrouve \emph{in fine} dans le sillage et les tourbillons marginaux.
+La g\'eom\'etrie de l'aile delta \`a double fl\`eche favorise la formation de tourbillons de
+bord d'attaque \`a grande incidence --- une source de portance non lin\'eaire absente des
+ailes conventionnelles.
+
+% ------------------------------------------
+\section{\'Ecoulement autour d'un corps \`a grand Reynolds}
+% ------------------------------------------
+
+On dispose maintenant de tous les outils pour comprendre la structure de l'\'ecoulement
+autour d'un corps \`a grand nombre de Reynolds~: la vorticit\'e est confin\'ee dans la
+couche limite (cr\'e\'ee aux parois, diffus\'ee sur $\delta \ll L$) et dans le sillage
+(convect\'ee depuis le bord de fuite). Le reste du domaine est irrotationnel.
+On peut donc mod\'eliser l'\'ecoulement ext\'erieur comme \emph{potentiel} (section~5.7),
+et la couche limite comme une fine nappe de vorticit\'e.
+
+\subsection{Corps non profil\'e}
+
+\`A grand Reynolds, la couche limite se d\'ecolle t\^ot sur un corps non profil\'e (sph\`ere,
+cylindre), cr\'eant un sillage turbulent large. La vorticit\'e produite \`a la paroi est
+inject\'ee dans ce sillage~: elle s'organise en all\'ee de tourbillons altern\'es (all\'ee de
+B\'enard-K\'arm\'an, vue au chapitre~4), source d'une tra\^in\'ee \'elev\'ee et de vibrations.
+
+\subsection{Corps profil\'e}
+
+Sur un corps profil\'e (\`a faible incidence), la couche limite reste attach\'ee jusqu'au bord
+de fuite~: le sillage est mince, la traîn\'ee est faible. La vorticit\'e produite \`a la paroi
+est convect\'ee dans ce sillage~; elle peut \^etre mod\'elis\'ee comme une \textbf{nappe de
+vorticit\'e} $\mathcal{S}_\omega$ d'\'epaisseur nulle, qui s'\'ecoule depuis le bord de fuite.
+
+\subsection{Mod\'elisation par nappe de vorticit\'e}
+
+\`A la limite $Re \to \infty$, la couche limite est infiniment mince et on la remplace par une
+nappe de vorticit\'e $\mathcal{S}_\omega$ (une surface de discontinuit\'e de la vitesse
+tangentielle). L'intensit\'e locale de la nappe est
+\[
+  \gamma_s = U_1^+ - U_1^-, \qquad \omega_3 = \gamma_s\,\delta(x_2),
+\]
+o\`u $U_1^\pm$ sont les vitesses tangentielles de part et d'autre de la nappe. Les conditions
+de raccord \`a la nappe sont~:
+\[
+  p_A = p_B \quad \text{(continuit\'e de la pression)},
+  \qquad \boldsymbol{U}_A\cdot\boldsymbol{n} = \boldsymbol{U}_B\cdot\boldsymbol{n}
+  \quad \text{(imperm\'eabilit\'e)}.
+\]
+Le syst\`eme \`a r\'esoudre dans le reste du domaine est~:
+\[
+  \begin{cases} \displaystyle\pd{\boldsymbol{U}}{t} + \boldsymbol{U}\cdot\nabla\boldsymbol{U}
+  = -\dfrac{1}{\rho}\nabla p \\[6pt] \nabla\cdot\boldsymbol{U} = 0 \end{cases}
+\]
+avec les conditions $\boldsymbol{U}\cdot\boldsymbol{n}=0$ sur la surface $\mathcal{S}$ du
+profil et $\boldsymbol{U}\to\boldsymbol{U}_\infty$ \`a l'amont.
+
+% ------------------------------------------
+\section{Bases de l'a\'erodynamique}
+% ------------------------------------------
+
+On arrive au c\oe ur de ce chapitre~: le calcul de la portance d'un profil d'aile.
+L'id\'ee est d'exploiter conjointement deux r\'esultats \'etablis plus haut~:
+(1)~l'\'ecoulement ext\'erieur est irrotationnel (vorticit\'e confin\'ee aux parois),
+et (2)~le Bernoulli fort s'applique dans tout le domaine irrotationnel. On va montrer
+que le probl\`eme se ram\`ene \`a r\'esoudre une \'equation de Laplace, et que la
+portance d\'epend d'un seul param\`etre~: la circulation $\Gamma$ autour du profil.
+
+\subsection{\'Ecoulement potentiel autour d'un profil d'aile}
+
+On consid\`ere un \'ecoulement 2D stationnaire autour d'un profil d'aile \`a grand nombre de
+Reynolds~: $\boldsymbol{U} = (U_1(x_1,x_2),\, U_2(x_1,x_2))$.
+
+La continuit\'e de la pression \`a travers la nappe $\mathcal{S}_\omega$ impose, via le
+Bernoulli fort, que la norme de la vitesse $|\boldsymbol{U}|$ soit continue au travers de
+$\mathcal{S}_\omega$. Combin\'e avec la condition $\boldsymbol{U}\cdot\boldsymbol{n}$ continue,
+on conclut que le \emph{vecteur} $\boldsymbol{U}$ lui-m\^eme est continu~: la nappe de
+vorticit\'e peut \^etre retir\'ee du probl\`eme, et \textbf{l'\'ecoulement est irrotationnel
+dans tout le domaine}.
+
+\medskip
+\noindent\textbf{Fonction de courant.}
+Pour un \'ecoulement 2D incompressible, l'\'equation de continuit\'e
+$\partial U_1/\partial x_1 + \partial U_2/\partial x_2 = 0$ est automatiquement satisfaite
+en introduisant la \textbf{fonction de courant} $\psi$ d\'efinie par
+\[
+  U_1 = \pd{\psi}{x_2}, \qquad U_2 = -\pd{\psi}{x_1}.
+\]
+La vorticit\'e s'exprime alors comme~:
+\[
+  \omega_3 = \pd{U_2}{x_1} - \pd{U_1}{x_2}
+  = -\frac{\partial^2\psi}{\partial x_1^2} - \frac{\partial^2\psi}{\partial x_2^2}
+  = -\nabla^2\psi.
+\]
+La propri\'et\'e $\boldsymbol{U}\cdot\nabla\psi = 0$ montre que $\psi$ est constante le long
+de chaque ligne de courant.
+
+L'irrotationnalité ($\omega_3 = 0$) entra\^ine alors $\nabla^2\psi = 0$. Le probl\`eme se
+ram\`ene \`a~:
+
+\begin{importantbox}{\'Ecoulement potentiel 2D autour d'un profil}
+\[
+  \nabla^2\psi = \frac{\partial^2\psi}{\partial x_1^2}
+  + \frac{\partial^2\psi}{\partial x_2^2} = 0,
+  \qquad \psi = 0 \text{ sur } \mathcal{S}, \qquad
+  \psi \to U_\infty x_2 \text{ loin du profil.}
+\]
+C'est l'\'equation de Laplace avec des conditions aux limites mixtes~: bien pos\'ee
+num\'eriquement, r\'esolvable par \'el\'ements finis ou panels.
+\end{importantbox}
+
+Une fois $\psi$ d\'etermin\'ee, le champ de vitesse s'obtient par d\'erivation et la pression
+via le Bernoulli fort $p + \tfrac{1}{2}\rho U^2 = \mathrm{cst}$.
+
+\subsection{Th\'eor\`eme de Kutta-Joukowski}
+
+Sans conna\^itre la g\'eom\'etrie pr\'ecise du profil, on peut d\'eterminer la \emph{forme
+universelle} de la solution loin du profil. On passe en coordonn\'ees polaires $(r,\theta)$~:
+\[
+  \frac{1}{r}\pd{}{r}\!\left(r\pd{\psi}{r}\right)
+  + \frac{1}{r^2}\frac{\partial^2\psi}{\partial\theta^2} = 0.
+\]
+La solution $2\pi$-p\'eriodique en $\theta$ se cherche comme une s\'erie de Fourier
+$\psi = \sum_{n=-\infty}^{+\infty} C_n(r)\,e^{in\theta}$, o\`u chaque $C_n$ v\'erifie
+\[
+  r\frac{d}{dr}\!\left(r\frac{dC_n}{dr}\right) - n^2 C_n = 0
+  \quad\Longrightarrow\quad
+  \begin{cases} C_0 = A_0\ln r + B_0 & (n=0) \\
+  C_n = A_n r^{|n|} + B_n r^{-|n|} & (n\ne 0). \end{cases}
+\]
+Les termes en $r^{|n|}$ (rouges dans les slides) contribuent uniquement au champ proche,
+li\'e \`a la g\'eom\'etrie particuli\`ere du profil~: ils sont n\'egligeables loin du profil.
+Le raccordement \`a l'\'ecoulement uniforme \`a l'infini,
+$\psi_\infty = U_\infty x_2 = U_\infty r\sin\theta$, impose
+\[
+  A_1 = A_{-1} = \frac{U_\infty}{2i}, \quad A_n = 0 \text{ pour } |n|>1.
+\]
+La fonction de courant loin du profil se r\'eduit donc \`a
+\[
+  \psi = U_\infty r\sin\theta + A_0\ln r + B_0 + \mathcal{O}(r^{-1}).
+\]
+On en d\'eduit le champ de vitesse en coordonn\'ees cylindriques
+($U_r = (1/r)\partial\psi/\partial\theta$, $U_\theta = -\partial\psi/\partial r$)~:
+\[
+  \boldsymbol{U} = U_\infty\cos\theta\,\boldsymbol{e}_r
+  + \left(-U_\infty\sin\theta - \frac{A_0}{r}\right)\boldsymbol{e}_\theta
+  + \mathcal{O}(r^{-2})
+  = \boldsymbol{U}_\infty - \frac{A_0}{r}\,\boldsymbol{e}_\theta + \mathcal{O}(r^{-2}).
+\]
+Le terme en $A_0/r$ est exactement le champ de vitesse d'un tourbillon ponctuel (vu en
+\S5.2)~! La circulation $\Gamma$ autour d'un cercle $\mathcal{C}$ de rayon $R$ entourant le
+profil (parcouru dans le sens horaire) est~:
+\[
+  \Gamma = \oint_{\mathcal{C}} \boldsymbol{U}\cdot d\boldsymbol{x}
+  = -\int_0^{2\pi} \left(-\frac{A_0}{R}\,\boldsymbol{e}_\theta\right)\cdot R\,d\theta\,
+  \boldsymbol{e}_\theta = 2\pi A_0.
+\]
+Ainsi $A_0 = \Gamma/2\pi$, et loin du profil~:
+\[
+  \boldsymbol{U} = \boldsymbol{U}_\infty - \frac{\Gamma}{2\pi r}\,\boldsymbol{e}_\theta
+  + \mathcal{O}(r^{-2}).
+\]
+\textbf{Le profil se comporte comme un tourbillon ponctuel de circulation $\Gamma$ en champ
+lointain}, quelle que soit sa forme pr\'ecise. La pression, via le Bernoulli fort, vaut~:
+\[
+  p = p_\infty + \frac{\rho\Gamma}{2\pi r}\,\boldsymbol{U}_\infty\cdot\boldsymbol{e}_\theta
+  + \mathcal{O}(r^{-2}).
+\]
+
+\medskip
+\noindent\textbf{Calcul de la force.}
+On consid\`ere le domaine $\mathcal{D}$ born\'e par la surface du profil $\mathcal{S}$ et
+un grand cercle $\mathcal{S}^\star$ de rayon $R$. Pour un \'ecoulement stationnaire non
+visqueux, le th\'eor\`eme de Reynolds appliqu\'e \`a la quantit\'e de mouvement donne~:
+\[
+  \int_{\mathcal{S}\cup\mathcal{S}^\star}
+  \left(p\,\boldsymbol{n} + \rho\boldsymbol{U}(\boldsymbol{U}\cdot\boldsymbol{n})\right)dS
+  = \boldsymbol{0}.
+\]
+La force $\boldsymbol{F}$ exerc\'ee sur le profil (par unit\'e d'envergure) est donc
+calcul\'ee sur le grand cercle $\mathcal{S}^\star$ (avec $\boldsymbol{n} = -\boldsymbol{e}_r$)~:
+\[
+  \boldsymbol{F}
+  = -\int_0^{2\pi}\Big[p\,\boldsymbol{e}_r
+  + \rho\boldsymbol{U}({\boldsymbol{U}\cdot\boldsymbol{e}_r})\Big]_{r=R} R\,d\theta.
+\]
+En substituant les expressions asymptotiques de $p$ et $\boldsymbol{U}$ \`a grand $R$
+(termes crois\'es $\propto U_\infty\Gamma/R$ dominant), les calculs donnent apr\`es
+int\'egration (les termes en $U_\infty^2$ et $\Gamma^2/R^2$ s'annulent par sym\'etrie)~:
+\[
+  F_1 = 0, \qquad F_2 = \rho\Gamma U_\infty.
+\]
+
+\begin{importantbox}{Th\'eor\`eme de Kutta-Joukowski}
+La force exerc\'ee sur un profil d'aile en \'ecoulement potentiel 2D stationnaire est
+perpendiculaire \`a la vitesse amont~:
+\[
+  \boldsymbol{F} = \rho\,\Gamma\,U_\infty\,\boldsymbol{e}_2
+\]
+Il n'y a \textbf{pas de tra\^in\'ee} (paradoxe de d'Alembert) et la \textbf{portance} est
+directement proportionnelle \`a la circulation $\Gamma$ autour du profil.
+\end{importantbox}
+
+Ce r\'esultat est fondamental~: il montre que la portance n'est pas une propri\'et\'e
+intrins\`eque du profil, mais une cons\'equence de la \emph{circulation} que l'\'ecoulement
+acquiert autour de lui. Sur le Rafale Marine, les tourbillons de saumon visibles \`a
+l'appontage t\'emoignent justement de cette circulation~--- les volutes de vapeur d'eau
+photographi\'ees derri\`ere les ailes sont des lignes de courant qui s'enroulent autour des
+tourbillons marginaux, eux-m\^emes li\'es \`a la circulation g\'en\'eratrice de portance.
+La condition de Kutta (la vitesse reste finie au bord de fuite) impose la valeur de $\Gamma$
+et ferme le probl\`eme.
+
+\begin{center}
+\begin{tikzpicture}[scale=1.0]
+  % Airfoil schematic
+  \fill[gray!20] plot[smooth, tension=0.7] coordinates
+    {(-2,0) (-1.5,0.35) (-0.5,0.5) (0.5,0.4) (1.5,0.15) (2,0) (1.5,-0.1)
+     (0.5,-0.15) (-0.5,-0.1) (-1.5,-0.05) (-2,0)};
+  \draw[thick] plot[smooth, tension=0.7] coordinates
+    {(-2,0) (-1.5,0.35) (-0.5,0.5) (0.5,0.4) (1.5,0.15) (2,0)};
+  \draw[thick] plot[smooth, tension=0.7] coordinates
+    {(-2,0) (-1.5,-0.05) (-0.5,-0.1) (0.5,-0.15) (1.5,-0.1) (2,0)};
+  % Incoming flow
+  \foreach \y in {-0.8, -0.4, 0, 0.4, 0.8} {
+    \draw[->, blue!70] (-3.5,\y) -- (-2.3,\y);
+  }
+  \node[blue] at (-3.0, 1.1) {$\boldsymbol{U}_\infty$};
+  % Circulation arrow
+  \draw[->, red!80, thick] (0,1.5) arc (90:-270:0.5cm);
+  \node[red] at (1.2,1.5) {$\Gamma$};
+  % Force arrow
+  \draw[->, very thick, green!60!black] (0,0) -- (0,1.2)
+    node[right] {$\boldsymbol{F} = \rho\Gamma U_\infty\boldsymbol{e}_2$};
+  % vortex sheet indication
+  \draw[dashed, orange] (2,0) -- (3.5,-0.1) node[right, orange, font=\small]
+    {sillage $\mathcal{S}_\omega$};
+\end{tikzpicture}
+\end{center}
+
+\subsection{Effet Magnus}
+
+La force de Kutta-Joukowski est aussi connue sous le nom de \textbf{force de Magnus} (1852)
+dans le cas d'un objet en rotation sur lui-m\^eme (vitesse angulaire $\boldsymbol{\Omega}$).
+Un objet tournant entra\^ine le fluide par viscosit\'e, cr\'eant une circulation
+$\Gamma \simeq \Omega\, S$ (o\`u $S \propto L^2$ est la section transversale). La force de
+Magnus est donc~:
+\[
+  \boldsymbol{F}_M \propto \rho L^3\,\boldsymbol{\Omega}\times\boldsymbol{U}.
+\]
+
+\medskip
+\noindent\textbf{Trajectoire d'une balle en rotation.}
+Pour une balle de masse $m$ et de rayon $a$ tournant \`a $\boldsymbol{\Omega}$, le bilan des
+forces donne~:
+\[
+  m\ddot{\boldsymbol{x}} = m\boldsymbol{g}
+  \underbrace{-C_D\,\tfrac{1}{2}\rho|\dot{\boldsymbol{x}}|^2 S\,
+  \frac{\dot{\boldsymbol{x}}}{|\dot{\boldsymbol{x}}|}}_{\text{tra\^in\'ee}}
+  + \underbrace{C_M\,\rho\pi a^3\,\boldsymbol{\Omega}\times\dot{\boldsymbol{x}}}_{\text{Magnus}}
+\]
+o\`u le coefficient $C_M = C_M(\mathrm{Re},\,\Omega a/U)$ d\'epend du r\'egime de rotation.
+
+\begin{importantbox}{Exemple --- coup franc de Roberto Carlos (1997)}
+France-Br\'esil \`a Gerland~: balle de rayon $a \approx 11\,\mathrm{cm}$, $\Omega$ tr\`es \'elev\'e.
+La balle contourne le mur d\'efensif (trajectoire presque droite~--- l'\'etape laminaire)
+avant de d\'evier brutalement par effet Magnus (transition turbulente~: $C_D$ chute,
+$C_M$ augmente) pour finir dans le but. L'\'ecart lateral est de l'ordre de $3\,\mathrm{m}$.
+\end{importantbox}
+
+L'effet Magnus s'applique aussi au frisbee, au golf (effet de baguette avec spin arri\`ere) et
+\`a certains missiles gyrostabilis\'es. Sur le Rafale Marine, le fuselage et les voilures
+peuvent induire des effets de circulation crois\'ee \`a forte incidence, mais la ma\^itrise
+de l'\'ecoulement passe principalement par le contr\^ole actif des surfaces de gouverne.
+
+% ==========================================
+\section*{Résumé du chapitre}
+\addcontentsline{toc}{section}{Résumé du chapitre}
+% ==========================================
+
+\begin{importantbox}{Ce qu'il faut retenir}
+\begin{itemize}
+  \item \textbf{Vorticit\'e}~: $\boldsymbol{\omega} = \nabla\times\bm{U}$ mesure
+        la rotation locale du fluide (deux fois la vitesse angulaire). En 2D~:
+        $\omega_3 = \partial U_2/\partial x_1 - \partial U_1/\partial x_2$.
+
+  \item \textbf{Circulation}~:
+        $\Gamma_{\mathcal{C}} = \oint_{\mathcal{C}}\bm{U}\cdot d\bm{x}
+        = \iint\boldsymbol{\omega}\cdot\bm{n}\,dS$ (th\'eor\`eme de Stokes).
+
+  \item \textbf{Bernoulli fort}~: pour un \'ecoulement irrotationnel, stationnaire et
+        parfait, $H = p + \tfrac{1}{2}\rho U^2 + \rho g x_3 = \mathrm{cst}$
+        \emph{partout} dans le domaine (pas seulement le long d'une ligne de courant).
+
+  \item \textbf{\'Equation de transport}~:
+        $\dfrac{D\boldsymbol{\omega}}{Dt}
+        = \boldsymbol{\omega}\cdot\nabla\bm{U} + \nu\nabla^2\boldsymbol{\omega}$.
+        Convection + \'etirement (3D) + diffusion visqueuse.
+
+  \item \textbf{Tourbillon de Lamb-Oseen}~: diffusion visqueuse d'un tourbillon
+        ponctuel, $r_c(t) = \sqrt{4\nu t}$. La circulation totale est conserv\'ee.
+
+  \item \textbf{Origine pari\'etale}~: la vorticit\'e est cr\'e\'ee exclusivement aux
+        parois par cisaillement visqueux, puis convect\'ee et diffus\'ee. Sans paroi
+        et sans vorticit\'e initiale, l'\'ecoulement reste irrotationnel.
+
+  \item \textbf{\'Ecoulement potentiel}~: \`a grand Re, l'\'ecoulement ext\'erieur
+        v\'erifie $\nabla^2\psi = 0$ (Laplace). La couche limite et le sillage sont
+        mod\'elis\'es comme des nappes de vorticit\'e.
+
+  \item \textbf{Kutta-Joukowski}~: $\bm{F} = \rho\Gamma U_\infty\bm{e}_2$.
+        La portance est proportionnelle \`a la circulation~; il n'y a pas de tra\^in\'ee
+        en \'ecoulement potentiel (paradoxe de d'Alembert).
+
+  \item \textbf{Effet Magnus}~: un corps en rotation cr\'ee une circulation et donc une
+        force lat\'erale, $\bm{F}_M \propto \rho L^3\boldsymbol{\Omega}\times\bm{U}$.
+\end{itemize}
+\end{importantbox}
+
+% ==========================================
+\chapter{\'Ecoulement turbulent}
+% ==========================================
+
+Jusqu'ici, tous les \'ecoulements \'etudi\'es \'etaient \emph{laminaires}~: les particules
+fluides suivent des trajectoires r\'eguli\`eres, le champ de vitesse est stationnaire (ou
+pr\'evisiblement instationnaire), et les \'equations de Navier-Stokes admettent des
+solutions analytiques exactes (Couette, Poiseuille, Blasius). Mais en pratique, d\`es que
+le nombre de Reynolds d\'epasse quelques milliers, ces solutions laminaires deviennent
+instables~: l'\'ecoulement \emph{transite} vers un r\'egime fondamentalement diff\'erent,
+la \textbf{turbulence}.
+
+Sur le Rafale Marine en croisi\`ere ($\mathrm{Re} \approx 7\times10^7$), la totalit\'e de
+la couche limite sur l'aile est turbulente~: les fluctuations de vitesse d\'epassent
+$10\,\%$ de la vitesse de vol, les structures actives s'\'etendent de l'envergure
+($\sim 1\,\mathrm{m}$) aux plus petits tourbillons dissipatifs (quelques microm\`etres).
+Comprendre --- et mod\'eliser --- cette complexit\'e est au c\oe ur de la conception
+a\'erodynamique moderne.
+
+Ce chapitre introduit les outils statistiques n\'ecessaires (d\'ecomposition de Reynolds,
+\'equations RANS) et la physique de la cascade d'\'energie (Kolmogorov, 1941). On terminera
+par une estimation du co\^ut prohibitif de la simulation directe, qui justifie le recours
+aux mod\`eles de turbulence en ing\'enierie.
+
+\begin{defbox}{Fil conducteur}
+La turbulence est le r\'egime \emph{naturel} de l'a\'erodynamique~: aucun avion ne vole
+en r\'egime laminaire sur toute sa voilure. Comprendre la turbulence, c'est comprendre
+pourquoi la couche limite du Rafale reste attach\'ee \`a forte incidence (retard du
+d\'ecollement), mais aussi pourquoi sa tra\^in\'ee de frottement est plus \'elev\'ee qu'en
+laminaire --- un compromis que l'ing\'enieur doit ma\^itriser.
+\end{defbox}
+
+% ------------------------------------------
+\section{Ph\'enom\'enologie de la turbulence}
+% ------------------------------------------
+
+Observons un jet d'eau ou de fum\'ee~: \`a faible d\'ebit, le jet est laminaire, ses lignes de
+courant r\'eguli\`eres et pr\'evisibles. Au-del\`a d'un certain d\'ebit, le jet se brise en
+structures tourbillonnaires d\'esordonn\'ees qui fluctuent en permanence --- c'est la turbulence.
+Trois traits la caract\'erisent~:
+
+\medskip
+\noindent\textbf{1.~Mouvement instationnaire et ap\'eriodique.}
+Le champ de vitesse varie de fa\c con erratique. Dans la couche de cisaillement d'un jet
+($D = 50\,\mathrm{mm}$, $U_j = 30\,\mathrm{m\,s^{-1}}$, $\mathrm{Re}_D = 10^5$), la
+fluctuation longitudinale $u_1'(t)$ atteint $\pm 16\,\mathrm{m\,s^{-1}}$, soit plus de
+50\,\% de la vitesse du jet, sans aucune p\'eriodicit\'e identifiable.
+
+\medskip
+\noindent\textbf{2.~Sensibilit\'e aux conditions initiales.}
+Deux particules fluides initialement voisines divergent exponentiellement --- la turbulence
+est chaotique. L'exp\'erience du \emph{blinking vortex} d'Aref (1984) le montre~: deux
+tourbillons ponctuels alternant p\'eriodiquement (param\`etre de contr\^ole
+$\beta = \Gamma T / 2\pi a^2$) g\'en\`erent un m\'elange chaotique d\`es $\beta \gtrsim 0.25$.
+M\^eme un \'ecoulement simple peut donc \^etre impr\'evisible \`a long terme.
+
+\medskip
+\noindent\textbf{3.~Large gamme d'\'echelles spatio-temporelles.}
+L'\'ecoulement turbulent contient simultan\'ement de grandes structures coh\'erentes (taille $\sim L$,
+\'energie cin\'etique \'elev\'ee) et de minuscules filaments de vorticit\'e (taille $\sim l_\eta$)
+o\`u l'\'energie est finalement dissip\'ee par viscosit\'e. C'est cette multi-\'echelle qui rend la
+turbulence si riche et si difficile \`a simuler.
+
+\medskip
+\noindent\textbf{La turbulence n'est pas qu'une nuisance.}
+Elle augmente le m\'elange et les transferts de chaleur, et --- point crucial pour
+l'a\'erodynamique --- retarde le d\'ecollement des couches limites. Une couche limite turbulente,
+dont le profil de vitesse est plus plein qu'une couche laminaire, r\'esiste mieux aux gradients
+de pression adverses (comme sur le bord de fuite d'une aile \`a forte incidence). Sur le
+Rafale, cette propri\'et\'e contribue \`a maintenir la portance jusqu'\`a des angles d'attaque \'elev\'es
+lors de la mise en virage ou de l'appontage. La contrepartie est une augmentation de la
+tra\^in\'ee de frottement pari\'etal.
+
+% ------------------------------------------
+\section{Description statistique}
+% ------------------------------------------
+
+La turbulence \'etant fondamentalement al\'eatoire, une description d\'eterministe
+instantan\'ee du champ de vitesse est hors de port\'ee (et sans grand int\'er\^et
+pratique). Il faut lui donner un cadre \textbf{statistique} rigoureux~: c'est l'objet
+de la d\'ecomposition de Reynolds et des \'equations RANS.
+
+Le champ instantan\'e $U_i(\bm{x},t)$ contient une information colossale --- trop pour
+\^etre utile. Un ing\'enieur chez Dassault ne veut pas conna\^itre la vitesse \`a chaque
+microseconde en chaque point~: il veut la tra\^in\'ee moyenne, la portance moyenne, le
+frottement pari\'etal moyen. L'id\'ee est donc de s\'eparer ce qui est pr\'evisible (le champ
+moyen) de ce qui ne l'est pas (les fluctuations). C'est exactement ce que fait la
+d\'ecomposition de Reynolds.
+
+\subsection{Moyenne et d\'ecomposition de Reynolds}
+
+On d\'efinit la \textbf{moyenne d'ensemble} d'une variable $f(\bm{x},t)$
+comme la limite de la moyenne sur $N$ r\'ealisations identiques du m\^eme \'ecoulement~:
+\[
+  \bar{F}(\bm{x},t) = \lim_{N\to\infty} \frac{1}{N}\sum_{i=1}^{N} f^{(i)}(\bm{x},t).
+\]
+Cette d\'efinition est rigoureuse mais difficile \`a impl\'ementer en pratique (et impossible pour
+les \'ecoulements g\'eophysiques, qu'on ne peut pas reproduire). Pour une
+\textbf{turbulence stationnaire} (dont les statistiques ne d\'ependent pas du temps), le
+concept d'ergodicit\'e permet d'approcher la moyenne d'ensemble par une
+\textbf{moyenne temporelle} sur une seule r\'ealisation~:
+\[
+  \bar{F}(\bm{x}) = \lim_{T\to\infty} \frac{1}{T}\int_{t_0}^{t_0+T}
+  f(\bm{x},t')\,dt'.
+\]
+
+On peut alors caract\'eriser les fluctuations par leurs moments statistiques. Pour une variable
+centr\'ee $x_i' = x_i - \bar{X}_i$ de d\'eviation quadratique
+$x_{i,\mathrm{rms}} = \sqrt{\overline{x_i'^2}}$, la \textbf{dissym\'etrie} $S$ et
+l'\textbf{aplatissement} $T$ (ou kurtosis) sont~:
+\[
+  S_{x_i} = \frac{\overline{x_i'^3}}{x_{i,\mathrm{rms}}^3},
+  \qquad T_{x_i} = \frac{\overline{x_i'^4}}{x_{i,\mathrm{rms}}^4}.
+\]
+La \textbf{distribution gaussienne} est la r\'ef\'erence naturelle~:
+$p(\xi) = \frac{1}{\sqrt{2\pi}\sigma}\exp(-\xi^2/2\sigma^2)$, pour laquelle $S=0$ et $T=3$.
+
+\medskip
+La brique fondamentale de l'analyse statistique est la \textbf{d\'ecomposition de Reynolds}~:
+
+\begin{defbox}{D\'ecomposition de Reynolds}
+Toute variable $f$ se d\'ecompose en valeur moyenne $\bar{F}$ et fluctuation $f'$~:
+\[
+  f = \bar{F} + f', \quad \text{avec} \quad \overline{f'} = 0
+  \quad (f' = f - \bar{F}).
+\]
+La r\`egle fondamentale pour un produit $fg$ (avec $f = \bar{F}+f'$ et $g = \bar{G}+g'$)~:
+\[
+  \overline{fg} = \bar{F}\bar{G} + \overline{f'g'}
+\]
+car $\overline{f'\bar{G}} = \bar{G}\overline{f'} = 0$ et $\overline{\bar{F}g'} = \bar{F}\overline{g'} = 0$.
+\end{defbox}
+
+Appliqu\'ee \`a la vitesse~: $U_i \equiv \bar{U}_i + u_i'$ avec $\overline{u_i'} = 0$.
+Le champ $\bar{U}_i$ est la partie \emph{calculable}~; le champ fluctuant $u_i'$ est la
+partie qui doit \^etre \emph{mod\'elis\'ee}.
+
+\subsection{\'Equations de Navier-Stokes Moyenn\'ees par Reynolds (RANS)}
+
+On souhaite obtenir des \'equations d'\'evolution pour le champ moyen $\bar{U}_i$.
+La strat\'egie est simple~: \emph{substituer} la d\'ecomposition de Reynolds dans les
+\'equations de Navier-Stokes, puis \emph{prendre la moyenne}.
+
+On part des NS incompressibles \`a densit\'e constante~:
+\[
+  \frac{\partial U_i}{\partial x_i} = 0, \qquad
+  \frac{\partial(\rho U_i)}{\partial t} + \frac{\partial}{\partial x_j}(\rho U_i U_j)
+  = -\frac{\partial p}{\partial x_i} + \frac{\partial \tau_{ij}}{\partial x_j},
+  \quad \tau_{ij} = 2\mu D_{ij}.
+\]
+On pose $U_i = \bar{U}_i + u_i'$, $p = \bar{P} + p'$, $\tau_{ij} = \bar{\tau}_{ij} + \tau'_{ij}$.
+L'\'equation de continuit\'e, moyenn\'ee, donne imm\'ediatement~:
+\[
+  \frac{\partial\bar{U}_i}{\partial x_i} = 0,
+\]
+et par soustraction $\partial u_i'/\partial x_i = 0$~: \textbf{le champ moyen et le champ
+fluctuant sont tous deux \`a divergence nulle}.
+
+D\'eveloppons le terme convectif pas \`a pas. On substitue $U_i = \bar{U}_i + u_i'$ dans le
+produit $U_i U_j$~:
+\[
+  U_i U_j = (\bar{U}_i + u_i')(\bar{U}_j + u_j')
+  = \bar{U}_i\bar{U}_j + \bar{U}_i u_j' + u_i'\bar{U}_j + u_i'u_j'.
+\]
+Prenons maintenant la moyenne de chacun de ces quatre termes~:
+\begin{itemize}
+  \item $\overline{\bar{U}_i\bar{U}_j} = \bar{U}_i\bar{U}_j$ (les moyennes sont des constantes vis-\`a-vis de l'op\'erateur $\overline{\cdot}$),
+  \item $\overline{\bar{U}_i u_j'} = \bar{U}_i\,\overline{u_j'} = 0$ (car $\overline{u_j'}=0$),
+  \item $\overline{u_i'\bar{U}_j} = \bar{U}_j\,\overline{u_i'} = 0$ (idem),
+  \item $\overline{u_i'u_j'}$ survit~: c'est la \emph{corr\'elation crois\'ee des fluctuations}.
+\end{itemize}
+Bilan~: seuls le premier et le dernier terme survivent~:
+\[
+  \overline{U_i U_j} = \bar{U}_i\bar{U}_j + \overline{u_i'u_j'}.
+\]
+On obtient les \'equations RANS~:
+
+\begin{importantbox}{\'Equations RANS --- Navier-Stokes moyenn\'ees}
+\[
+  \frac{\partial\bar{U}_i}{\partial x_i} = 0
+\]
+\[
+  \frac{\partial(\rho\bar{U}_i)}{\partial t}
+  + \frac{\partial(\rho\bar{U}_i\bar{U}_j)}{\partial x_j}
+  = -\frac{\partial\bar{P}}{\partial x_i}
+  + \frac{\partial}{\partial x_j}\!\left(
+    \bar{\tau}_{ij} - \rho\,\overline{u_i' u_j'}
+  \right)
+\]
+\end{importantbox}
+
+Regardons bien ce r\'esultat. Les \'equations RANS ont \emph{exactement} la m\^eme forme que
+les \'equations de Navier-Stokes du chapitre~2 --- \`a un terme pr\`es~:
+$-\rho\,\overline{u_i'u_j'}$. Ce terme additionnel, le \textbf{tenseur des contraintes de
+Reynolds}, joue le r\^ole d'une contrainte suppl\'ementaire exerc\'ee par les fluctuations
+turbulentes sur le champ moyen. C'est comme si la turbulence agissait comme un fluide
+visqueux additionnel qui frotte davantage que la viscosit\'e mol\'eculaire seule.
+
+Le tenseur $-\rho\,\overline{u_i'u_j'}$ est sym\'etrique (6 composantes ind\'ependantes),
+g\'en\'eralement bien plus grand que $\bar{\tau}_{ij}$
+sauf pr\`es des parois, et --- surtout --- \emph{inconnu}~: c'est le
+\textbf{probl\`eme de fermeture de la turbulence}. On dispose de 4 \'equations (continuit\'e + 3 QDM)
+pour $\bar{U}_i$ et $\bar{P}$, mais les 6 composantes du tenseur de Reynolds sont 6
+inconnues suppl\'ementaires. Il faut un \emph{mod\`ele}.
+
+% ------------------------------------------
+\section{Mod\'elisation de la turbulence}
+% ------------------------------------------
+
+Le probl\`eme de fermeture pos\'e, il faut proposer une relation entre le tenseur de
+Reynolds $\overline{u_i'u_j'}$ et les quantit\'es connues (champ moyen $\bar{U}_i$ et ses
+d\'eriv\'ees). On introduit d'abord les grandeurs physiques caract\'eristiques de la
+turbulence, puis le mod\`ele le plus r\'epandu.
+
+\subsection{\'Energie cin\'etique turbulente et dissipation}
+
+En appliquant la r\`egle du produit \`a l'\'energie cin\'etique totale~:
+\[
+  \frac{\overline{U_i U_i}}{2} = \frac{\bar{U}_i\bar{U}_i}{2}
+  + \frac{\overline{u_i'u_i'}}{2}.
+\]
+Le deuxi\`eme terme est l'\'energie cin\'etique port\'ee par les fluctuations.
+
+\begin{defbox}{\'Energie cin\'etique turbulente et taux de dissipation}
+L'\textbf{\'energie cin\'etique turbulente}~:
+\[
+  k_t \equiv \frac{\overline{u_i'u_i'}}{2}
+  = \frac{1}{2}\!\left(\overline{u_1'^2}+\overline{u_2'^2}+\overline{u_3'^2}\right)
+  \quad [\mathrm{m^2\,s^{-2}}].
+\]
+Le \textbf{taux de dissipation turbulente}~:
+\[
+  \varepsilon \equiv 2\nu\,\overline{d_{ij}'d_{ij}'}
+  \quad [\mathrm{m^2\,s^{-3}}],
+\]
+o\`u $d_{ij}' = \tfrac{1}{2}(\partial u_i'/\partial x_j + \partial u_j'/\partial x_i)$
+est le tenseur des taux de d\'eformation fluctuant.
+$\varepsilon$ est le taux auquel $k_t$ est irr\'eversiblement converti en chaleur par la
+viscosit\'e mol\'eculaire aux petites \'echelles.
+\end{defbox}
+
+\subsection{Viscosit\'e turbulente --- hypoth\`ese de Boussinesq}
+
+Pour fermer les \'equations RANS, Boussinesq (1877) propose de mod\'eliser le tenseur de
+Reynolds par analogie avec la loi de Newton pour les fluides visqueux.
+
+Comment mod\'eliser $\overline{u_i'u_j'}$~? L'id\'ee la plus simple --- et historiquement la
+premi\`ere --- est de s'inspirer de ce qu'on conna\^it d\'ej\`a~: la loi de Newton pour les
+contraintes visqueuses. Au chapitre~2, on a vu que
+$\tau_{ij} = \mu(\partial U_i/\partial x_j + \partial U_j/\partial x_i)$~: les contraintes
+sont proportionnelles aux gradients de vitesse. Boussinesq (1877) propose exactement la m\^eme
+chose pour les contraintes de Reynolds, en rempla\c cant $\mu$ par une viscosit\'e
+\emph{turbulente} $\mu_t$ qui n'est plus une propri\'et\'e du fluide mais une propri\'et\'e de
+l'\'ecoulement.
+
+Dans un fluide
+newtonien, les contraintes visqueuses sont proportionnelles aux taux de d\'eformation
+moyens~: $\bar{\tau}_{ij} = 2\mu\bar{D}_{ij}$. Par analogie, on postule que les
+fluctuations turbulentes agissent comme une \emph{viscosit\'e suppl\'ementaire} $\mu_t$~:
+
+\begin{importantbox}{Hypoth\`ese de viscosit\'e turbulente --- Boussinesq (1877)}
+\[
+  -\rho\,\overline{u_i'u_j'} = 2\mu_t\bar{D}_{ij} - \frac{2}{3}\rho k_t\,\delta_{ij}
+  = \mu_t\!\left(\frac{\partial\bar{U}_i}{\partial x_j}
+  + \frac{\partial\bar{U}_j}{\partial x_i}\right) - \frac{2}{3}\rho k_t\,\delta_{ij},
+\]
+o\`u $\mu_t(\bm{x},t) = \rho\nu_t$ est la \textbf{viscosit\'e turbulente} ---
+propri\'et\'e du champ d'\'ecoulement, non du fluide (contrairement \`a $\mu$).
+\end{importantbox}
+
+Le terme isotrope $\frac{2}{3}\rho k_t\delta_{ij}$ est absorb\'e dans une pression modifi\'ee
+$\bar{P}^* = \bar{P} + \frac{2}{3}\rho k_t$, et les RANS deviennent~:
+\[
+  \frac{\partial(\rho\bar{U}_i)}{\partial t}
+  + \frac{\partial(\rho\bar{U}_i\bar{U}_j)}{\partial x_j}
+  = -\frac{\partial\bar{P}^*}{\partial x_i}
+  + \frac{\partial}{\partial x_j}\!\left[2(\mu+\mu_t)\bar{D}_{ij}\right].
+\]
+Ces \'equations sont formellement identiques aux NS originales, avec $\mu \to \mu + \mu_t$.
+Il reste \`a calculer $\mu_t(\bm{x},t)$.
+
+\medskip
+\noindent\textbf{Le mod\`ele $k_t$-$\varepsilon$.}
+Par analyse dimensionnelle, la viscosit\'e turbulente est le produit d'une \'echelle de vitesse
+$u' \sim k_t^{1/2}$ et d'une longueur de m\'elange $\ell \sim k_t^{3/2}/\varepsilon$~:
+\[
+  \nu_t = C_\mu\frac{k_t^2}{\varepsilon}, \quad C_\mu \approx 0.09.
+\]
+On adjoint alors deux \'equations de transport suppl\'ementaires pour $k_t$ et $\varepsilon$~:
+c'est le \textbf{mod\`ele $k_t$-$\varepsilon$}, le plus r\'epandu en ing\'enierie.
+
+\subsection{Bilan d'\'energie cin\'etique turbulente}
+
+Pour comprendre \emph{d'o\`u vient} $k_t$ et \emph{comment} elle est d\'etruite, on \'etablit
+son \'equation d'\'evolution. Comment obtenir cette \'equation~? La d\'emarche est analogue au
+bilan d'\'energie cin\'etique du chapitre~2. On soustrait l'\'equation RANS de l'\'equation NS
+instantan\'ee pour isoler l'\'equation du mouvement fluctuant. On multiplie ensuite par $u_i'$
+(pour obtenir l'\'energie $u_i'^2/2$), on somme sur $i$, et on prend la moyenne d'ensemble.
+Le calcul est technique mais le r\'esultat est physiquement limpide~:
+
+\begin{importantbox}{Bilan d'\'energie cin\'etique turbulente}
+\[
+  \underbrace{\frac{\partial(\rho k_t)}{\partial t}
+  + \frac{\partial(\rho k_t \bar{U}_j)}{\partial x_j}}_{\substack{\text{advection} \\
+  \text{par }\bar{U}}}
+  =
+  \underbrace{-\rho\,\overline{u_i'u_j'}\,\frac{\partial\bar{U}_i}{\partial x_j}}_{\text{production }\mathcal{P}}
+  \;-\; \underbrace{\rho\varepsilon}_{\text{dissipation}}
+  \;+\; \underbrace{\frac{\partial}{\partial x_k}\!\left(
+    -\tfrac{1}{2}\rho\,\overline{u_i'u_i'u_k'}
+    - \overline{p'u_k'} + \overline{u_i'\tau_{ik}'}
+  \right)}_{\text{transport spatial}}
+\]
+\end{importantbox}
+
+\noindent\textbf{Interpr\'etation du terme de production $\mathcal{P}$.}
+C'est le terme central~: il encode le transfert d'\'energie du \emph{cisaillement moyen}
+vers les \emph{fluctuations turbulentes}. Consid\'erons un cisaillement
+$\bar{U}_1(x_2)$ croissant avec $x_2$~:
+\begin{itemize}
+  \item Une particule avec $u_2' > 0$ vient d'une r\'egion \`a faible $\bar{U}_1$~: elle
+        arrive dans une zone plus rapide avec un d\'eficit $u_1' < 0$.
+  \item \`A l'inverse, $u_2' < 0$ am\`ene du fluide rapide vers le bas~: $u_1' > 0$.
+\end{itemize}
+Dans les deux cas $u_1'u_2' < 0$, donc $\overline{u_1'u_2'} < 0$, et la production vaut~:
+\[
+  \mathcal{P} \simeq -\rho\,\overline{u_1'u_2'}\,\frac{d\bar{U}_1}{dx_2} > 0.
+\]
+\textbf{La turbulence se nourrit du cisaillement moyen.} En r\'egime quasi-\'etabli, loin des
+parois, production et dissipation s'\'equilibrent localement~:
+\[
+  \mathcal{P} \approx \rho\varepsilon.
+\]
+
+% ------------------------------------------
+\section{Cascade d'\'energie et \'echelles de Kolmogorov}
+% ------------------------------------------
+
+On a vu que l'\'energie cin\'etique turbulente est produite aux grandes \'echelles (par le
+cisaillement moyen) et dissip\'ee par la viscosit\'e. Mais la viscosit\'e agit aux
+\emph{petites} \'echelles --- comment l'\'energie passe-t-elle des unes aux autres~?
+C'est la question \`a laquelle r\'epond la \textbf{cascade d'\'energie} de Kolmogorov (1941).
+
+\subsection{Deux familles d'\'echelles}
+
+Un \'ecoulement turbulent contient un \emph{continuum} de structures, depuis les plus grandes
+jusqu'aux plus petites.
+
+\medskip
+\noindent\textbf{Grandes \'echelles $O(L,\,u')$} --- impos\'ees par la g\'eom\'etrie de
+l'\'ecoulement (diam\`etre de jet, corde d'aile, \'epaisseur de sillage...). Ce sont les plus
+\'energ\'etiques~: elles re\c coivent l'\'energie de la production $\mathcal{P}$ et concentrent
+l'essentiel de $k_t$.
+
+\medskip
+\noindent\textbf{Petites \'echelles de Kolmogorov $O(l_\eta,\,u_\eta)$} --- \`a tr\`es petite
+\'echelle, la viscosit\'e domine les effets inertiels. Le nombre de Reynolds local vaut
+$u_\eta l_\eta/\nu = 1$~: c'est exactement la condition \`a laquelle la viscosit\'e peut
+dissiper l'\'energie en chaleur.
+
+\begin{defbox}{\'Echelles de Kolmogorov}
+La seule combinaison dimensionnellement coh\'erente de $\nu$ et $\varepsilon$ donnant une
+longueur, une vitesse et un temps est~:
+\[
+  l_\eta = \left(\frac{\nu^3}{\varepsilon}\right)^{1/4}, \qquad
+  u_\eta = (\nu\varepsilon)^{1/4}, \qquad
+  \tau_\eta = \left(\frac{\nu}{\varepsilon}\right)^{1/2}.
+\]
+On v\'erifie~: $u_\eta l_\eta/\nu = 1$ --- le Reynolds local vaut bien 1.
+\end{defbox}
+
+\subsection{La cascade d'\'energie}
+
+La relation entre grandes et petites \'echelles est la \textbf{cascade d'\'energie}, propos\'ee
+par Kolmogorov (1941) en s'appuyant sur une id\'ee de Richardson~:
+
+\begin{enumerate}
+  \item L'\'energie est \textbf{inject\'ee} aux grandes \'echelles $L$ (via la production $\mathcal{P}$).
+  \item Par interactions \textbf{non lin\'eaires} (terme convectif), les grandes structures
+        se fragmentent en structures plus petites, qui se fragmentent \`a leur tour~: l'\'energie
+        \emph{cascade} vers les petites \'echelles sans \^etre dissip\'ee.
+  \item Aux \'echelles $l_\eta$ (o\`u $\mathrm{Re}=1$), la viscosit\'e \textbf{dissipe}
+        l'\'energie en chaleur.
+\end{enumerate}
+
+\begin{center}
+\begin{tikzpicture}[node distance=2.2cm, >=Stealth]
+  \node[draw, rounded corners, fill=blue!25, minimum width=2.2cm, minimum height=1cm,
+        font=\small] (L) {Grandes \'ech. $L$};
+  \node[draw, rounded corners, fill=blue!12, minimum width=1.8cm, minimum height=0.85cm,
+        font=\small, right=of L] (I) {Inertielles};
+  \node[draw, rounded corners, fill=blue!5, minimum width=1.5cm, minimum height=0.7cm,
+        font=\small, right=of I] (K) {$l_\eta$};
+  \draw[->, very thick, red!70] (L) -- node[above, font=\small]{cascade} (I);
+  \draw[->, very thick, red!70] (I) -- node[above, font=\small]{cascade} (K);
+  \draw[->, very thick, orange] (K.south) -- ++(0,-0.9)
+        node[below, font=\small]{dissipation $\varepsilon$};
+  \draw[->, very thick, green!60!black] (L.north) +(-1.2,0.9)
+        -- node[above, font=\small]{prod. $\mathcal{P}$} (L.north);
+\end{tikzpicture}
+\end{center}
+
+Dans la zone \textbf{inertielle} ($l_\eta \ll \ell \ll L$), l'\'energie est simplement
+relay\'ee d'\'echelle en \'echelle \`a taux constant $\varepsilon$, sans production ni dissipation.
+L'analyse dimensionnelle de Kolmogorov donne le spectre d'\'energie~:
+
+\begin{importantbox}{Loi de Kolmogorov en $k^{-5/3}$}
+Dans la zone inertielle, le spectre d'\'energie ne d\'epend que de $\varepsilon$ et du nombre
+d'onde $k$ (inverse d'une longueur). La seule forme dimensionnellement coh\'erente est~:
+\[
+  E(k) \sim \varepsilon^{2/3}\,k^{-5/3}.
+\]
+Cette loi universelle (1941) est v\'erifi\'ee dans d'innombrables exp\'eriences~: jets,
+couches limites, atmosph\`ere, oc\'ean. La pente $-5/3$ sur un diagramme log-log est la
+signature d'une cascade d'\'energie inertielle.
+\end{importantbox}
+
+\subsection{Rapport d'\'echelles et co\^ut de la simulation}
+
+La cascade de Kolmogorov a une cons\'equence pratique majeure pour la simulation num\'erique.
+Si l'on veut r\'esoudre \emph{toutes} les \'echelles de la turbulence (c'est ce qu'on appelle
+une Simulation Num\'erique Directe, ou DNS), il faut un maillage assez fin pour capturer les
+plus petites structures. Combien de points faut-il~? La r\'eponse est donn\'ee par le rapport
+$L/l_\eta$.
+
+En supposant qu'en r\'egime \'etabli $\mathcal{P} \approx \rho\varepsilon$, et que
+$\mathcal{P} \sim \rho u'^3/L$, on obtient $\varepsilon \sim u'^3/L$ et donc~:
+\[
+  \frac{L}{l_\eta} = \frac{L}{(\nu^3/\varepsilon)^{1/4}}
+  \sim \left(\frac{u'L}{\nu}\right)^{3/4} = \mathrm{Re}_L^{3/4}.
+\]
+
+\begin{importantbox}{Rapport d'\'echelles --- limite de la DNS}
+\[
+  \frac{L}{l_\eta} \sim \mathrm{Re}_L^{3/4}
+\]
+Une simulation num\'erique directe (DNS) r\'esolvant toutes les \'echelles sur un domaine 3D
+n\'ecessite un nombre de points en grille $N \sim (L/l_\eta)^3 \sim \mathrm{Re}_L^{9/4}$.
+\end{importantbox}
+
+\medskip
+\noindent\textbf{Application au Rafale Marine.}
+Avec $L \approx 3\,\mathrm{m}$ (corde d'aile), $U_\infty \approx 200\,\mathrm{m\,s^{-1}}$,
+$\nu_\mathrm{air} \approx 1.5\times10^{-5}\,\mathrm{m^2\,s^{-1}}$~:
+\[
+  \mathrm{Re}_L = \frac{U_\infty L}{\nu} \approx 4\times10^7,
+  \qquad l_\eta \approx \frac{3}{(4\times10^7)^{3/4}} \approx 10\,\mu\mathrm{m}.
+\]
+Une DNS 3D de la couche limite du Rafale exigerait
+$N \sim \mathrm{Re}_L^{9/4} \approx 10^{16}$ points de grille --- totalement hors de port\'ee.
+La simulation industrielle du Rafale repose donc sur les \textbf{\'equations RANS} avec mod\`ele
+$k_t$-$\varepsilon$ ou $k_t$-$\omega$ ($\sim 10^7$--$10^8$ points), accept\'e comme
+compromis entre pr\'ecision et co\^ut.
+
+% ==========================================
+\section*{R\'esum\'e du chapitre}
+\addcontentsline{toc}{section}{R\'esum\'e du chapitre}
+% ==========================================
+
+\begin{importantbox}{Ce qu'il faut retenir}
+\begin{itemize}
+  \item La \textbf{turbulence} est un \'ecoulement instationnaire, ap\'eriodique et
+        chaotique, multi-\'echelle, qui appara\^it pour $\mathrm{Re}$ suffisamment grand.
+        Elle augmente le m\'elange et retarde les d\'ecollements mais accro\^it la tra\^in\'ee
+        de frottement.
+
+  \item La \textbf{d\'ecomposition de Reynolds} $U_i = \bar{U}_i + u_i'$ s\'epare champ
+        moyen et fluctuations~; r\`egle cl\'e~: $\overline{fg} = \bar{F}\bar{G} +
+        \overline{f'g'}$.
+
+  \item Les \textbf{\'equations RANS} font appara\^itre le \textbf{tenseur de Reynolds}
+        $-\rho\,\overline{u_i'u_j'}$~: 6 inconnues suppl\'ementaires $\Rightarrow$
+        \textbf{probl\`eme de fermeture}.
+
+  \item L'\textbf{hypoth\`ese de Boussinesq}~:
+        $-\rho\overline{u_i'u_j'} = 2\mu_t\bar{D}_{ij} - \tfrac{2}{3}\rho k_t\delta_{ij}$,
+        avec $\nu_t = C_\mu k_t^2/\varepsilon$ pour le mod\`ele $k_t$-$\varepsilon$.
+
+  \item Le \textbf{bilan de $k_t$}~: production $\mathcal{P}$ (du cisaillement moyen)
+        --- dissipation $\rho\varepsilon$ + transport. \'Equilibre local~:
+        $\mathcal{P} \approx \rho\varepsilon$.
+
+  \item \textbf{\'Echelles de Kolmogorov}~: $l_\eta = (\nu^3/\varepsilon)^{1/4}$,
+        $L/l_\eta \sim \mathrm{Re}_L^{3/4}$. DNS du Rafale~: $\sim 10^{16}$ points,
+        impossible $\Rightarrow$ RANS incontournable.
+
+  \item \textbf{Cascade de Kolmogorov}~: injection \`a $L$, transfert inertiel,
+        dissipation \`a $l_\eta$. Spectre inertiel~: $E(k) \sim \varepsilon^{2/3} k^{-5/3}$.
+\end{itemize}
+\end{importantbox}
+
+% ==========================================
+\chapter{\'Energie, thermodynamique et \'ecoulements compressibles}
+% ==========================================
+
+Jusqu'ici nous avons impos\'e $\nabla \cdot \bm{U} = 0$~: la masse volumique
+$\rho$ \'etait constante le long des lignes de courant, et la pression n'avait qu'un r\^ole
+m\'ecanique. Ce cadre est mis en d\'efaut d\`es que la vitesse devient une fraction
+significative de la vitesse du son.
+
+Pour le Rafale Marine, dont la vitesse de croisi\`ere est $U_\infty \simeq 200\,\mathrm{m/s}$,
+le nombre de Mach vaut $M_\infty = U_\infty/c \simeq 0{,}59$ (avec $c \simeq 340\,\mathrm{m/s}$
+\`a altitude standard). Au-del\`a de $M \simeq 0{,}3$ l'hypoth\`ese incompressible engendre
+une erreur sup\'erieure \`a 5\,\%~: il faut donc enrichir notre mod\`ele. Plus radicalement,
+\`a l'int\'erieur du r\'eacteur M88-2 le fluide est chauff\'e \`a des temp\'eratures
+sup\'erieures \`a $1\,500\,\mathrm{K}$ et acc\'el\'er\'e dans la tuy\`ere convergente-divergente
+jusqu'\`a des vitesses supersoniques~: les ph\'enom\`enes thermiques et \'energ\'etiques sont
+alors au c\oe{}ur du probl\`eme.
+
+Ce chapitre construit pas \`a pas le cadre compressible en r\'epondant \`a deux questions~:
+\begin{enumerate}
+  \item Quelle \'equation gouverne l'\'echange d'\'energie entre les modes cin\'etique et
+        interne du fluide~?
+  \item Quelles lois thermodynamiques relient entre elles les variables d'\'etat
+        ($\rho$, $p$, $T$, $e$, $s$, $h$)~?
+\end{enumerate}
+La r\'eponse fournit le syst\`eme complet d'\'equations de Navier-Stokes compressibles et
+ouvre la voie \`a l'\'etude des ondes de choc.
+
+\begin{defbox}{Fil conducteur}
+Le Rafale vole en r\'egime subsonique \`a $M \approx 0{,}6$ en croisi\`ere, mais traverse
+le r\'egime transsonique ($M \approx 1$) en acc\'el\'eration et atteint $M = 1{,}8$ en
+pointe. Son r\'eacteur M88-2 fonctionne enti\`erement en r\'egime compressible (de la
+prise d'air supersonique \`a la tuy\`ere convergente-divergente). Comprendre ces r\'egimes
+exige de coupler la m\'ecanique \`a la thermodynamique~: c'est l'objet de ce dernier chapitre.
+\end{defbox}
+
+% ------------------------------------------
+\section{Conservation de l'\'energie totale}
+% ------------------------------------------
+
+\subsection{Tenseur des contraintes visqueuses en \'ecoulement compressible}
+
+Au chapitre~2, nous avons \'ecrit $\ten{\sigma} = -p\,\ten{I} + 2\mu\,\ten{D}$ pour un fluide newtonien incompressible. Ce tenseur ne contenait aucun terme li\'e \`a la dilatation volumique --- et pour cause~: en incompressible, $\nabla\cdot\bm{U} = 0$ par d\'efinition. Mais d\`es que le fluide se comprime ou se d\'etend (une particule d'air qui entre dans la prise d'air du M88-2 est comprim\'ee d'un facteur~30), le taux de dilatation $\nabla\cdot\bm{U} \neq 0$ et il faut enrichir la loi constitutive.
+
+En \'ecoulement incompressible le tenseur des contraintes s'\'ecrivait
+$\ten{\sigma} = -p\,\ten{I} + 2\mu\,\ten{D}$,
+o\`u le terme de Newton \'etait enti\`erement d\'evi\'e. D\`es que $\nabla \cdot \bm{U} \neq 0$,
+la d\'eformation \emph{sph\'erique} (compression/dilatation uniforme) produit \'egalement
+des contraintes normales~: la loi de Newton doit \^etre compl\'et\'ee.
+
+La forme g\'en\'erale du tenseur visqueux newtonien est~:
+
+\begin{importantbox}{Tenseur des contraintes --- cas compressible}
+\[
+  \ten{\sigma} = -p\,\ten{I} + \ten{\tau},
+  \qquad
+  \ten{\tau} = 2\mu\,\ten{D} + \lambda\,(\nabla \cdot \bm{U})\,\ten{I}
+\]
+o\`u $\lambda$ est la \textbf{deuxi\`eme viscosit\'e} (ou viscosit\'e de volume).
+\end{importantbox}
+
+Le terme suppl\'ementaire $\lambda(\nabla \cdot \bm{U})\ten{I}$ est isotrope et
+proportionnel au taux de dilatation volumique. On peut v\'erifier que la dissipation
+visqueuse vaut alors~:
+\[
+  \ten{\tau} : \ten{D}
+  = 2\mu\,\ten{D} : \ten{D} + \lambda\,(\nabla \cdot \bm{U})^2 \geq 0.
+\]
+L'hypoth\`ese de Stokes $\lambda = -\tfrac{2}{3}\mu$ (valable pour les gaz monoatomiques)
+ram\`ene la pression thermodynamique \`a la valeur moyenne des contraintes normales.
+
+\subsection{\'Energie interne~: un nouveau degr\'e de libert\'e}
+
+Jusqu'au chapitre~2, la seule forme d'\'energie qui nous int\'eressait \'etait l'\'energie cin\'etique $\tfrac{1}{2}\rho U^2$~: c'est elle qui appara\^it dans le bilan d'\'energie m\'ecanique et dans Bernoulli. Mais r\'efl\'echissons~: quand on comprime un gaz, on lui fournit du travail m\^eme si sa vitesse macroscopique ne change pas. O\`u va cette \'energie~? Elle va dans l'agitation thermique des mol\'ecules --- c'est-\`a-dire dans l'\emph{\'energie interne}. De m\^eme, quand la couche limite du Rafale freine l'air par frottement visqueux, l'\'energie cin\'etique perdue ne dispara\^it pas~: elle est convertie en chaleur (\'energie interne). Pour d\'ecrire ces conversions, il faut introduire un nouveau degr\'e de libert\'e.
+
+Les mol\'ecules du fluide poss\`edent
+\'egalement de l'\'energie li\'ee \`a leur agitation thermique et aux interactions
+intermol\'eculaires. Cette contribution microscopique est l'\textbf{\'energie interne
+sp\'ecifique} $e(\bm{x},t)$ (en $\mathrm{J\,kg^{-1}}$).
+
+L'\'energie totale sp\'ecifique est donc~:
+\[
+  e_t \equiv e + \frac{1}{2}U^2,
+  \qquad
+  E_t = \int_{\mathcal{D}} \rho\, e_t\, \mathrm{d}v.
+\]
+
+\subsection{Premier principe de la thermodynamique --- bilan global}
+
+Le premier principe stipule que la variation d'\'energie totale d'un domaine
+mat\'eriel est \'egale \`a la puissance des forces ext\'erieures augment\'ee du taux
+d'apport thermique~:
+
+\begin{importantbox}{Premier principe pour le fluide}
+\[
+  \frac{\mathrm{d}E_t}{\mathrm{d}t} = P_{\mathrm{ext}} + Q
+\]
+avec $P_{\mathrm{ext}}$ puissance des forces de volume et de surface,
+$Q$ apport de chaleur par unit\'e de temps (en W).
+\end{importantbox}
+
+En soustrayant le bilan de l'\'energie cin\'etique (\'etabli au chapitre~2 sous forme
+int\'egrale sur un domaine mat\'eriel $\mathcal{D}$)~:
+\[
+  \frac{\mathrm{d}}{\mathrm{d}t}\int_{\mathcal{D}} \rho\,\frac{U^2}{2}\,\mathrm{d}v
+  = P_{\mathrm{ext}} + P_{\mathrm{int}},
+\]
+on obtient l'\'equation de l'\'energie \emph{interne}~:
+\[
+  \frac{\mathrm{d}}{\mathrm{d}t}\int_{\mathcal{D}} \rho\,e\,\mathrm{d}v
+  = Q - P_{\mathrm{int}},
+\]
+o\`u $-P_{\mathrm{int}} = \int_{\mathcal{D}} \ten{\sigma} : \ten{D}\,\mathrm{d}v
+= -\int_{\mathcal{D}} p\nabla \cdot \bm{U}\,\mathrm{d}v
++ \int_{\mathcal{D}} \ten{\tau} : \ten{D}\,\mathrm{d}v$
+regroupe le travail r\'eversible de compression et la dissipation visqueuse irr\'eversible.
+
+Le sch\'ema \'energ\'etique est simple~: l'\'energie cin\'etique, aliment\'ee par
+$P_{\mathrm{ext}}$, se convertit irr\'eversiblement vers l'\'energie interne via la
+dissipation visqueuse $\ten{\tau}:\ten{D}$, et se recharge r\'eversiblement
+par compression $-p\nabla\cdot\bm{U}$ (qui change de signe selon que le fluide
+est comprim\'e ou d\'etendu).
+
+\subsection{Apport de chaleur --- flux et vecteur flux thermique}
+
+L'apport thermique $Q$ provient de deux sources~:
+\[
+  Q \equiv Q_s + Q_v,
+  \quad
+  Q_s = -\oint_{\mathcal{S}} \bm{q} \cdot \bm{n}\,\mathrm{d}s,
+  \quad
+  Q_v = \int_{\mathcal{D}} \rho\,q_\star\,\mathrm{d}v,
+\]
+o\`u $\bm{q}(\bm{x},t)$ est le \textbf{vecteur densit\'e de flux de chaleur}
+(en $\mathrm{W\,m^{-2}}$) et $q_\star$ (en $\mathrm{W\,kg^{-1}}$) un apport volumique
+(rayonnement, combustion). La loi constitutive reliant $\bm{q}$ \`a l'\'etat local est la
+\textbf{loi de Fourier} (1822)~:
+
+\begin{defbox}{Loi de Fourier}
+\[
+  \bm{q} = -k\,\nabla T,
+\]
+o\`u $k \geq 0$ est la \textbf{conductivit\'e thermique} (en $\mathrm{W\,m^{-1}\,K^{-1}}$).
+Le signe moins traduit le fait que la chaleur se propage du chaud vers le froid.
+\end{defbox}
+
+\subsection{Formulation locale de la conservation de l'\'energie}
+
+En appliquant le th\'eor\`eme de Reynolds et en passant \`a la formulation locale (valable
+en tout point r\'egulier), on obtient trois \'equations \'equivalentes mais compl\'ementaires~:
+
+\begin{importantbox}{\'Equations locales de l'\'energie}
+\[
+  \begin{cases}
+  \displaystyle\rho\,\DD{e_t} = \nabla\cdot(\bm{U}\cdot\ten{\sigma})
+                                + \rho\bm{U}\cdot\bm{g}
+                                - \nabla\cdot\bm{q} + \rho q_\star
+  \\[8pt]
+  \displaystyle\rho\,\frac{D}{Dt}\!\left(\frac{U^2}{2}\right)
+      = \nabla\cdot(\bm{U}\cdot\ten{\sigma})
+        + \rho\bm{U}\cdot\bm{g}
+        + p\nabla\cdot\bm{U} - \ten{\tau}:\ten{D}
+  \\[8pt]
+  \displaystyle\rho\,\DD{e}
+      = \underbrace{-p\,\nabla\cdot\bm{U}}_{\text{compression}}
+        + \underbrace{\ten{\tau}:\ten{D}}_{\text{dissipation}}
+        + \underbrace{-\nabla\cdot\bm{q} + \rho q_\star}_{\text{chaleur}}
+  \end{cases}
+\]
+\end{importantbox}
+
+La troisi\`eme ligne est la plus \'eclairante~: l'\'energie interne d'une particule fluide
+augmente quand elle est comprim\'ee, quand la dissipation visqueuse la r\'echauffe, ou
+quand de la chaleur lui est apport\'ee.
+
+% ------------------------------------------
+\section{Rappels de thermodynamique d'\'equilibre}
+% ------------------------------------------
+
+L'\'equation de l'\'energie interne fait intervenir $e$, $p$, $T$ --- mais ces trois grandeurs ne sont pas ind\'ependantes. Un gaz \`a l'\'equilibre est enti\`erement d\'ecrit par deux variables seulement (par exemple $\rho$ et $T$), et toutes les autres s'en d\'eduisent via des \emph{\'equations d'\'etat}. Pour fermer notre syst\`eme, il faut donc relier ces variables entre elles~: c'est le r\^ole de la thermodynamique. On rappelle ici les r\'esultats essentiels, en les motivant physiquement.
+
+\subsection{Variables d'\'etat}
+
+Un fluide simple est enti\`erement d\'ecrit par \emph{deux} variables ind\'ependantes.
+En m\'ecanique des fluides, on choisit g\'en\'eralement $\rho$ et $e$, d'o\`u l'on
+d\'eduit toutes les autres~:
+
+\begin{center}
+\begin{tabular}{cll}
+\toprule
+Variable & Nom & Unit\'e \\
+\midrule
+$T$ & Temp\'erature absolue & K \\
+$p$ & Pression thermodynamique & Pa \\
+$s$ & Entropie sp\'ecifique & $\mathrm{J\,kg^{-1}\,K^{-1}}$ \\
+$h \equiv e + p/\rho$ & Enthalpie sp\'ecifique & $\mathrm{J\,kg^{-1}}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+En \'ecoulement, chaque particule fluide est suppos\'ee \`a l'\'equilibre \`a son \'echelle
+microscopique (hypoth\`ese d'\'equilibre local), de sorte que $\rho(\bm{x},t)$ et
+$e(\bm{x},t)$ d\'eterminent localement $T$, $p$, $s$, $h$.
+
+\subsection{Relation de Gibbs et second principe}
+
+Pour un syst\`eme ferm\'e, le premier principe s'\'ecrit
+$\delta q = \mathrm{d}e + p\,\mathrm{d}(1/\rho)$.
+Le second principe (Clausius) introduit l'entropie via
+$\delta q_{\mathrm{rev}} = T\,\mathrm{d}s$. En combinant~:
+
+\begin{importantbox}{Relation de Gibbs}
+\[
+  T\,\mathrm{d}s = \mathrm{d}e + p\,\mathrm{d}\!\left(\frac{1}{\rho}\right)
+\]
+\end{importantbox}
+
+Cette identit\'e fondamentale relie des variations de variables d'\'etat, ind\'ependamment
+du chemin suivi. Pour un processus quelconque, l'entropie augmente en pr\'esence
+d'irr\'eversibilit\'es (viscosit\'e, conduction, chocs).
+
+Dit autrement~: si on comprime une particule fluide (d$(1/\rho) < 0$, le volume sp\'ecifique diminue), l'\'energie interne augmente --- sauf si de la chaleur s'\'echappe simultan\'ement ($T\,\mathrm{d}s < 0$ possible si le processus est non-adiabatique). C'est exactement ce qui se passe dans le compresseur du M88-2~: l'air est comprim\'e (son volume diminue) et sa temp\'erature monte de $\sim 288\,\mathrm{K}$ \`a $\sim 800\,\mathrm{K}$ sur 6 \'etages.
+
+\begin{defbox}{Transformations particuli\`eres}
+\begin{itemize}
+  \item \textbf{Adiabatique~:} $\delta q = 0 \Rightarrow \mathrm{d}s \geq 0$
+  \item \textbf{Isentropique (adiabatique + r\'eversible)~:} $\mathrm{d}s = 0$
+\end{itemize}
+\end{defbox}
+
+\subsection{Chaleurs sp\'ecifiques}
+
+La r\'eponse thermique du fluide d\'epend des conditions~:
+\[
+  c_v = \left.\pd{e}{T}\right|_\rho \quad \text{(volume constant)},
+  \qquad
+  c_p = \left.\pd{h}{T}\right|_p \quad \text{(pression constante)}.
+\]
+On a toujours $c_p > c_v$ car une partie de la chaleur fournie \`a pression constante
+sert \`a faire le travail de dilatation.
+
+\subsection{Gaz parfait}
+
+Pour les gaz peu denses (air \`a pression atmosph\'erique, gaz de combustion dans le
+M88-2), le mod\`ele du \textbf{gaz parfait} s'applique~:
+
+\begin{importantbox}{Gaz parfait --- loi d'\'etat et cons\'equences}
+\[
+  p = \rho r T,
+  \qquad r = \frac{R}{M_{\mathrm{mol}}} \quad
+  (R \simeq 8{,}314\,\mathrm{J\,mol^{-1}\,K^{-1}})
+\]
+Relation de Mayer~: $c_p - c_v = r$. \quad
+Rapport~: $\gamma = c_p/c_v > 1$. \\
+Entropie~: $s = c_v \ln(p/\rho^\gamma) + \mathrm{cst}$. \quad
+Isentropique~: $p/\rho^\gamma = \mathrm{cst}$.
+\end{importantbox}
+
+Pour l'air \`a conditions standard~: $r = 287\,\mathrm{J\,kg^{-1}\,K^{-1}}$,
+$\gamma = 1{,}4$, $c_p = 1005\,\mathrm{J\,kg^{-1}\,K^{-1}}$,
+$c_v = 718\,\mathrm{J\,kg^{-1}\,K^{-1}}$.
+
+% ------------------------------------------
+\section{\'Equations de la thermodynamique du mouvement}
+% ------------------------------------------
+
+On dispose maintenant de tous les ingr\'edients pour \'ecrire le syst\`eme complet
+gouvernant un fluide compressible.
+
+\subsection{Lois constitutives}
+
+Deux lois ferment le syst\`eme~:
+
+\begin{defbox}{Lois constitutives --- fluide newtonien conducteur de chaleur}
+\[
+  \ten{\tau} = 2\mu\,\ten{D} + \lambda(\nabla\cdot\bm{U})\,\ten{I},
+  \qquad
+  \bm{q} = -k\nabla T.
+\]
+Les coefficients $\mu$, $\lambda$, $k$ d\'ependent en g\'en\'eral de l'\'etat local~:
+$\mu = \mu(T)$ (loi de Sutherland, vue au chapitre~3), etc.
+\end{defbox}
+
+\subsection{Syst\`eme complet de Navier-Stokes compressible}
+
+En rassemblant la conservation de la masse, de la quantit\'e de mouvement et de
+l'\'energie interne avec les lois constitutives et une \'equation d'\'etat~:
+
+\begin{importantbox}{Navier-Stokes compressible}
+\[
+  \begin{cases}
+    \displaystyle\DD{\rho} + \rho\,\nabla\cdot\bm{U} = 0
+    & \text{(masse)} \\[6pt]
+    \displaystyle\rho\,\DD{\bm{U}} = -\nabla p + \nabla\cdot\ten{\tau} + \rho\bm{g}
+    & \text{(quantit\'e de mouvement)} \\[6pt]
+    \displaystyle\rho\,\DD{e} = -p\,\nabla\cdot\bm{U} + \ten{\tau}:\ten{D}
+                                - \nabla\cdot\bm{q} + \rho q_\star
+    & \text{(\'energie interne)}
+  \end{cases}
+\]
+compl\'et\'e par $p = p(\rho,T)$, $e = e(\rho,T)$, $\mu,\lambda,k = f(\rho,T)$.
+\end{importantbox}
+
+Ce syst\`eme compte $5$ \'equations scalaires pour $5$ inconnues primaires ($\rho$, trois
+composantes de $\bm{U}$, $e$ ou $T$)~; $p$ est \'eliminable via la loi d'\'etat.
+
+\subsection{Conditions aux limites thermiques}
+
+\`A une paroi solide, en plus de la condition de non-glissement
+$\bm{U} = \bm{U}_{\mathrm{paroi}}$, il faut prescrire la condition thermique~:
+\begin{itemize}
+  \item \textbf{Paroi isotherme~:} $T = T_{\mathrm{paroi}}$.
+  \item \textbf{Paroi adiabatique~:} $\bm{q}\cdot\bm{n} = 0$,
+        soit $\partial T/\partial n = 0$.
+\end{itemize}
+
+% ------------------------------------------
+\section{Entropie et second principe}
+% ------------------------------------------
+
+\subsection{\'Equation de transport de l'entropie}
+
+On a vu que la relation de Gibbs relie $\mathrm{d}s$, $\mathrm{d}e$ et $\mathrm{d}(1/\rho)$ pour un syst\`eme \`a l'\'equilibre. Mais une particule fluide en mouvement n'est pas \`a l'\'equilibre global~: elle subit de la dissipation visqueuse et de la conduction thermique, deux processus irr\'eversibles. La question est~: \`a quel taux son entropie augmente-t-elle~? Pour r\'epondre, on combine la relation de Gibbs avec les bilans de masse et d'\'energie interne d\'ej\`a \'etablis.
+
+Appliquons la relation de Gibbs \`a une particule fluide~:
+$T\,\DD{s} = \DD{e} + \frac{p}{\rho^2}\DD{\rho}$.
+La conservation de la masse donne $\frac{1}{\rho}\DD{\rho} = -\nabla\cdot\bm{U}$,
+et en substituant l'\'equation de l'\'energie interne~:
+
+\begin{importantbox}{\'Equation de transport de l'entropie}
+\[
+  \rho\,\DD{s}
+  = \underbrace{\frac{\ten{\tau}:\ten{D}}{T}
+                - \frac{\bm{q}\cdot\nabla T}{T^2}}_{\text{production d'entropie }\geq 0}
+    + \nabla\cdot\!\left(\frac{\bm{q}}{T}\right)
+    + \frac{\rho q_\star}{T}
+\]
+\end{importantbox}
+
+Le terme de production est la somme de deux contributions toujours positives~:
+\begin{itemize}
+  \item $\ten{\tau}:\ten{D}/T \geq 0$~: dissipation m\'ecanique par viscosit\'e.
+  \item $-\bm{q}\cdot\nabla T/T^2 = k(\nabla T)^2/T^2 \geq 0$~: dissipation
+        thermique par conduction.
+\end{itemize}
+
+\subsection{Contraintes impos\'ees par le second principe}
+
+Pour un syst\`eme isol\'e, la production totale d'entropie doit \^etre positive. En
+analysant cette condition pour tous les \'etats possibles, on d\'emontre~:
+\[
+  \mu \geq 0, \quad \lambda \geq -\tfrac{2}{3}\mu, \quad k \geq 0.
+\]
+Ces in\'egalit\'es ne sont donc pas des choix mais des \emph{cons\'equences} du second
+principe de la thermodynamique.
+
+\subsection{\'Equation de transport de la temp\'erature}
+
+\`A partir de $s = s(p,T)$ et des relations de Maxwell, on d\'erive une \'equation de
+transport pour $T$~:
+
+\begin{importantbox}{\'Equation de la temp\'erature (cas g\'en\'eral)}
+\[
+  \rho c_p\,\DD{T}
+  = \ten{\tau}:\ten{D}
+    + \beta T\,\DD{p}
+    - \nabla\cdot\bm{q}
+    + \rho q_\star,
+\]
+o\`u $\beta$ est le coefficient de dilatation thermique ($\beta = 1/T$ pour un gaz parfait).
+\end{importantbox}
+
+Pour un liquide incompressible ($\nabla\cdot\bm{U}=0$, $\beta \simeq 0$)~:
+$\rho c\,\DD{T} = k\nabla^2 T + \ten{\tau}:\ten{D} + \rho q_\star$,
+qui est l'\'equation de la chaleur convect\'ee.
+
+% ------------------------------------------
+\section{Effets de compressibilit\'e et nombre de Mach}
+% ------------------------------------------
+
+On dispose d\'esormais du syst\`eme complet d'\'equations. Mais \`a quoi ressemblent concr\`etement les \'ecoulements compressibles~? Comment quantifier le moment o\`u l'hypoth\`ese incompressible ne tient plus~? Et que se passe-t-il quand un avion d\'epasse la vitesse du son~? Pour r\'epondre \`a ces questions, il faut d'abord comprendre ce qu'est la vitesse du son et pourquoi elle joue un r\^ole si particulier.
+
+\subsection{Vitesse du son --- naissance du nombre de Mach}
+
+Imaginons qu'on claque des mains dans l'air. L'information ``il y a eu une surpression ici'' se propage sous forme d'onde sonore. \`A quelle vitesse~? C'est une question fondamentale, car cette vitesse fixe la fronti\`ere entre les r\'egimes subsonique et supersonique.
+
+Physiquement, la vitesse du son est la vitesse \`a laquelle les mol\'ecules transmettent une perturbation de pression de proche en proche. Elle d\'epend de la \emph{compressibilit\'e isentropique} du milieu~: plus un gaz est ``raide'' (difficile \`a comprimer), plus le son s'y propage vite. Formellement, une analyse de perturbation lin\'eaire des \'equations compressibles montre que les ondes acoustiques se propagent \`a~:
+
+\begin{defbox}{Vitesse du son}
+\[
+  c^2 = \left.\pd{p}{\rho}\right|_s = \frac{\gamma p}{\rho} = \gamma r T
+  \qquad \text{(gaz parfait)}
+\]
+\end{defbox}
+
+Cette d\'eriv\'ee est prise \`a entropie constante car la propagation acoustique est
+adiabatique r\'eversible. Pour l'air \`a $T = 288\,\mathrm{K}$~:
+$c = \sqrt{1{,}4 \times 287 \times 288} \approx 340\,\mathrm{m/s}$.
+
+Le \textbf{nombre de Mach} compare la vitesse locale du fluide \`a la vitesse du son~:
+$M = U/c = U/\sqrt{\gamma r T}$.
+
+\begin{center}
+\begin{tikzpicture}[font=\small]
+  \draw[->] (0,0) -- (9,0) node[right] {$M$};
+  \fill[blue!15]  (0,0) rectangle (1.5,0.5);
+  \fill[green!20] (1.5,0) rectangle (4.2,0.5);
+  \fill[orange!30](4.2,0) rectangle (6.0,0.5);
+  \fill[red!25]   (6.0,0) rectangle (8.5,0.5);
+  \node at (0.75,0.25) {incomp.};
+  \node at (2.85,0.25) {subsonique};
+  \node at (5.10,0.25) {transsonique};
+  \node at (7.25,0.25) {supersonique};
+  \foreach \x/\lab in {1.5/0.3, 4.2/0.8, 6.0/1.2}{
+    \draw (\x,-0.15)--(\x,0.65) node[above,font=\tiny] {$M=\lab$};
+  }
+  \draw[blue!70!black, thick, ->] (2.95,-0.5) -- (2.95,-0.05);
+  \node[blue!70!black, below] at (2.95,-0.5) {Rafale $M_\infty\!\simeq\!0{,}59$};
+\end{tikzpicture}
+\end{center}
+
+\subsection{Mod\`ele 1D compressible --- enthalpie totale conserv\'ee}
+
+Consid\'erons un \'ecoulement 1D stationnaire, non visqueux, sans gravit\'e ni apport
+thermique, dans un conduit de section variable (mod\`ele de la tuy\`ere du M88-2).
+La conservation de l'enthalpie totale g\'en\'eralise Bernoulli au cas compressible~:
+
+L'\textbf{enthalpie totale} est d\'efinie par~:
+\[
+  h_t = h + \frac{U^2}{2} = e + \frac{p}{\rho} + \frac{U^2}{2}.
+\]
+Le long d'une ligne de courant en \'ecoulement adiabatique non visqueux, $h_t$ est
+conserv\'ee~: la pression statique et l'enthalpie interne \'evoluent ensemble quand la
+vitesse change, mais leur somme reste constante.
+
+\subsection{Tube de Pitot compressible --- temp\'erature et pression de stagnation}
+
+Le tube de Pitot (chapitre~1) mesure la pression d'arr\^et en amenant le fluide au
+repos isentropiquement. La conservation de $h_t$ entre l'\'ecoulement libre et le
+point d'arr\^et ($U_0 = 0$) donne~:
+\[
+  c_p T_1 + \frac{U_1^2}{2} = c_p T_0
+  \quad\implies\quad
+  T_0 = T_1\!\left(1 + \frac{\gamma-1}{2}M_1^2\right).
+\]
+Pour le Rafale \`a $M = 0{,}59$, $T_\infty = 288\,\mathrm{K}$~:
+$T_0 \simeq 288\,(1 + 0{,}2 \times 0{,}59^2) \simeq 308\,\mathrm{K}$. L'\'echauffement
+a\'erodynamique est d\'ej\`a de $20\,\mathrm{K}$.
+
+La relation isentropique $p/\rho^\gamma = \mathrm{cst}$ combin\'ee \`a la loi des gaz
+parfaits donne la pression de stagnation~:
+
+\begin{importantbox}{Pression de stagnation --- tube de Pitot compressible}
+\[
+  \frac{p_0}{p_1} = \left(1 + \frac{\gamma-1}{2}M_1^2\right)^{\!\gamma/(\gamma-1)}
+\]
+En d\'eveloppant au premier ordre en $M^2$, on retrouve la formule de Bernoulli
+incompressible $p_0 - p_1 \simeq \tfrac{1}{2}\rho U^2$. La d\'eviation atteint 5\,\%
+\`a $M \simeq 0{,}3$~: c'est le crit\`ere classique de validit\'e du mod\`ele incompressible.
+\end{importantbox}
+
+\subsection{\'Ecoulements supersoniques et onde de choc}
+
+Quand $M > 1$, la physique change radicalement. Une perturbation ne peut plus se propager
+en amont~: le fluide ne ``sait pas'' qu'il va rencontrer un obstacle. L'adaptation se fait
+brutalement via une \textbf{onde de choc}, surface de discontinuit\'e \`a travers laquelle~:
+\begin{itemize}
+  \item la vitesse chute soudainement~;
+  \item la pression, la temp\'erature et la masse volumique sautent~;
+  \item l'entropie \emph{augmente}~: le choc est irr\'eversible.
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}[font=\small, scale=1.0]
+  \fill[gray!20] (0,-0.4) -- (4,0) -- (0,0.4) -- cycle;
+  \draw[thick] (0,-0.4) -- (4,0) -- (0,0.4);
+  \draw[red!80!black, very thick] (0,-1.5) -- (0,1.5) node[above, red!80!black] {choc droit};
+  \foreach \y in {-1.2,-0.7,-0.2,0.3,0.8,1.2}{
+    \draw[->, blue!70] (-2.2,\y) -- (-0.2,\y);
+  }
+  \node[blue!70] at (-1.5,-1.7) {$M_1 > 1$, $p_1$, $T_1$};
+  \foreach \y in {-1.2,-0.7,0.8,1.2}{
+    \draw[->, orange!80!black] (0.2,\y) -- (1.5,\y);
+  }
+  \node[orange!80!black] at (2.5,-1.7) {$M_2 < 1$, $p_2 > p_1$, $T_2 > T_1$};
+\end{tikzpicture}
+\end{center}
+
+Les ondes de choc sont visibles autour du Rafale lors du passage transsonique et \`a
+l'entr\'ee du r\'eacteur M88-2 o\`u un choc est utilis\'e pour d\'ec\'el\'erer le flux
+avant la chambre de combustion. Les relations de Rankine-Hugoniot relient les grandeurs
+de part et d'autre du choc via les bilans de masse, de quantit\'e de mouvement et
+d'enthalpie totale.
+
+% ==========================================
+\section*{R\'esum\'e du chapitre}
+\addcontentsline{toc}{section}{R\'esum\'e du chapitre}
+% ==========================================
+
+\begin{importantbox}{Ce qu'il faut retenir}
+\begin{enumerate}
+  \item En \'ecoulement compressible ($\nabla\cdot\bm{U}\neq 0$), la dynamique
+        et la thermique sont coupl\'ees~: il faut r\'esoudre simultan\'ement masse,
+        quantit\'e de mouvement et \'energie.
+  \item La loi de Newton compressible introduit la deuxi\`eme viscosit\'e $\lambda$~;
+        la loi de Fourier $\bm{q}=-k\nabla T$ mod\'elise la conduction.
+  \item La relation de Gibbs $T\,\mathrm{d}s = \mathrm{d}e + p\,\mathrm{d}(1/\rho)$
+        est l'identit\'e thermodynamique fondamentale.
+  \item La vitesse du son $c = \sqrt{\gamma r T}$ et le nombre de Mach $M = U/c$
+        caract\'erisent l'importance des effets compressibles~; le crit\`ere $M < 0{,}3$
+        valide le mod\`ele incompressible.
+  \item L'enthalpie totale $h_t = h + U^2/2$ est conserv\'ee le long d'une ligne de
+        courant en \'ecoulement adiabatique non visqueux.
+  \item Le second principe impose $\mu \geq 0$, $\lambda \geq -2\mu/3$, $k \geq 0$.
+\end{enumerate}
+\end{importantbox}
+
+\end{document}

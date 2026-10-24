@@ -12,6 +12,11 @@ import { NewTopicPage } from './pages/NewTopicPage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
 import { AdminEventsPage } from './pages/AdminEventsPage';
 import { CourseGeneratorPage } from './pages/CourseGeneratorPage';
+<<<<<<< HEAD
+=======
+import { DocumentsPage } from './pages/DocumentsPage';
+import { SettingsPage } from './pages/SettingsPage';
+>>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
 
 function App() {
   return (
@@ -72,6 +77,25 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <CourseGeneratorPage />
+<<<<<<< HEAD
+=======
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/documents"
+                  element={
+                    <ProtectedRoute>
+                      <DocumentsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      <SettingsPage />
+>>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
                     </ProtectedRoute>
                   }
                 />
