@@ -29,15 +29,9 @@ STORAGE_DIR = Path("storage/generated_pdfs")
 INDEX_FILE = STORAGE_DIR / "index.json"
 
 # Constants
-<<<<<<< HEAD
-PDF_EXPIRATION_HOURS = 1
-AI_TIMEOUT_SECONDS = 120
-PDFLATEX_TIMEOUT_SECONDS = 120
-=======
 PDF_EXPIRATION_HOURS = 1  # Default, overridden by app_settings_service
 AI_TIMEOUT_SECONDS = 1800
 PDFLATEX_TIMEOUT_SECONDS = 1800
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
 MAX_FILENAME_LENGTH = 100  # Including .pdf extension
 COMPILER_ERROR_MAX_CHARS = 2000
 
@@ -106,10 +100,7 @@ class CourseService:
         audience: str,
         ai_provider: str,
         user_id: str,
-<<<<<<< HEAD
-=======
         custom_context: Optional[str] = None,
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
     ) -> str:
         """
         Generate an adapted LaTeX course using AI.
@@ -122,10 +113,7 @@ class CourseService:
             audience: Target audience level.
             ai_provider: AI provider name (shai, kiro, openai).
             user_id: Authenticated user ID.
-<<<<<<< HEAD
-=======
             custom_context: Optional user-provided additional context appended to the prompt.
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
 
         Returns:
             The adapted LaTeX content as a string.
@@ -153,14 +141,6 @@ class CourseService:
         logger.info(f"Reading tex file: {tex_file}")
 
         tex_content = tex_file.read_text(encoding="utf-8")
-<<<<<<< HEAD
-
-        # Build the adaptation prompt
-        prompt = build_adaptation_prompt(tex_content, audience)
-
-        # Call the AI provider with timeout
-        provider = get_ai_provider(ai_provider)
-=======
         logger.info(
             f"Tex file read successfully: {tex_file} "
             f"({len(tex_content)} chars, {len(tex_content.splitlines())} lines)"
@@ -208,7 +188,6 @@ class CourseService:
         logger.info(
             f"AI provider '{ai_provider}' initialized, sending query..."
         )
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
 
         try:
             result = await asyncio.wait_for(
@@ -223,21 +202,12 @@ class CourseService:
         except asyncio.TimeoutError:
             logger.error(
                 f"AI provider '{ai_provider}' timeout after {AI_TIMEOUT_SECONDS}s "
-<<<<<<< HEAD
-                f"for course '{course_name}'"
-=======
                 f"for course '{course_name}' (user: {user_id})"
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
             )
             raise TimeoutError(
                 f"Le fournisseur IA '{ai_provider}' n'a pas répondu dans le délai "
                 f"de {AI_TIMEOUT_SECONDS} secondes"
             )
-<<<<<<< HEAD
-
-        latex_content = result.get("answer", "")
-        if not latex_content:
-=======
         except Exception as e:
             logger.error(
                 f"AI provider '{ai_provider}' raised an exception for "
@@ -259,16 +229,11 @@ class CourseService:
                 f"course '{course_name}' (user: {user_id}). "
                 f"Full result keys: {list(result.keys())}"
             )
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
             raise Exception(
                 f"Le fournisseur IA '{ai_provider}' n'a retourné aucun contenu"
             )
 
         logger.info(
-<<<<<<< HEAD
-            f"Course generated: {course_name} for {audience} via {ai_provider} "
-            f"(user: {user_id})"
-=======
             f"AI response received: {len(latex_content)} chars. "
             f"Cleaning LaTeX response..."
         )
@@ -280,7 +245,6 @@ class CourseService:
             f"Course generated successfully: {course_name} for {audience} "
             f"via {ai_provider} (user: {user_id}, "
             f"final_latex_length={len(latex_content)} chars)"
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
         )
         return latex_content
 
@@ -325,10 +289,7 @@ class CourseService:
                         [
                             "pdflatex",
                             "-interaction=nonstopmode",
-<<<<<<< HEAD
-=======
                             "-shell-escape",
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
                             "-output-directory",
                             tmpdir,
                             str(tex_path),
@@ -352,13 +313,6 @@ class CourseService:
             # Check for compilation failure
             pdf_output = Path(tmpdir) / "document.pdf"
             if not pdf_output.exists():
-<<<<<<< HEAD
-                error_log = process.stdout or ""
-                error_log_truncated = error_log[:COMPILER_ERROR_MAX_CHARS]
-                logger.error(
-                    f"pdflatex compilation failed for '{course_name}': "
-                    f"{error_log_truncated[:200]}"
-=======
                 # Read the .log file for detailed error info
                 log_file = Path(tmpdir) / "document.log"
                 if log_file.exists():
@@ -377,19 +331,12 @@ class CourseService:
                 logger.error(
                     f"pdflatex compilation failed for '{course_name}': "
                     f"{error_log_truncated[:500]}"
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
                 )
                 raise RuntimeError(error_log_truncated)
 
             # Move PDF to storage
             dest_path = STORAGE_DIR / f"{download_id}.pdf"
             shutil.copy2(str(pdf_output), str(dest_path))
-<<<<<<< HEAD
-
-        # Create metadata entry
-        now = datetime.now(timezone.utc)
-        expires_at = now + timedelta(hours=PDF_EXPIRATION_HOURS)
-=======
             logger.info(
                 f"Generated PDF stored at: {dest_path.resolve()} "
                 f"(course='{course_name}', audience='{audience}', user='{user_id}')"
@@ -400,7 +347,6 @@ class CourseService:
         from app.settings.service import app_settings_service
         ttl_hours = app_settings_service.get("pdf_ttl_hours")
         expires_at = now + timedelta(hours=ttl_hours)
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
 
         entry = GeneratedPDF(
             download_id=download_id,
@@ -472,8 +418,6 @@ class CourseService:
 
         return entry["file_path"], entry["filename"]
 
-<<<<<<< HEAD
-=======
     def list_user_pdfs(self, user_id: str) -> list:
         """
         List all non-expired generated PDFs for a given user.
@@ -514,7 +458,6 @@ class CourseService:
         user_pdfs.sort(key=lambda x: x["created_at"], reverse=True)
         return user_pdfs
 
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
     def cleanup_expired_pdfs(self) -> int:
         """
         Remove expired PDFs and their metadata entries.
@@ -549,8 +492,6 @@ class CourseService:
     # Private helpers
     # ------------------------------------------------------------------
 
-<<<<<<< HEAD
-=======
     def _clean_latex_response(self, content: str) -> str:
         """
         Clean AI response to extract pure LaTeX content.
@@ -582,7 +523,6 @@ class CourseService:
 
         return content.strip()
 
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
     def _generate_filename(self, course_name: str, audience: str) -> str:
         """
         Generate a sanitized PDF filename.

@@ -1,16 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-<<<<<<< HEAD
-import {
-  listCourses,
-  generateCourse,
-  getDownloadUrl,
-=======
 import eduscalarLogo from '../assets/eduscalar.svg';
 import {
   listCourses,
   generateCourse,
   downloadPdf,
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
   AUDIENCE_LABELS,
   AI_PROVIDERS,
   type CourseItem,
@@ -32,10 +25,7 @@ export const CourseGeneratorPage = () => {
   const [result, setResult] = useState<GenerateResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [errorType, setErrorType] = useState<string | null>(null);
-<<<<<<< HEAD
-=======
   const [customContext, setCustomContext] = useState<string>('');
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
 
   const [successNotification, setSuccessNotification] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -54,14 +44,9 @@ export const CourseGeneratorPage = () => {
         );
         setCourses(sorted);
       } catch (err: any) {
-<<<<<<< HEAD
-        setCoursesError(
-          err.response?.data?.detail || 'Erreur lors du chargement des cours'
-=======
         const detail = err.response?.data?.detail;
         setCoursesError(
           typeof detail === 'string' ? detail : 'Erreur lors du chargement des cours'
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
         );
       } finally {
         setCoursesLoading(false);
@@ -93,25 +78,12 @@ export const CourseGeneratorPage = () => {
         course_name: selectedCourse,
         audience,
         ai_provider: provider,
-<<<<<<< HEAD
-=======
         custom_context: customContext.trim() || undefined,
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
       });
       setResult(response);
       setSuccessNotification(response.course_name);
     } catch (err: any) {
       const data = err.response?.data;
-<<<<<<< HEAD
-      const message =
-        data?.detail || data?.error || err.message || 'Erreur lors de la génération';
-      setError(message);
-      setErrorType(data?.error_type || null);
-    } finally {
-      setGenerating(false);
-    }
-  }, [selectedCourse, audience, provider, generating]);
-=======
       // Extract error message as a string — avoid passing objects to React state
       let message: string;
       if (typeof data?.detail === 'string') {
@@ -135,7 +107,6 @@ export const CourseGeneratorPage = () => {
       setGenerating(false);
     }
   }, [selectedCourse, audience, provider, customContext, generating]);
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
 
   // --- Copy LaTeX content ---
   const handleCopyLatex = useCallback(async () => {
@@ -171,23 +142,6 @@ export const CourseGeneratorPage = () => {
     URL.revokeObjectURL(url);
   }, [result]);
 
-<<<<<<< HEAD
-  // --- Download PDF ---
-  const handleDownloadPdf = useCallback(() => {
-    if (!result?.download_id) return;
-
-    // Check expiration
-    if (result.expires_at && new Date(result.expires_at) < new Date()) {
-      setPdfExpired(true);
-      return;
-    }
-
-    const url = getDownloadUrl(result.download_id);
-    window.open(url, '_blank');
-  }, [result]);
-=======
-
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
 
   const canGenerate = selectedCourse !== null && !generating;
 
@@ -195,12 +149,6 @@ export const CourseGeneratorPage = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-lg shadow-xl p-8 mb-6">
-<<<<<<< HEAD
-        <h1 className="text-4xl font-bold text-white mb-2">📚 Générateur de Cours</h1>
-        <p className="text-emerald-100">
-          Adaptez vos cours de mathématiques à votre public cible grâce à l'intelligence artificielle
-        </p>
-=======
         <div className="flex items-center gap-4">
           <img src={eduscalarLogo} alt="EduScalar" className="h-20 w-20 object-contain" />
           <div>
@@ -210,7 +158,6 @@ export const CourseGeneratorPage = () => {
             </p>
           </div>
         </div>
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
       </div>
 
       {/* Success Notification */}
@@ -232,13 +179,8 @@ export const CourseGeneratorPage = () => {
         </div>
       )}
 
-<<<<<<< HEAD
-      {/* 3-section layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-=======
       {/* 4-section layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
         {/* Section 1: Course Selection */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
@@ -348,19 +290,12 @@ export const CourseGeneratorPage = () => {
           </div>
         </div>
 
-<<<<<<< HEAD
-        {/* Section 3: Generation & Download */}
-        <div className="bg-white rounded-lg shadow-md p-6 md:col-span-2 lg:col-span-1">
-=======
         {/* Section 3: Custom Context */}
         <div className="bg-white rounded-lg shadow-md p-6">
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
           <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
             <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold mr-2">
               3
             </span>
-<<<<<<< HEAD
-=======
             Contexte personnel complémentaire
           </h2>
 
@@ -389,7 +324,6 @@ export const CourseGeneratorPage = () => {
             <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold mr-2">
               4
             </span>
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
             Génération & Téléchargement
           </h2>
 
@@ -422,11 +356,7 @@ export const CourseGeneratorPage = () => {
               </div>
               <p className="text-gray-600 text-sm font-medium">Génération en cours...</p>
               <p className="text-gray-500 text-xs mt-1">
-<<<<<<< HEAD
-                L'IA adapte le contenu pour le niveau sélectionné
-=======
                 L'IA adapte le contenu pour le niveau sélectionné. Cela peut prendre 15 minutes !
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
               </p>
             </div>
           )}
@@ -496,15 +426,6 @@ export const CourseGeneratorPage = () => {
                 </pre>
               </div>
 
-<<<<<<< HEAD
-              {/* PDF Download Button */}
-              <button
-                onClick={handleDownloadPdf}
-                className="w-full px-6 py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200"
-              >
-                📥 Télécharger le PDF
-              </button>
-=======
               {/* PDF Download Link */}
               {result.download_id && (
                 <button
@@ -520,7 +441,6 @@ export const CourseGeneratorPage = () => {
                   📥 Télécharger le PDF — {result.filename}
                 </button>
               )}
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
             </div>
           )}
         </div>

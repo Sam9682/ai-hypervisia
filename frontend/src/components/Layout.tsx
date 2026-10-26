@@ -58,11 +58,7 @@ export const Layout = ({ children }: LayoutProps) => {
                       <span className="mr-1">📄</span> Documents
                     </Link>
                     <Link to="/oracle" className="inline-flex items-center px-3 pt-1 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors border-b-2 border-transparent hover:border-primary-600">
-<<<<<<< HEAD
-                      <span className="mr-1">📚</span> Générateur de Cours
-=======
                       <span className="mr-1">📚</span> EduScalar: Générateur de Cours
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
                     </Link>
                     {isAdmin && (
                       <Link to="/admin/users" className="inline-flex items-center px-3 pt-1 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors border-b-2 border-transparent hover:border-primary-600">
@@ -168,11 +164,7 @@ export const Layout = ({ children }: LayoutProps) => {
                     onClick={() => setMobileMenuOpen(false)}
                     className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-colors"
                   >
-<<<<<<< HEAD
-                    <span className="mr-2">📚</span> Générateur de Cours
-=======
                     <span className="mr-2">📚</span> EduScalar: Générateur de Cours
->>>>>>> 8e786d49ab0a865e48b106240b65fac520f44fcc
                   </Link>
                   {isAdmin && (
                     <Link
