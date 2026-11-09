@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { forumService, type TopicDetail, type Post } from '../services/forumService';
 import { authService } from '../services/authService';
 import { RichTextEditor } from '../components/RichTextEditor';
+import type { ApiError } from "../utils/errors";
 
 export const TopicDetailPage = () => {
   const { topicId } = useParams<{ topicId: string }>();
@@ -47,7 +48,8 @@ export const TopicDetailPage = () => {
         ? await forumService.getTopic(topicId)
         : await forumService.getTopicPublic(topicId);
       setTopic(data);
-    } catch (err: any) {
+    } catch (caught) {
+      const err = caught as ApiError;
       setError(err.response?.data?.error?.message || 'Erreur lors du chargement du sujet');
     } finally {
       setLoading(false);
@@ -64,7 +66,8 @@ export const TopicDetailPage = () => {
       await forumService.createPost(topicId, { content: replyContent });
       setReplyContent('');
       await loadTopic();
-    } catch (err: any) {
+    } catch (caught) {
+      const err = caught as ApiError;
       setSubmitError(err.response?.data?.error?.message || 'Erreur lors de l\'envoi de la réponse');
     } finally {
       setSubmitting(false);
@@ -89,7 +92,8 @@ export const TopicDetailPage = () => {
       setEditingPostId(null);
       setEditContent('');
       await loadTopic();
-    } catch (err: any) {
+    } catch (caught) {
+      const err = caught as ApiError;
       alert(err.response?.data?.error?.message || 'Erreur lors de la modification');
     }
   };
@@ -102,7 +106,8 @@ export const TopicDetailPage = () => {
     try {
       await forumService.deletePost(postId);
       await loadTopic();
-    } catch (err: any) {
+    } catch (caught) {
+      const err = caught as ApiError;
       alert(err.response?.data?.error?.message || 'Erreur lors de la suppression');
     }
   };
@@ -128,11 +133,8 @@ export const TopicDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-12">
-        <div className="text-center">
-          <span className="text-5xl animate-spin inline-block">⏳</span>
-          <p className="mt-4 text-gray-600 font-medium">Chargement...</p>
-        </div>
+      <div className="flex justify-center items-center py-12" role="status">
+        <p className="text-slate-600 font-medium">Chargement...</p>
       </div>
     );
   }
@@ -140,14 +142,11 @@ export const TopicDetailPage = () => {
   if (error || !topic) {
     return (
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg mb-4">
-          <div className="flex items-center">
-            <span className="text-2xl mr-3">⚠️</span>
-            <p className="text-red-700 font-medium">{error || 'Sujet introuvable'}</p>
-          </div>
+        <div role="alert" className="bg-white border border-brand-red border-l-4 p-4 rounded-lg mb-4">
+          <p className="text-brand-red font-medium">{error || 'Sujet introuvable'}</p>
         </div>
-        <Link to="/forum" className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium">
-          <span className="mr-2">←</span> Retour au forum
+        <Link to="/forum" className="inline-flex items-center text-navy-700 hover:text-navy-900 font-medium">
+          Retour au forum
         </Link>
       </div>
     );
@@ -156,33 +155,30 @@ export const TopicDetailPage = () => {
   return (
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="mb-6">
-        <Link to="/forum" className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium transition-colors">
-          <span className="mr-2">←</span> Retour au forum
+        <Link to="/forum" className="inline-flex items-center text-navy-700 hover:text-navy-900 font-medium transition-colors">
+          Retour au forum
         </Link>
       </div>
 
       {/* Topic Header */}
-      <div className="bg-white/80 backdrop-blur-sm shadow-xl rounded-2xl overflow-hidden border border-primary-100 mb-6">
+      <div className="card overflow-hidden mb-6">
         <div className="px-6 py-6">
           <div className="flex items-center space-x-3 mb-4">
-            <span className="text-4xl">💭</span>
-            <h1 className="text-3xl font-extrabold text-gray-900">{topic.title}</h1>
+            <h1 className="text-3xl font-extrabold text-navy-900">{topic.title}</h1>
             {topic.is_pinned && (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-yellow-400 to-orange-400 text-white shadow-sm">
-                📌 Épinglé
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-navy-100 text-navy-900">
+                Épinglé
               </span>
             )}
             {topic.is_locked && (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-200 text-gray-700">
-                🔒 Verrouillé
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-navy-100 text-navy-900">
+                Verrouillé
               </span>
             )}
           </div>
-          <div className="flex items-center text-sm text-gray-600">
-            <span className="mr-2">👤</span>
-            <span className="font-medium">{topic.author_name}</span>
-            <span className="mx-3">•</span>
-            <span className="mr-2">📅</span>
+          <div className="flex items-center text-sm text-slate-600">
+            <span className="font-medium">Par {topic.author_name}</span>
+            <span className="mx-3">·</span>
             <span>{formatDate(topic.created_at)}</span>
           </div>
         </div>
@@ -191,21 +187,21 @@ export const TopicDetailPage = () => {
       {/* Posts */}
       <div className="space-y-4 mb-6">
         {topic.posts.map((post) => (
-          <div key={post.id} className="bg-white/80 backdrop-blur-sm shadow-lg rounded-2xl overflow-hidden border border-gray-100">
+          <div key={post.id} className="card overflow-hidden">
             <div className="px-6 py-5">
               <div className="flex items-start space-x-4">
                 <div className="flex-shrink-0">
-                  <div className="h-12 w-12 rounded-full bg-gradient-to-r from-primary-600 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                  <div className="h-12 w-12 rounded-full bg-navy-900 flex items-center justify-center text-white font-bold text-lg">
                     {post.author_name.charAt(0).toUpperCase()}
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <p className="text-sm font-bold text-gray-900">{post.author_name}</p>
-                      <p className="text-xs text-gray-500">{formatDate(post.created_at)}</p>
+                      <p className="text-sm font-bold text-navy-900">{post.author_name}</p>
+                      <p className="text-xs text-slate-500">{formatDate(post.created_at)}</p>
                       {post.updated_at !== post.created_at && (
-                        <p className="text-xs text-gray-400 italic">Modifié le {formatDate(post.updated_at)}</p>
+                        <p className="text-xs text-slate-500 italic">Modifié le {formatDate(post.updated_at)}</p>
                       )}
                     </div>
                     {isAuthenticated && editingPostId !== post.id && (
@@ -213,17 +209,17 @@ export const TopicDetailPage = () => {
                         {canEditPost(post) && (
                           <button
                             onClick={() => handleEditPost(post)}
-                            className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                            className="text-sm text-navy-700 hover:text-navy-900 font-medium transition-colors"
                           >
-                            ✏️ Modifier
+                            Modifier
                           </button>
                         )}
                         {canDeletePost() && (
                           <button
                             onClick={() => handleDeletePost(post.id)}
-                            className="text-sm text-red-600 hover:text-red-700 font-medium transition-colors"
+                            className="text-sm text-brand-red hover:text-brand-red-dark font-medium transition-colors"
                           >
-                            🗑️ Supprimer
+                            Supprimer
                           </button>
                         )}
                       </div>
@@ -240,21 +236,21 @@ export const TopicDetailPage = () => {
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleSaveEdit(post.id)}
-                          className="px-4 py-2 text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                          className="btn-primary text-sm"
                         >
-                          💾 Enregistrer
+                          Enregistrer
                         </button>
                         <button
                           onClick={handleCancelEdit}
-                          className="px-4 py-2 text-sm font-semibold rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                          className="btn-secondary text-sm"
                         >
-                          ❌ Annuler
+                          Annuler
                         </button>
                       </div>
                     </div>
                   ) : (
                     <div 
-                      className="mt-2 text-gray-700 prose prose-sm max-w-none"
+                      className="mt-2 text-slate-700 prose prose-sm max-w-none"
                       dangerouslySetInnerHTML={{ __html: post.content }}
                     />
                   )}
@@ -267,42 +263,30 @@ export const TopicDetailPage = () => {
 
       {/* Reply Form */}
       {!topic.is_locked && (
-        <div className="bg-white/80 backdrop-blur-sm shadow-xl rounded-2xl overflow-hidden border border-primary-100">
+        <div className="card overflow-hidden">
           <div className="px-6 py-6">
             <div className="flex items-center mb-4">
-              <span className="text-2xl mr-3">✍️</span>
-              <h3 className="text-xl font-bold text-gray-900">Répondre</h3>
+              <h3 className="text-xl font-bold text-navy-900">Répondre</h3>
             </div>
             <form onSubmit={handleSubmitReply}>
               {submitError && (
-                <div className="mb-4 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-                  <div className="flex items-center">
-                    <span className="text-2xl mr-3">⚠️</span>
-                    <p className="text-red-700 font-medium">{submitError}</p>
-                  </div>
+                <div role="alert" className="mb-4 bg-white border border-brand-red border-l-4 p-4 rounded-lg">
+                  <p className="text-brand-red font-medium">{submitError}</p>
                 </div>
               )}
               <RichTextEditor
                 value={replyContent}
                 onChange={setReplyContent}
-                placeholder="Écrivez votre réponse... Utilisez la barre d'outils pour formater votre texte, ajouter des emojis ou des images 🎨"
+                placeholder="Écrivez votre réponse... Utilisez la barre d'outils pour formater votre texte ou ajouter des images"
                 disabled={submitting}
               />
               <div className="mt-4 flex justify-end">
                 <button
                   type="submit"
                   disabled={submitting || !replyContent.trim()}
-                  className="inline-flex items-center px-6 py-3 text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-primary inline-flex items-center text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {submitting ? (
-                    <>
-                      <span className="mr-2 animate-spin">⏳</span> Envoi...
-                    </>
-                  ) : (
-                    <>
-                      <span className="mr-2">🚀</span> Envoyer
-                    </>
-                  )}
+                  {submitting ? 'Envoi...' : 'Envoyer'}
                 </button>
               </div>
             </form>
@@ -311,11 +295,8 @@ export const TopicDetailPage = () => {
       )}
 
       {topic.is_locked && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
-          <div className="flex items-center">
-            <span className="text-2xl mr-3">🔒</span>
-            <p className="text-yellow-800 font-medium">Ce sujet est verrouillé. Vous ne pouvez plus y répondre.</p>
-          </div>
+        <div className="disclaimer">
+          <p className="font-medium">Ce sujet est verrouillé. Vous ne pouvez plus y répondre.</p>
         </div>
       )}
     </div>

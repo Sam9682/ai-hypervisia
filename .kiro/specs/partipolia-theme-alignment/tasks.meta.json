@@ -1,0 +1,295 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Add vitest, @testing-library/react, @testing-library/user-event, jsdom and fast-check": [
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215385599
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215396567
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215911934
+      }
+    ],
+    "2.1 Rewrite `frontend/src/index.css`": [
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215385869
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215396976
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215912837
+      }
+    ],
+    "2.2 Remove legacy colours from `frontend/tailwind.config.js`": [
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215386411
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215397717
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215913531
+      }
+    ],
+    "2.3 Update `frontend/index.html`": [
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215386862
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215398513
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215914148
+      }
+    ],
+    "3.1 Create `frontend/src/utils/navigation.ts`": [
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215387318
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215399156
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215914950
+      }
+    ],
+    "3.2 Rebuild `frontend/src/components/Layout.tsx`": [
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215387687
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215921255
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794217239720
+      }
+    ],
+    "4. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215388103
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794220783113
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794220802689
+      }
+    ],
+    "5.1 Sweep `frontend/src/components/` (OracleWidget, MarkdownRenderer, RichTextEditor, ProtectedRoute)": [
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215388479
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215922239
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794217237082
+      }
+    ],
+    "5.2 Sweep `frontend/src/App.tsx`": [
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215388862
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215923005
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794217237392
+      }
+    ],
+    "5.3 Sweep authentication pages (LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage)": [
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215389258
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215923809
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794217238122
+      }
+    ],
+    "5.4 Sweep forum pages (ForumPage, TopicDetailPage, NewTopicPage)": [
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215389685
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215924478
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794217238920
+      }
+    ],
+    "5.5 Sweep content pages (HomePage, DocumentsPage, OraclePage)": [
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215390029
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794217240544
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794220568789
+      }
+    ],
+    "5.6 Sweep admin and tool pages (AdminUsersPage, AdminEventsPage, SettingsPage, CourseGeneratorPage)": [
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215390425
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794217241265
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794220569127
+      }
+    ],
+    "7.1 Run `npm run build` and `npm run lint` in `frontend/` and fix any errors": [
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215390923
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794220574156
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794220777801
+      }
+    ],
+    "8. Final checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215391365
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794220806211
+      },
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794220847033
+      }
+    ],
+    "1. Set up test tooling": [
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215912282
+      }
+    ],
+    "2. Theme tokens and base styles": [
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794215914481
+      }
+    ],
+    "3. Layout, navigation and accessibility": [
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794217239888
+      }
+    ],
+    "5. Sweep pages and components": [
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794220569335
+      }
+    ],
+    "7. Build and lint": [
+      {
+        "executionId": "630533a9-548b-4ccb-9b52-1ebbebb62d37",
+        "chatSessionId": "sess_e35b4e28-86d8-4118-a306-3de8e2f0b2bd",
+        "timestamp": 1794220778057
+      }
+    ]
+  }
+}

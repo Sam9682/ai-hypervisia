@@ -1,18 +1,46 @@
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
-import hypervisiaLogo from '../assets/hypervisia.png';
+import { isActivePath } from '../utils/navigation';
 
 interface LayoutProps {
   children: ReactNode;
 }
 
+interface NavItem {
+  to: string;
+  label: string;
+  requiresAuth?: boolean;
+  adminOnly?: boolean;
+  children?: NavItem[];
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { to: '/', label: 'Accueil' },
+  { to: '/forum', label: 'Forum', requiresAuth: true },
+  {
+    to: '/events',
+    label: 'Événements',
+    requiresAuth: true,
+    children: [{ to: '/admin/events', label: 'Gérer les événements', requiresAuth: true, adminOnly: true }],
+  },
+  { to: '/documents', label: 'Documents', requiresAuth: true },
+  { to: '/oracle', label: 'EduScalar: Générateur de Cours', requiresAuth: true },
+  { to: '/admin/users', label: 'Utilisateurs', requiresAuth: true, adminOnly: true },
+  { to: '/settings', label: 'Paramètres', requiresAuth: true, adminOnly: true },
+];
+
 export const Layout = ({ children }: LayoutProps) => {
   const isAuthenticated = authService.isAuthenticated();
   const isAdmin = authService.isAdmin();
-  const [showEventsMenu, setShowEventsMenu] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { pathname } = useLocation();
+
+  const isVisible = (item: NavItem) =>
+    (!item.requiresAuth || isAuthenticated) && (!item.adminOnly || isAdmin);
+
+  const visibleItems = NAV_ITEMS.filter(isVisible);
 
   const handleLogout = async () => {
     try {
@@ -23,212 +51,207 @@ export const Layout = ({ children }: LayoutProps) => {
     }
   };
 
+  const desktopLinkClass = (to: string) =>
+    `inline-flex items-center px-3 h-16 pt-1 text-sm font-medium border-b-2 transition-colors ${
+      isActivePath(pathname, to)
+        ? 'border-brand-red text-white'
+        : 'border-transparent text-navy-100 hover:text-white'
+    }`;
+
+  const mobileLinkClass = (to: string, nested = false) =>
+    `block px-3 py-2 rounded-md font-medium border-l-4 ${nested ? 'pl-8 text-sm' : 'text-base'} ${
+      isActivePath(pathname, to)
+        ? 'border-brand-red text-white bg-navy-900'
+        : 'border-transparent text-navy-100 hover:text-white hover:bg-navy-900'
+    }`;
+
   return (
-    <div className="min-h-screen">
-      <nav className="bg-white/80 backdrop-blur-md shadow-lg sticky top-0 z-50 border-b border-primary-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <Link to="/" className="flex items-center text-xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent hover:from-primary-700 hover:to-purple-700 transition-all">
-                <img src={hypervisiaLogo} alt="HYPERVIS-IA" className="h-32 w-auto mr-2 object-contain" />
-              </Link>
-              {/* Desktop Menu */}
-              <div className="hidden sm:ml-8 sm:flex sm:space-x-6">
-                <Link to="/" className="inline-flex items-center px-3 pt-1 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors border-b-2 border-transparent hover:border-primary-600">
-                  <span className="mr-1">🏠</span> Accueil
+    <div className="min-h-screen flex flex-col">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:bg-white focus:text-navy-900 focus:px-4 focus:py-2 focus:rounded"
+      >
+        Aller au contenu principal
+      </a>
+      <header className="bg-navy-950 text-white sticky top-0 z-40">
+        <nav aria-label="Navigation principale">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between h-16">
+              <div className="flex">
+                <Link to="/" className="flex items-center text-xl font-bold tracking-wide text-white">
+                  HYPERVISIA
                 </Link>
-                {isAuthenticated && (
-                  <>
-                    <Link to="/forum" className="inline-flex items-center px-3 pt-1 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors border-b-2 border-transparent hover:border-primary-600">
-                      <span className="mr-1">💬</span> Forum
-                    </Link>
-                    <div className="relative" onMouseEnter={() => setShowEventsMenu(true)} onMouseLeave={() => setShowEventsMenu(false)}>
-                      <Link to="/events" className="inline-flex items-center px-3 pt-1 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors border-b-2 border-transparent hover:border-primary-600">
-                        <span className="mr-1">📅</span> Événements {isAdmin && <span className="ml-1">▾</span>}
-                      </Link>
-                      {isAdmin && showEventsMenu && (
-                        <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                          <Link to="/admin/events" className="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">
-                            ➕ Gérer les événements
-                          </Link>
+                {/* Desktop Menu */}
+                <div className="hidden md:flex md:ml-8 md:space-x-6">
+                  {visibleItems.map((item) => {
+                    const subItems = (item.children ?? []).filter(isVisible);
+                    const active = isActivePath(pathname, item.to);
+                    if (subItems.length === 0) {
+                      return (
+                        <Link
+                          key={item.to}
+                          to={item.to}
+                          className={desktopLinkClass(item.to)}
+                          aria-current={active ? 'page' : undefined}
+                        >
+                          {item.label}
+                        </Link>
+                      );
+                    }
+                    return (
+                      <div key={item.to} className="relative group">
+                        <Link
+                          to={item.to}
+                          className={desktopLinkClass(item.to)}
+                          aria-current={active ? 'page' : undefined}
+                        >
+                          {item.label}
+                        </Link>
+                        <div className="absolute top-full left-0 w-56 bg-white border border-slate-200 rounded-md shadow-sm py-2 z-50 hidden group-hover:block group-focus-within:block">
+                          {subItems.map((sub) => (
+                            <Link
+                              key={sub.to}
+                              to={sub.to}
+                              aria-current={isActivePath(pathname, sub.to) ? 'page' : undefined}
+                              className={`block px-4 py-2 text-sm hover:bg-navy-100 hover:text-navy-900 ${
+                                isActivePath(pathname, sub.to)
+                                  ? 'text-navy-900 font-semibold underline decoration-brand-red decoration-2 underline-offset-4'
+                                  : 'text-slate-700'
+                              }`}
+                            >
+                              {sub.label}
+                            </Link>
+                          ))}
                         </div>
-                      )}
-                    </div>
-                    <Link to="/documents" className="inline-flex items-center px-3 pt-1 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors border-b-2 border-transparent hover:border-primary-600">
-                      <span className="mr-1">📄</span> Documents
-                    </Link>
-                    <Link to="/oracle" className="inline-flex items-center px-3 pt-1 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors border-b-2 border-transparent hover:border-primary-600">
-                      <span className="mr-1">📚</span> EduScalar: Générateur de Cours
-                    </Link>
-                    {isAdmin && (
-                      <Link to="/admin/users" className="inline-flex items-center px-3 pt-1 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors border-b-2 border-transparent hover:border-primary-600">
-                        <span className="mr-1">👥</span> Utilisateurs
-                      </Link>
-                    )}
-                    {isAdmin && (
-                      <Link to="/settings" className="inline-flex items-center px-3 pt-1 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors border-b-2 border-transparent hover:border-primary-600">
-                        <span className="mr-1">⚙️</span> Paramètres
-                      </Link>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-            {/* Desktop Auth Buttons */}
-            <div className="hidden sm:flex items-center">
-              {isAuthenticated ? (
-                <button
-                  onClick={handleLogout}
-                  className="ml-3 inline-flex items-center px-5 py-2 text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-md hover:shadow-lg transition-all duration-300"
-                >
-                  <span className="mr-1">👋</span> Déconnexion
-                </button>
-              ) : (
-                <div className="flex space-x-3">
-                  <Link
-                    to="/login"
-                    className="inline-flex items-center px-5 py-2 text-sm font-semibold rounded-lg text-primary-700 bg-white border-2 border-primary-600 hover:bg-primary-50 shadow-sm hover:shadow-md transition-all duration-300"
-                  >
-                    <span className="mr-1">🔐</span> Connexion
-                  </Link>
-                  <Link
-                    to="/register"
-                    className="inline-flex items-center px-5 py-2 text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all duration-300"
-                  >
-                    <span className="mr-1">✨</span> Inscription
-                  </Link>
+                      </div>
+                    );
+                  })}
                 </div>
-              )}
-            </div>
-            {/* Mobile Menu Button */}
-            <div className="flex items-center sm:hidden">
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-colors"
-                aria-label="Menu"
-              >
-                {mobileMenuOpen ? (
-                  <span className="text-2xl">✕</span>
-                ) : (
-                  <span className="text-2xl">☰</span>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="sm:hidden border-t border-primary-100">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              <Link
-                to="/"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-colors"
-              >
-                <span className="mr-2">🏠</span> Accueil
-              </Link>
-              {isAuthenticated && (
-                <>
-                  <Link
-                    to="/forum"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-colors"
-                  >
-                    <span className="mr-2">💬</span> Forum
-                  </Link>
-                  <Link
-                    to="/events"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-colors"
-                  >
-                    <span className="mr-2">📅</span> Événements
-                  </Link>
-                  {isAdmin && (
-                    <Link
-                      to="/admin/events"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="block px-3 py-2 pl-8 rounded-md text-sm font-medium text-gray-600 hover:text-primary-600 hover:bg-primary-50 transition-colors"
-                    >
-                      <span className="mr-2">➕</span> Gérer les événements
-                    </Link>
-                  )}
-                  <Link
-                    to="/documents"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-colors"
-                  >
-                    <span className="mr-2">📄</span> Documents
-                  </Link>
-                  <Link
-                    to="/oracle"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-colors"
-                  >
-                    <span className="mr-2">📚</span> EduScalar: Générateur de Cours
-                  </Link>
-                  {isAdmin && (
-                    <Link
-                      to="/admin/users"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-colors"
-                    >
-                      <span className="mr-2">👥</span> Utilisateurs
-                    </Link>
-                  )}
-                  {isAdmin && (
-                    <Link
-                      to="/settings"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-colors"
-                    >
-                      <span className="mr-2">⚙️</span> Paramètres
-                    </Link>
-                  )}
-                </>
-              )}
-              {/* Mobile Auth Buttons */}
-              <div className="pt-4 border-t border-gray-200 mt-4">
+              </div>
+              {/* Desktop Auth Buttons */}
+              <div className="hidden md:flex items-center">
                 {isAuthenticated ? (
-                  <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      handleLogout();
-                    }}
-                    className="w-full text-left px-3 py-2 rounded-md text-base font-medium text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 transition-all"
-                  >
-                    <span className="mr-2">👋</span> Déconnexion
+                  <button onClick={handleLogout} className="ml-3 btn-primary text-sm">
+                    Déconnexion
                   </button>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="flex space-x-3">
                     <Link
                       to="/login"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-primary-700 bg-white border-2 border-primary-600 hover:bg-primary-50 transition-all"
+                      className="btn-secondary text-sm !bg-transparent !text-white !border-white hover:!bg-navy-900"
                     >
-                      <span className="mr-2">🔐</span> Connexion
+                      Connexion
                     </Link>
-                    <Link
-                      to="/register"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="block w-full text-center px-3 py-2 rounded-md text-base font-medium text-white bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-700 hover:to-purple-700 transition-all"
-                    >
-                      <span className="mr-2">✨</span> Inscription
+                    <Link to="/register" className="btn-primary text-sm">
+                      Inscription
                     </Link>
                   </div>
                 )}
               </div>
+              {/* Mobile Menu Button */}
+              <div className="flex items-center md:hidden">
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-navy-900"
+                  aria-label="Menu"
+                  aria-expanded={mobileMenuOpen}
+                  aria-controls="mobile-menu"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="24"
+                    height="24"
+                    aria-hidden="true"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  >
+                    <line x1="4" y1="6" x2="20" y2="6" />
+                    <line x1="4" y1="12" x2="20" y2="12" />
+                    <line x1="4" y1="18" x2="20" y2="18" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
-        )}
-      </nav>
-      <main className="max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
+          {/* Mobile Menu */}
+          {mobileMenuOpen && (
+            <div id="mobile-menu" className="md:hidden border-t border-navy-700">
+              <div className="px-2 pt-2 pb-3 space-y-1">
+                {visibleItems.map((item) => (
+                  <div key={item.to} className="space-y-1">
+                    <Link
+                      to={item.to}
+                      onClick={() => setMobileMenuOpen(false)}
+                      aria-current={isActivePath(pathname, item.to) ? 'page' : undefined}
+                      className={mobileLinkClass(item.to)}
+                    >
+                      {item.label}
+                    </Link>
+                    {(item.children ?? []).filter(isVisible).map((sub) => (
+                      <Link
+                        key={sub.to}
+                        to={sub.to}
+                        onClick={() => setMobileMenuOpen(false)}
+                        aria-current={isActivePath(pathname, sub.to) ? 'page' : undefined}
+                        className={mobileLinkClass(sub.to, true)}
+                      >
+                        {sub.label}
+                      </Link>
+                    ))}
+                  </div>
+                ))}
+                {/* Mobile Auth Buttons */}
+                <div className="pt-4 border-t border-navy-700 mt-4">
+                  {isAuthenticated ? (
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        handleLogout();
+                      }}
+                      className="btn-primary w-full text-center"
+                    >
+                      Déconnexion
+                    </button>
+                  ) : (
+                    <div className="space-y-2">
+                      <Link
+                        to="/login"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="btn-secondary block w-full text-center !bg-transparent !text-white !border-white hover:!bg-navy-900"
+                      >
+                        Connexion
+                      </Link>
+                      <Link
+                        to="/register"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="btn-primary block w-full text-center"
+                      >
+                        Inscription
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </nav>
+      </header>
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="flex-1 max-w-7xl mx-auto w-full py-8 px-4 sm:px-6 lg:px-8 focus:outline-none"
+      >
         {children}
       </main>
-      <footer className="bg-white/80 backdrop-blur-md border-t border-primary-100 mt-16">
+      <footer className="bg-navy-950 text-navy-100 mt-16">
         <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-          <div className="text-center text-gray-600">
-            <p className="text-sm">© 2026 HYPERVISIA - Association loi 1901 - N° W913016363</p>
-            <p className="text-xs mt-2">🤖 Développé et hébergé sur OVH par des agents virtuels IA - softfluid.fr</p>
+          <div className="text-center">
+            <p className="text-lg font-bold tracking-wide text-white">HYPERVISIA</p>
+            <p className="text-sm mt-2">© 2026 HYPERVISIA - Association loi 1901 - N° W913016363</p>
+            <p className="text-xs mt-2">Développé et hébergé sur OVH par des agents virtuels IA - softfluid.fr</p>
           </div>
         </div>
       </footer>

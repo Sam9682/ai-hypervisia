@@ -99,9 +99,9 @@ export const AdminEventsPage = () => {
         <h1 className="text-3xl font-bold">Gestion des événements</h1>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+          className="px-4 py-2 bg-brand-red text-white rounded-lg hover:bg-brand-red-dark"
         >
-          ➕ Nouvel événement
+          Nouvel événement
         </button>
       </div>
 
@@ -111,17 +111,17 @@ export const AdminEventsPage = () => {
             <div className="flex justify-between items-start">
               <div className="flex-1">
                 <h3 className="text-xl font-bold mb-2">{event.title}</h3>
-                <p className="text-gray-600 mb-2">{event.description}</p>
-                <div className="text-sm text-gray-500 space-y-1">
-                  <p>📅 Début: {new Date(event.start_date).toLocaleString('fr-FR')}</p>
-                  <p>📅 Fin: {new Date(event.end_date).toLocaleString('fr-FR')}</p>
-                  {event.location && <p>📍 {event.location}</p>}
-                  <p>👥 Participants: {event.participant_count}{event.max_participants ? `/${event.max_participants}` : ''}</p>
+                <p className="text-slate-600 mb-2">{event.description}</p>
+                <div className="text-sm text-slate-500 space-y-1">
+                  <p>Début: {new Date(event.start_date).toLocaleString('fr-FR')}</p>
+                  <p>Fin: {new Date(event.end_date).toLocaleString('fr-FR')}</p>
+                  {event.location && <p>{event.location}</p>}
+                  <p>Participants: {event.participant_count}{event.max_participants ? `/${event.max_participants}` : ''}</p>
                   <p>
                     <span className={`px-2 py-1 rounded ${
-                      event.status === 'scheduled' ? 'bg-green-100 text-green-800' :
-                      event.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                      'bg-gray-100 text-gray-800'
+                      event.status === 'scheduled' ? 'bg-navy-100 text-navy-900' :
+                      event.status === 'cancelled' ? 'bg-white text-brand-red' :
+                      'bg-slate-100 text-slate-800'
                     }`}>
                       {event.status}
                     </span>
@@ -131,15 +131,15 @@ export const AdminEventsPage = () => {
               <div className="flex space-x-2">
                 <button
                   onClick={() => handleEdit(event)}
-                  className="px-3 py-1 text-blue-600 hover:text-blue-800"
+                  className="px-3 py-1 text-navy-700 hover:text-navy-900"
                 >
-                  ✏️ Modifier
+                  Modifier
                 </button>
                 <button
                   onClick={() => handleDelete(event.id)}
-                  className="px-3 py-1 text-red-600 hover:text-red-800"
+                  className="px-3 py-1 text-brand-red hover:text-brand-red-dark"
                 >
-                  🗑️ Annuler
+                  Annuler
                 </button>
               </div>
             </div>
@@ -149,7 +149,7 @@ export const AdminEventsPage = () => {
 
       {/* Edit Modal */}
       {editingEvent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-navy-950/60 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Modifier l'événement</h2>
             <div className="space-y-4">
@@ -212,13 +212,13 @@ export const AdminEventsPage = () => {
               <div className="flex justify-end space-x-2">
                 <button
                   onClick={() => setEditingEvent(null)}
-                  className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 border rounded-lg hover:bg-slate-50"
                 >
                   Annuler
                 </button>
                 <button
                   onClick={handleSave}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                  className="px-4 py-2 bg-brand-red text-white rounded-lg hover:bg-brand-red-dark"
                 >
                   Enregistrer
                 </button>
@@ -230,7 +230,7 @@ export const AdminEventsPage = () => {
 
       {/* Create Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-navy-950/60 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Nouvel événement</h2>
             <div className="space-y-4">
@@ -293,13 +293,13 @@ export const AdminEventsPage = () => {
               <div className="flex justify-end space-x-2">
                 <button
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 border rounded-lg hover:bg-slate-50"
                 >
                   Annuler
                 </button>
                 <button
                   onClick={handleCreate}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                  className="px-4 py-2 bg-brand-red text-white rounded-lg hover:bg-brand-red-dark"
                 >
                   Créer
                 </button>

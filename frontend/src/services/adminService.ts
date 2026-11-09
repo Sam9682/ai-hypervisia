@@ -43,7 +43,7 @@ export const adminService = {
   },
 
   async updateMembershipStatus(userId: string, membershipExpiresAt: string | null, membershipStatus?: string): Promise<void> {
-    const payload: any = { 
+    const payload: { membership_expires_at: string | null; membership_status?: string } = { 
       membership_expires_at: membershipExpiresAt 
     };
     if (membershipStatus) {

@@ -2,6 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { validateEmail, getPasswordStrengthMessage } from '../utils/validation';
+import type { ApiError } from "../utils/errors";
+
+const inputClass =
+  'appearance-none relative block w-full px-4 py-3 border border-slate-300 placeholder-slate-400 text-slate-900 rounded-md focus:border-navy-700 transition-colors';
+const labelClass = 'block text-sm font-semibold text-slate-700 mb-2';
 
 export const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -54,7 +59,8 @@ export const RegisterPage = () => {
       });
       setSuccess(true);
       setTimeout(() => navigate('/login'), 3000);
-    } catch (err: any) {
+    } catch (caught) {
+      const err = caught as ApiError;
       console.error('Registration error:', err.response?.data);
       const data = err.response?.data;
       const detail = data?.detail;
@@ -78,11 +84,10 @@ export const RegisterPage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-green-200 p-8">
-            <div className="text-center">
-              <span className="text-6xl mb-4 inline-block">🎉</span>
-              <h3 className="text-2xl font-bold text-green-800 mb-4">Inscription réussie !</h3>
-              <p className="text-green-700">
+          <div className="card p-8">
+            <div className="text-center" role="status">
+              <h3 className="text-2xl font-bold text-navy-900 mb-4">Inscription réussie !</h3>
+              <p className="text-slate-700">
                 Veuillez vérifier votre email pour activer votre compte.
                 Redirection vers la page de connexion...
               </p>
@@ -97,106 +102,96 @@ export const RegisterPage = () => {
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <div className="inline-block mb-4">
-            <span className="text-6xl">✨</span>
-          </div>
-          <h2 className="text-4xl font-extrabold bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent">
-            Inscription
-          </h2>
-          <p className="mt-2 text-gray-600">Rejoignez notre communauté</p>
+          <h2 className="text-3xl font-bold text-navy-900">Inscription</h2>
+          <p className="mt-2 text-slate-600">Rejoignez notre communauté</p>
         </div>
-        <div className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-primary-100">
+        <div className="card p-8">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="rounded-lg bg-red-50 border border-red-200 p-4">
-                <div className="flex items-center">
-                  <span className="text-2xl mr-2">⚠️</span>
-                  <p className="text-sm text-red-800">{error}</p>
-                </div>
+              <div className="rounded-md bg-white border border-brand-red p-4" role="alert">
+                <p className="text-sm text-brand-red">{error}</p>
               </div>
             )}
             <div className="space-y-4">
               <div>
-                <label htmlFor="firstName" className="block text-sm font-semibold text-gray-700 mb-2">
-                  <span className="mr-1">👤</span> Prénom
+                <label htmlFor="firstName" className={labelClass}>
+                  Prénom
                 </label>
                 <input
                   id="firstName"
                   name="firstName"
                   type="text"
                   required
-                  className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                  className={inputClass}
                   placeholder="Jean"
                   value={formData.firstName}
                   onChange={handleChange}
                 />
               </div>
               <div>
-                <label htmlFor="lastName" className="block text-sm font-semibold text-gray-700 mb-2">
-                  <span className="mr-1">👤</span> Nom
+                <label htmlFor="lastName" className={labelClass}>
+                  Nom
                 </label>
                 <input
                   id="lastName"
                   name="lastName"
                   type="text"
                   required
-                  className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                  className={inputClass}
                   placeholder="Dupont"
                   value={formData.lastName}
                   onChange={handleChange}
                 />
               </div>
               <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                  <span className="mr-1">📧</span> Adresse email
+                <label htmlFor="email" className={labelClass}>
+                  Adresse email
                 </label>
                 <input
                   id="email"
                   name="email"
                   type="email"
                   required
-                  className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                  className={inputClass}
                   placeholder="jean.dupont@email.com"
                   value={formData.email}
                   onChange={handleChange}
                 />
               </div>
               <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
-                  <span className="mr-1">🔑</span> Mot de passe
+                <label htmlFor="password" className={labelClass}>
+                  Mot de passe
                 </label>
                 <input
                   id="password"
                   name="password"
                   type="password"
                   required
-                  className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                  className={inputClass}
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
                 />
-                <p className="mt-2 text-xs text-gray-500 flex items-center">
-                  <span className="mr-1">💡</span>
+                <p className="mt-2 text-xs text-slate-500">
                   Minimum 8 caractères avec majuscule, minuscule et chiffre
                 </p>
               </div>
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
-                  <span className="mr-1">🔑</span> Confirmer le mot de passe
+                <label htmlFor="confirmPassword" className={labelClass}>
+                  Confirmer le mot de passe
                 </label>
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
                   type="password"
                   required
-                  className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                  className={inputClass}
                   placeholder="••••••••"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                 />
                 {formData.confirmPassword && formData.password !== formData.confirmPassword && (
-                  <p className="mt-2 text-xs text-red-600 flex items-center">
-                    <span className="mr-1">⚠️</span>
+                  <p className="mt-2 text-xs text-brand-red">
                     Les mots de passe ne correspondent pas
                   </p>
                 )}
@@ -207,25 +202,17 @@ export const RegisterPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center items-center py-3 px-4 text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 shadow-lg hover:shadow-xl transition-all duration-300"
+                className="btn-primary w-full flex justify-center items-center py-3 px-4 text-sm disabled:opacity-50"
               >
-                {loading ? (
-                  <>
-                    <span className="mr-2">⏳</span> Inscription en cours...
-                  </>
-                ) : (
-                  <>
-                    <span className="mr-2">🚀</span> S'inscrire
-                  </>
-                )}
+                {loading ? 'Inscription en cours...' : 'S\'inscrire'}
               </button>
             </div>
           </form>
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-slate-600">
               Déjà membre ?{' '}
-              <a href="/login" className="font-semibold text-primary-600 hover:text-primary-700 transition-colors">
-                Connectez-vous ici 🔐
+              <a href="/login" className="font-semibold text-navy-700 hover:text-navy-900 transition-colors">
+                Connectez-vous ici
               </a>
             </p>
           </div>

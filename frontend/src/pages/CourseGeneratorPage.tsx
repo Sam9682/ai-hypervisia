@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import eduscalarLogo from '../assets/eduscalar.svg';
+import type { ApiError } from '../utils/errors';
 import {
   listCourses,
   generateCourse,
@@ -43,7 +44,8 @@ export const CourseGeneratorPage = () => {
           a.display_name.localeCompare(b.display_name, 'fr')
         );
         setCourses(sorted);
-      } catch (err: any) {
+      } catch (caught) {
+        const err = caught as ApiError;
         const detail = err.response?.data?.detail;
         setCoursesError(
           typeof detail === 'string' ? detail : 'Erreur lors du chargement des cours'
@@ -82,7 +84,8 @@ export const CourseGeneratorPage = () => {
       });
       setResult(response);
       setSuccessNotification(response.course_name);
-    } catch (err: any) {
+    } catch (caught) {
+      const err = caught as ApiError;
       const data = err.response?.data;
       // Extract error message as a string — avoid passing objects to React state
       let message: string;
@@ -148,12 +151,12 @@ export const CourseGeneratorPage = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Header */}
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-lg shadow-xl p-8 mb-6">
+      <div className="bg-navy-900 rounded-lg shadow-sm p-8 mb-6">
         <div className="flex items-center gap-4">
           <img src={eduscalarLogo} alt="EduScalar" className="h-20 w-20 object-contain" />
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">📚 EduScalar: Générateur de Cours</h1>
-            <p className="text-emerald-100">
+            <h1 className="text-4xl font-bold text-white mb-2">EduScalar: Générateur de Cours</h1>
+            <p className="text-navy-100">
               Adaptez vos cours de mathématiques à votre public cible grâce à l'intelligence artificielle
             </p>
           </div>
@@ -162,16 +165,15 @@ export const CourseGeneratorPage = () => {
 
       {/* Success Notification */}
       {successNotification && (
-        <div className="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-lg flex items-center justify-between">
+        <div className="mb-6 bg-navy-100 border-l-4 border-navy-700 p-4 rounded-lg flex items-center justify-between">
           <div className="flex items-center">
-            <span className="text-2xl mr-3">✅</span>
-            <p className="text-green-700 font-medium">
+            <p className="text-navy-700 font-medium">
               Cours « {successNotification} » généré avec succès !
             </p>
           </div>
           <button
             onClick={() => setSuccessNotification(null)}
-            className="text-green-600 hover:text-green-800 text-xl font-bold"
+            className="text-navy-700 hover:text-navy-900 text-xl font-bold"
             aria-label="Fermer la notification"
           >
             ×
@@ -182,9 +184,9 @@ export const CourseGeneratorPage = () => {
       {/* 4-section layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Section 1: Course Selection */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold mr-2">
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-navy-100 text-navy-700 text-sm font-bold mr-2">
               1
             </span>
             Sélection du cours
@@ -194,20 +196,18 @@ export const CourseGeneratorPage = () => {
             <div className="flex justify-center items-center py-8">
               <div className="text-center">
                 <span className="text-3xl animate-spin inline-block">⏳</span>
-                <p className="mt-2 text-gray-500 text-sm">Chargement des cours...</p>
+                <p className="mt-2 text-slate-500 text-sm">Chargement des cours...</p>
               </div>
             </div>
           ) : coursesError ? (
-            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+            <div className="bg-white border-l-4 border-brand-red p-4 rounded">
               <div className="flex items-center">
-                <span className="text-xl mr-2">⚠️</span>
-                <p className="text-red-700 text-sm">{coursesError}</p>
+                <p className="text-brand-red text-sm">{coursesError}</p>
               </div>
             </div>
           ) : courses.length === 0 ? (
             <div className="text-center py-8">
-              <span className="text-4xl mb-3 inline-block">📭</span>
-              <p className="text-gray-600 text-sm">
+              <p className="text-slate-600 text-sm">
                 Aucun cours disponible. Contactez un administrateur pour en ajouter.
               </p>
             </div>
@@ -220,8 +220,8 @@ export const CourseGeneratorPage = () => {
                   disabled={generating}
                   className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-200 text-sm ${
                     selectedCourse === course.name
-                      ? 'bg-emerald-100 border-2 border-emerald-500 text-emerald-800 font-medium'
-                      : 'hover:bg-gray-50 border-2 border-transparent text-gray-700'
+                      ? 'bg-navy-100 border-2 border-navy-700 text-navy-900 font-medium'
+                      : 'hover:bg-slate-50 border-2 border-transparent text-slate-700'
                   } ${generating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                   {course.display_name}
@@ -232,9 +232,9 @@ export const CourseGeneratorPage = () => {
         </div>
 
         {/* Section 2: Audience & Provider Selection */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold mr-2">
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-navy-100 text-navy-700 text-sm font-bold mr-2">
               2
             </span>
             Public cible & Fournisseur IA
@@ -242,7 +242,7 @@ export const CourseGeneratorPage = () => {
 
           {/* Audience Radio Buttons */}
           <div className="mb-6">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Niveau d'audience</h3>
+            <h3 className="text-sm font-medium text-slate-700 mb-3">Niveau d'audience</h3>
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {(Object.entries(AUDIENCE_LABELS) as [AudienceLevel, string][]).map(
                 ([key, label]) => (
@@ -250,8 +250,8 @@ export const CourseGeneratorPage = () => {
                     key={key}
                     className={`flex items-center px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 text-sm ${
                       audience === key
-                        ? 'bg-emerald-50 border-2 border-emerald-400'
-                        : 'border-2 border-transparent hover:bg-gray-50'
+                        ? 'bg-navy-100 border-2 border-navy-700'
+                        : 'border-2 border-transparent hover:bg-slate-50'
                     } ${generating ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <input
@@ -261,9 +261,9 @@ export const CourseGeneratorPage = () => {
                       checked={audience === key}
                       onChange={() => setAudience(key)}
                       disabled={generating}
-                      className="mr-3 text-emerald-600 focus:ring-emerald-500"
+                      className="mr-3 text-navy-700 focus:ring-brand-red"
                     />
-                    <span className={audience === key ? 'text-emerald-800 font-medium' : 'text-gray-700'}>
+                    <span className={audience === key ? 'text-navy-900 font-medium' : 'text-slate-700'}>
                       {label}
                     </span>
                   </label>
@@ -274,12 +274,12 @@ export const CourseGeneratorPage = () => {
 
           {/* AI Provider Dropdown */}
           <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Fournisseur d'IA</h3>
+            <h3 className="text-sm font-medium text-slate-700 mb-2">Fournisseur d'IA</h3>
             <select
               value={provider}
               onChange={(e) => setProvider(e.target.value as 'shai' | 'kiro' | 'openai')}
               disabled={generating}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-red focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed text-sm"
             >
               {AI_PROVIDERS.map((p) => (
                 <option key={p.value} value={p.value}>
@@ -291,15 +291,15 @@ export const CourseGeneratorPage = () => {
         </div>
 
         {/* Section 3: Custom Context */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold mr-2">
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-navy-100 text-navy-700 text-sm font-bold mr-2">
               3
             </span>
             Contexte personnel complémentaire
           </h2>
 
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-slate-500 mb-3">
             Ajoutez des instructions supplémentaires pour personnaliser l'adaptation du cours
             (max 5000 caractères). Ce texte sera ajouté au prompt envoyé à l'IA.
           </p>
@@ -311,17 +311,17 @@ export const CourseGeneratorPage = () => {
             maxLength={5000}
             rows={8}
             placeholder="Ex : Insister sur les applications en génie civil. Ajouter des exemples concrets liés à la mécanique des structures. Utiliser un ton plus informel..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed text-sm resize-y"
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-red focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed text-sm resize-y"
           />
-          <p className="text-xs text-gray-400 mt-1 text-right">
+          <p className="text-xs text-slate-400 mt-1 text-right">
             {customContext.length} / 5000
           </p>
         </div>
 
         {/* Section 4: Generation & Download */}
-        <div className="bg-white rounded-lg shadow-md p-6 md:col-span-2 lg:col-span-1">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold mr-2">
+        <div className="bg-white rounded-lg shadow-sm p-6 md:col-span-2 lg:col-span-1">
+          <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-navy-100 text-navy-700 text-sm font-bold mr-2">
               4
             </span>
             Génération & Téléchargement
@@ -333,15 +333,15 @@ export const CourseGeneratorPage = () => {
             disabled={!canGenerate}
             className={`w-full px-6 py-3 rounded-lg font-semibold text-white transition-all duration-200 ${
               canGenerate
-                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-lg hover:shadow-xl'
-                : 'bg-gray-300 cursor-not-allowed opacity-60'
+                ? 'bg-brand-red hover:bg-brand-red-dark shadow-sm'
+                : 'bg-slate-300 cursor-not-allowed opacity-60'
             }`}
           >
-            {generating ? '⏳ Génération en cours...' : '🚀 Générer le cours adapté'}
+            {generating ? '⏳ Génération en cours...' : 'Générer le cours adapté'}
           </button>
 
           {!selectedCourse && !generating && (
-            <p className="text-xs text-gray-500 mt-2 text-center">
+            <p className="text-xs text-slate-500 mt-2 text-center">
               Sélectionnez un cours pour activer la génération
             </p>
           )}
@@ -350,12 +350,12 @@ export const CourseGeneratorPage = () => {
           {generating && (
             <div className="mt-6 flex flex-col items-center py-6">
               <div className="flex space-x-2 mb-4">
-                <div className="w-3 h-3 bg-emerald-600 rounded-full animate-bounce"></div>
-                <div className="w-3 h-3 bg-emerald-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-3 h-3 bg-emerald-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-3 h-3 bg-brand-red rounded-full animate-bounce"></div>
+                <div className="w-3 h-3 bg-brand-red rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-3 h-3 bg-brand-red rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
               </div>
-              <p className="text-gray-600 text-sm font-medium">Génération en cours...</p>
-              <p className="text-gray-500 text-xs mt-1">
+              <p className="text-slate-600 text-sm font-medium">Génération en cours...</p>
+              <p className="text-slate-500 text-xs mt-1">
                 L'IA adapte le contenu pour le niveau sélectionné. Cela peut prendre 15 minutes !
               </p>
             </div>
@@ -363,14 +363,13 @@ export const CourseGeneratorPage = () => {
 
           {/* Error Display */}
           {error && (
-            <div className="mt-4 bg-red-50 border-l-4 border-red-500 p-4 rounded">
+            <div className="mt-4 bg-white border-l-4 border-brand-red p-4 rounded">
               <div className="flex items-start">
-                <span className="text-xl mr-2 flex-shrink-0">❌</span>
                 <div>
-                  <p className="text-red-700 text-sm font-medium">{error}</p>
+                  <p className="text-brand-red text-sm font-medium">{error}</p>
                   {errorType === 'compilation_error' && (
-                    <p className="text-red-600 text-xs mt-2">
-                      💡 Conseil : essayez avec un autre fournisseur d'IA pour obtenir un meilleur résultat LaTeX.
+                    <p className="text-brand-red text-xs mt-2">
+                      Conseil : essayez avec un autre fournisseur d'IA pour obtenir un meilleur résultat LaTeX.
                     </p>
                   )}
                 </div>
@@ -380,17 +379,17 @@ export const CourseGeneratorPage = () => {
 
           {/* Expired PDF Message */}
           {pdfExpired && (
-            <div className="mt-4 bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
+            <div className="mt-4 bg-slate-100 border-l-4 border-slate-400 p-4 rounded">
               <div className="flex items-start">
                 <span className="text-xl mr-2 flex-shrink-0">⏰</span>
                 <div>
-                  <p className="text-yellow-700 text-sm font-medium">
+                  <p className="text-slate-800 text-sm font-medium">
                     Le PDF a expiré (durée de vie : 1 heure).
                   </p>
                   <button
                     onClick={handleGenerate}
                     disabled={!canGenerate}
-                    className="mt-2 text-sm text-emerald-600 hover:text-emerald-800 font-medium underline"
+                    className="mt-2 text-sm text-navy-700 hover:text-navy-900 font-medium underline"
                   >
                     Relancer la génération
                   </button>
@@ -405,23 +404,23 @@ export const CourseGeneratorPage = () => {
               {/* LaTeX Content Zone */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-medium text-gray-700">Contenu LaTeX</h3>
+                  <h3 className="text-sm font-medium text-slate-700">Contenu LaTeX</h3>
                   <div className="flex space-x-2">
                     <button
                       onClick={handleCopyLatex}
-                      className="text-xs px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition-colors"
+                      className="text-xs px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition-colors"
                     >
-                      {copied ? '✓ Copié' : '📋 Copier'}
+                      {copied ? 'Copié' : 'Copier'}
                     </button>
                     <button
                       onClick={handleDownloadTex}
-                      className="text-xs px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition-colors"
+                      className="text-xs px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition-colors"
                     >
-                      📄 .tex
+                      .tex
                     </button>
                   </div>
                 </div>
-                <pre className="bg-gray-900 text-green-300 p-4 rounded-lg text-xs overflow-x-auto overflow-y-auto max-h-64 font-mono">
+                <pre className="bg-slate-900 text-navy-100 p-4 rounded-lg text-xs overflow-x-auto overflow-y-auto max-h-64 font-mono">
                   {result.latex_content}
                 </pre>
               </div>
@@ -436,9 +435,9 @@ export const CourseGeneratorPage = () => {
                       downloadPdf(result.download_id, result.filename);
                     }
                   }}
-                  className="block w-full px-6 py-3 rounded-lg font-semibold text-white text-center bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200"
+                  className="block w-full px-6 py-3 rounded-lg font-semibold text-white text-center bg-navy-700 hover:bg-navy-900 shadow-sm transition-all duration-200"
                 >
-                  📥 Télécharger le PDF — {result.filename}
+                  Télécharger le PDF — {result.filename}
                 </button>
               )}
             </div>

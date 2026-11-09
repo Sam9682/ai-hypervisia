@@ -1,4 +1,5 @@
 import api from './api';
+import type { ApiError } from "../utils/errors";
 
 interface OracleQuery {
   question: string;
@@ -20,7 +21,7 @@ interface OracleResponse {
   tokens_used?: number;
 }
 
-interface OracleHistoryItem {
+export interface OracleHistoryItem {
   id: number;
   question: string;
   answer: string;
@@ -29,7 +30,13 @@ interface OracleHistoryItem {
   processing_time: number;
 }
 
-interface ForumAnalysisResponse {
+export interface OracleStreamDone {
+  provider?: string;
+  processing_time?: number;
+  [key: string]: unknown;
+}
+
+export interface ForumAnalysisResponse {
   summary: string;
   job_loss_prediction_5y: number;
   job_loss_prediction_10y: number;
@@ -48,7 +55,7 @@ class OracleService {
   async askOracleStream(
     query: OracleQuery,
     onToken: (content: string) => void,
-    onDone: (data: any) => void,
+    onDone: (data: OracleStreamDone) => void,
     onError: (error: string) => void
   ): Promise<void> {
     // Use fetch with ReadableStream for SSE with authentication
@@ -58,7 +65,7 @@ class OracleService {
   private async askOracleStreamFetch(
     query: OracleQuery,
     onToken: (content: string) => void,
-    onDone: (data: any) => void,
+    onDone: (data: OracleStreamDone) => void,
     onError: (error: string) => void
   ): Promise<void> {
     const token = localStorage.getItem('token');
@@ -111,7 +118,8 @@ class OracleService {
           }
         }
       }
-    } catch (error: any) {
+    } catch (caught) {
+      const error = caught as ApiError;
       onError(error.message || 'Connection error');
     }
   }
