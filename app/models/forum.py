@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from sqlalchemy import String, Boolean, DateTime, Text, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
+from app.security.types import EncryptedString
 
 
 class Topic(Base):
@@ -24,8 +25,10 @@ class Topic(Base):
     )
     
     # Topic information
+    # Encrypted-at-rest when DB field encryption is enabled (detect-on-read).
+    # Widened to Text because ciphertext is longer than the plaintext title.
     title: Mapped[str] = mapped_column(
-        String(255),
+        EncryptedString,
         nullable=False
     )
     
@@ -102,8 +105,9 @@ class Post(Base):
     )
     
     # Post content
+    # Encrypted-at-rest when DB field encryption is enabled (detect-on-read).
     content: Mapped[str] = mapped_column(
-        Text,
+        EncryptedString,
         nullable=False
     )
     
