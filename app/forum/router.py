@@ -13,6 +13,7 @@ from sqlalchemy import func
 from app.database import get_db
 from app.models import User, Topic, Post
 from app.forum.dependencies import get_verified_member, get_administrator
+from app.forum.config_service import get_view_button_enabled
 from app.forum.schemas import (
     TopicCreate,
     TopicResponse,
@@ -26,6 +27,25 @@ from app.services.notification_service import notification_service
 
 
 router = APIRouter(prefix="/api/forum", tags=["forum"])
+
+
+@router.get("/config")
+async def get_forum_config(
+    db: Session = Depends(get_db)
+):
+    """Return the public forum configuration (public, unauthenticated).
+
+    Exposes the ``view_button_enabled`` flag so logged-out visitors on the home
+    page can decide whether to render the "View" button. No auth dependency is
+    used here, consistent with ``/forum/topics/public``.
+
+    Args:
+        db: Database session
+
+    Returns:
+        A JSON object of the shape ``{"view_button_enabled": <bool>}``.
+    """
+    return {"view_button_enabled": get_view_button_enabled(db)}
 
 
 @router.get("/topics/public", response_model=list[TopicResponse])
@@ -396,7 +416,7 @@ async def get_topic_public_html(
         """
     
     # Get first post content for description
-    first_post_content = posts[0].content[:200] if posts else "Discussion sur le forum HYPERVISIA"
+    first_post_content = posts[0].content[:200] if posts else "Discussion sur le forum OPCP"
     
     html_content = f"""
     <!DOCTYPE html>
@@ -404,12 +424,12 @@ async def get_topic_public_html(
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{topic.title} - HYPERVISIA Forum</title>
+        <title>{topic.title} - OPCP Forum</title>
         <meta property="og:title" content="{topic.title}" />
         <meta property="og:description" content="{first_post_content}" />
         <meta property="og:type" content="article" />
-        <meta property="og:url" content="https://hypervisia.fr/api/forum/topics/{topic_id}/publichtml" />
-        <meta property="og:site_name" content="HYPERVISIA Forum" />
+        <meta property="og:url" content="https://opcp-psmc.com/api/forum/topics/{topic_id}/publichtml" />
+        <meta property="og:site_name" content="OPCP Forum" />
         <meta name="description" content="{first_post_content}" />
         <style>
             body {{ font-family: Arial, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background: #fff; }}
