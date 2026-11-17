@@ -27,11 +27,52 @@ export const RichTextEditor = ({ value, onChange, placeholder, disabled }: RichT
     }
   };
 
+  const savedRangeRef = useRef<Range | null>(null);
+
+  const saveSelection = () => {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && editorRef.current?.contains(sel.anchorNode)) {
+      savedRangeRef.current = sel.getRangeAt(0).cloneRange();
+    }
+  };
+
+  const restoreSelection = () => {
+    const sel = window.getSelection();
+    if (sel && savedRangeRef.current) {
+      sel.removeAllRanges();
+      sel.addRange(savedRangeRef.current);
+    }
+  };
+
   const execCommand = (command: string, value?: string) => {
+    editorRef.current?.focus();
+    document.execCommand('styleWithCSS', false, 'true');
     document.execCommand(command, false, value);
     editorRef.current?.focus();
     handleInput();
   };
+
+  const applyWithSavedSelection = (command: string, value: string) => {
+    editorRef.current?.focus();
+    restoreSelection();
+    execCommand(command, value);
+  };
+
+  const FONT_FAMILIES = [
+    { label: 'Police', value: '' },
+    { label: 'Sans-serif', value: 'Arial, Helvetica, sans-serif' },
+    { label: 'Serif', value: 'Georgia, "Times New Roman", serif' },
+    { label: 'Monospace', value: '"Courier New", monospace' },
+    { label: 'Cursive', value: '"Comic Sans MS", cursive' },
+  ];
+
+  const FONT_SIZES = [
+    { label: 'Taille', value: '' },
+    { label: 'Petit', value: '2' },
+    { label: 'Normal', value: '3' },
+    { label: 'Grand', value: '5' },
+    { label: 'Très grand', value: '6' },
+  ];
 
   const insertImage = () => {
     const url = prompt('Entrez l\'URL de l\'image:');
@@ -49,7 +90,7 @@ export const RichTextEditor = ({ value, onChange, placeholder, disabled }: RichT
           <button
             type="button"
             onClick={() => execCommand('bold')}
-            className="p-2 hover:bg-slate-200 rounded transition-colors text-sm"
+            className="p-2 hover:bg-slate-200 rounded transition-colors cursor-pointer disabled:cursor-not-allowed text-sm"
             title="Gras (Ctrl+B)"
             disabled={disabled}
           >
@@ -58,7 +99,7 @@ export const RichTextEditor = ({ value, onChange, placeholder, disabled }: RichT
           <button
             type="button"
             onClick={() => execCommand('italic')}
-            className="p-2 hover:bg-slate-200 rounded transition-colors text-sm"
+            className="p-2 hover:bg-slate-200 rounded transition-colors cursor-pointer disabled:cursor-not-allowed text-sm"
             title="Italique (Ctrl+I)"
             disabled={disabled}
           >
@@ -67,7 +108,7 @@ export const RichTextEditor = ({ value, onChange, placeholder, disabled }: RichT
           <button
             type="button"
             onClick={() => execCommand('underline')}
-            className="p-2 hover:bg-slate-200 rounded transition-colors text-sm"
+            className="p-2 hover:bg-slate-200 rounded transition-colors cursor-pointer disabled:cursor-not-allowed text-sm"
             title="Souligné (Ctrl+U)"
             disabled={disabled}
           >
@@ -76,7 +117,7 @@ export const RichTextEditor = ({ value, onChange, placeholder, disabled }: RichT
           <button
             type="button"
             onClick={() => execCommand('strikeThrough')}
-            className="p-2 hover:bg-slate-200 rounded transition-colors text-sm"
+            className="p-2 hover:bg-slate-200 rounded transition-colors cursor-pointer disabled:cursor-not-allowed text-sm"
             title="Barré"
             disabled={disabled}
           >
@@ -84,12 +125,62 @@ export const RichTextEditor = ({ value, onChange, placeholder, disabled }: RichT
           </button>
         </div>
 
+        {/* Font, size and colors */}
+        <div className="flex flex-wrap items-center gap-1 border-r border-slate-300 pr-2">
+          <select
+            className="text-sm border border-slate-300 rounded px-1 py-1 bg-white cursor-pointer"
+            title="Police"
+            disabled={disabled}
+            value=""
+            onMouseDown={saveSelection}
+            onChange={(e) => e.target.value && applyWithSavedSelection('fontName', e.target.value)}
+          >
+            {FONT_FAMILIES.map((f) => (
+              <option key={f.label} value={f.value}>{f.label}</option>
+            ))}
+          </select>
+          <select
+            className="text-sm border border-slate-300 rounded px-1 py-1 bg-white cursor-pointer"
+            title="Taille du texte"
+            disabled={disabled}
+            value=""
+            onMouseDown={saveSelection}
+            onChange={(e) => e.target.value && applyWithSavedSelection('fontSize', e.target.value)}
+          >
+            {FONT_SIZES.map((s) => (
+              <option key={s.label} value={s.value}>{s.label}</option>
+            ))}
+          </select>
+          <label className="flex items-center gap-1 text-sm p-1 hover:bg-slate-200 rounded cursor-pointer" title="Couleur du texte">
+            <span>Texte</span>
+            <input
+              type="color"
+              defaultValue="#000000"
+              disabled={disabled}
+              className="h-6 w-6 p-0 border border-slate-300 rounded cursor-pointer"
+              onMouseDown={saveSelection}
+              onChange={(e) => applyWithSavedSelection('foreColor', e.target.value)}
+            />
+          </label>
+          <label className="flex items-center gap-1 text-sm p-1 hover:bg-slate-200 rounded cursor-pointer" title="Couleur de fond du texte">
+            <span>Fond</span>
+            <input
+              type="color"
+              defaultValue="#ffff00"
+              disabled={disabled}
+              className="h-6 w-6 p-0 border border-slate-300 rounded cursor-pointer"
+              onMouseDown={saveSelection}
+              onChange={(e) => applyWithSavedSelection('hiliteColor', e.target.value)}
+            />
+          </label>
+        </div>
+
         {/* Headings */}
         <div className="flex gap-1 border-r border-slate-300 pr-2">
           <button
             type="button"
             onClick={() => execCommand('formatBlock', '<h1>')}
-            className="p-2 hover:bg-slate-200 rounded transition-colors text-sm font-bold"
+            className="p-2 hover:bg-slate-200 rounded transition-colors cursor-pointer disabled:cursor-not-allowed text-sm font-bold"
             title="Titre 1"
             disabled={disabled}
           >
@@ -98,7 +189,7 @@ export const RichTextEditor = ({ value, onChange, placeholder, disabled }: RichT
           <button
             type="button"
             onClick={() => execCommand('formatBlock', '<h2>')}
-            className="p-2 hover:bg-slate-200 rounded transition-colors text-sm font-bold"
+            className="p-2 hover:bg-slate-200 rounded transition-colors cursor-pointer disabled:cursor-not-allowed text-sm font-bold"
             title="Titre 2"
             disabled={disabled}
           >
@@ -107,7 +198,7 @@ export const RichTextEditor = ({ value, onChange, placeholder, disabled }: RichT
           <button
             type="button"
             onClick={() => execCommand('formatBlock', '<h3>')}
-            className="p-2 hover:bg-slate-200 rounded transition-colors text-sm font-bold"
+            className="p-2 hover:bg-slate-200 rounded transition-colors cursor-pointer disabled:cursor-not-allowed text-sm font-bold"
             title="Titre 3"
             disabled={disabled}
           >
@@ -120,7 +211,7 @@ export const RichTextEditor = ({ value, onChange, placeholder, disabled }: RichT
           <button
             type="button"
             onClick={() => execCommand('insertUnorderedList')}
-            className="p-2 hover:bg-slate-200 rounded transition-colors text-sm"
+            className="p-2 hover:bg-slate-200 rounded transition-colors cursor-pointer disabled:cursor-not-allowed text-sm"
             title="Liste à puces"
             disabled={disabled}
           >
@@ -129,7 +220,7 @@ export const RichTextEditor = ({ value, onChange, placeholder, disabled }: RichT
           <button
             type="button"
             onClick={() => execCommand('insertOrderedList')}
-            className="p-2 hover:bg-slate-200 rounded transition-colors text-sm"
+            className="p-2 hover:bg-slate-200 rounded transition-colors cursor-pointer disabled:cursor-not-allowed text-sm"
             title="Liste numérotée"
             disabled={disabled}
           >
@@ -142,7 +233,7 @@ export const RichTextEditor = ({ value, onChange, placeholder, disabled }: RichT
           <button
             type="button"
             onClick={() => execCommand('justifyLeft')}
-            className="p-2 hover:bg-slate-200 rounded transition-colors text-sm"
+            className="p-2 hover:bg-slate-200 rounded transition-colors cursor-pointer disabled:cursor-not-allowed text-sm"
             title="Aligner à gauche"
             disabled={disabled}
           >
@@ -151,7 +242,7 @@ export const RichTextEditor = ({ value, onChange, placeholder, disabled }: RichT
           <button
             type="button"
             onClick={() => execCommand('justifyCenter')}
-            className="p-2 hover:bg-slate-200 rounded transition-colors text-sm"
+            className="p-2 hover:bg-slate-200 rounded transition-colors cursor-pointer disabled:cursor-not-allowed text-sm"
             title="Centrer"
             disabled={disabled}
           >
@@ -160,7 +251,7 @@ export const RichTextEditor = ({ value, onChange, placeholder, disabled }: RichT
           <button
             type="button"
             onClick={() => execCommand('justifyRight')}
-            className="p-2 hover:bg-slate-200 rounded transition-colors text-sm"
+            className="p-2 hover:bg-slate-200 rounded transition-colors cursor-pointer disabled:cursor-not-allowed text-sm"
             title="Aligner à droite"
             disabled={disabled}
           >
@@ -173,7 +264,7 @@ export const RichTextEditor = ({ value, onChange, placeholder, disabled }: RichT
           <button
             type="button"
             onClick={() => execCommand('insertHorizontalRule')}
-            className="p-2 hover:bg-slate-200 rounded transition-colors text-sm"
+            className="p-2 hover:bg-slate-200 rounded transition-colors cursor-pointer disabled:cursor-not-allowed text-sm"
             title="Ligne de séparation"
             disabled={disabled}
           >
@@ -182,7 +273,7 @@ export const RichTextEditor = ({ value, onChange, placeholder, disabled }: RichT
           <button
             type="button"
             onClick={insertImage}
-            className="p-2 hover:bg-slate-200 rounded transition-colors text-sm"
+            className="p-2 hover:bg-slate-200 rounded transition-colors cursor-pointer disabled:cursor-not-allowed text-sm"
             title="Insérer une image"
             disabled={disabled}
           >

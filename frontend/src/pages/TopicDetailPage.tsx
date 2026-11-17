@@ -155,7 +155,7 @@ export const TopicDetailPage = () => {
   return (
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="mb-6">
-        <Link to="/forum" className="inline-flex items-center text-navy-700 hover:text-navy-900 font-medium transition-colors">
+        <Link to="/forum" className="inline-flex items-center text-navy-700 hover:text-navy-900 font-medium transition-colors cursor-pointer">
           Retour au forum
         </Link>
       </div>
@@ -209,7 +209,7 @@ export const TopicDetailPage = () => {
                         {canEditPost(post) && (
                           <button
                             onClick={() => handleEditPost(post)}
-                            className="text-sm text-navy-700 hover:text-navy-900 font-medium transition-colors"
+                            className="text-sm text-navy-700 hover:text-navy-900 font-medium transition-colors cursor-pointer"
                           >
                             Modifier
                           </button>
@@ -217,7 +217,7 @@ export const TopicDetailPage = () => {
                         {canDeletePost() && (
                           <button
                             onClick={() => handleDeletePost(post.id)}
-                            className="text-sm text-brand-red hover:text-brand-red-dark font-medium transition-colors"
+                            className="text-sm text-brand-red hover:text-brand-red-dark font-medium transition-colors cursor-pointer"
                           >
                             Supprimer
                           </button>
